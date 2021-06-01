@@ -1,0 +1,80 @@
+﻿<Window x:Class="DataProcessing.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:local="clr-namespace:DataProcessing"
+        xmlns:utils="clr-namespace:DataProcessing.Utils"
+        xmlns:converters="clr-namespace:DataProcessing.Converters"
+        xmlns:usercontrols="clr-namespace:DataProcessing.UserControls"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="Auto" Width="Auto" WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+    
+    <Grid>
+        <!-- Overlay -->
+        <Grid Visibility="{Binding IsWorking, Converter={StaticResource BoolToVisibility}}"
+              Panel.ZIndex="1">
+            <Rectangle Fill="#ffffff"
+                       Opacity="0.7" />
+            <Border BorderThickness="0 0 0 3"
+                    BorderBrush="{StaticResource MainButtonBackgroundBrush}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="10">
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                    <usercontrols:LoadingControl Diameter="50"
+                                                 Color1="#217346"
+                                                 Color2="Transparent" />
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="{Binding WorkLabel,FallbackValue=Working...}" 
+                           FontSize="18" 
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="5 0 0 0" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Content -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <!-- Navigation column -->
+                <ColumnDefinition Width="140" />
+                <!-- Content column -->
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Navigation -->
+            <StackPanel Style="{StaticResource Navigation}"
+                    Grid.Column="0">
+                <RadioButton Content="Home"
+                         IsChecked="{Binding IsHomeChecked}"
+                         Tag="{iconPacks:BootstrapIcons Kind=HouseDoor, Width=30, Height=30}"
+                         GroupName="Navigation" 
+                         Style="{StaticResource Naviagtion__Button}"
+                         Command="{Binding UpdateViewCommand}"
+                         CommandParameter="{x:Static utils:ViewType.Home}" />
+                <RadioButton Content="Workfile"
+                         Visibility="Collapsed"
+                         IsChecked="{Binding IsWorkfileChecked}"
+                         Tag="{iconPacks:BootstrapIcons Kind=FileEarmark, Width=30, Height=30}"
+                         GroupName="Navigation"
+                         Style="{StaticResource Naviagtion__Button}"
+                         Command="{Binding UpdateViewCommand}"
+                         CommandParameter="{x:Static utils:ViewType.WorkfileEditor}" />
+            </StackPanel>
+
+            <!-- Content -->
+            <ContentControl Content="{Binding SelectedViewModel}"
+                        Grid.Column="1" />
+        </Grid>
+    </Grid>
+</Window>

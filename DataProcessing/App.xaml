@@ -1,0 +1,55 @@
+﻿<Application x:Class="DataProcessing.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DataProcessing"
+             xmlns:viewModels="clr-namespace:DataProcessing.ViewModels"
+             xmlns:views="clr-namespace:DataProcessing.Views"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/DataGridStyle.xaml" />
+                <ResourceDictionary Source="Styles/TextBoxStyle.xaml" />
+                <ResourceDictionary Source="Styles/ButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/NavigationStyle.xaml" />
+
+                <ResourceDictionary>
+                    <!-- Home -->
+                    <DataTemplate DataType="{x:Type viewModels:HomeViewModel}">
+                        <views:Home />
+                    </DataTemplate>
+                    
+                    <!-- Workfile editor -->
+                    <DataTemplate DataType="{x:Type viewModels:WorkfileEditorViewModel}">
+                        <views:WorkfileEditor />
+                    </DataTemplate>
+
+                    <!-- Export settings -->
+                    <DataTemplate DataType="{x:Type viewModels:ExportSettingsViewModel}">
+                        <views:ExportSettings />
+                    </DataTemplate>
+
+                    <!-- OpenWorkfile -->
+                    <DataTemplate DataType="{x:Type viewModels:OpenWorkfileViewModel}">
+                        <views:OpenWorkfile />
+                    </DataTemplate>
+
+                    <!-- NewWorkfile -->
+                    <DataTemplate DataType="{x:Type viewModels:NewWorkfileViewModel}">
+                        <views:NewWorkfile />
+                    </DataTemplate>
+
+                    <!-- TextDialog -->
+                    <DataTemplate DataType="{x:Type viewModels:TextDialogViewModel}">
+                        <views:TextDialog />
+                    </DataTemplate>
+
+                    <!-- RadioDialog -->
+                    <DataTemplate DataType="{x:Type viewModels:RadioDialogViewModel}">
+                        <views:RadioDialog />
+                    </DataTemplate>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

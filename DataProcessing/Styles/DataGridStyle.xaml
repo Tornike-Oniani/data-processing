@@ -1,0 +1,64 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:DataProcessing.Styles">
+    
+    <SolidColorBrush x:Key="GridLineBrush" Color="#d4d4d4" />
+    <SolidColorBrush x:Key="SelectionColorBrush" Color="#217346" />
+    <SolidColorBrush x:Key="ColumnHeaderBackgroundBrush" Color="#e6e6e6" />
+    <SolidColorBrush x:Key="ColumneHeaderBorderBrush" Color="#999999" />
+
+    <Style x:Key="MainDataGridColumnHeader" TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="Background" Value="{StaticResource ColumnHeaderBackgroundBrush}" />
+        <Setter Property="BorderThickness" Value="0 0 1 1" />
+        <Setter Property="BorderBrush" Value="{StaticResource ColumneHeaderBorderBrush}" />
+        <Setter Property="Padding" Value="0 5 0 2" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="MainDataGridRow" TargetType="{x:Type DataGridRow}">
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="BorderThickness" Value="0 2 0 2" />
+                <Setter Property="BorderBrush" Value="{StaticResource SelectionColorBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MainDataGridCell" TargetType="DataGridCell">
+        <Setter Property="Padding" Value="2.5" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Right" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Foreground" Value="#000000"/>
+                </Trigger>
+            </Style.Triggers>
+    </Style>
+
+    <Style x:Key="MainDataGrid" TargetType="{x:Type DataGrid}">
+        <Setter Property="FontFamily" Value="Verdana" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="AutoGenerateColumns" Value="False" />
+        <Setter Property="RowHeaderWidth" Value="0" />
+        <Setter Property="SelectionUnit" Value="FullRow" />
+        <Setter Property="SelectionMode" Value="Single" />
+        <Setter Property="CanUserReorderColumns" Value="False" />
+        <Setter Property="CanUserResizeColumns" Value="True" />
+        <Setter Property="Background" Value="#ffffff" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource GridLineBrush}" />
+        <Setter Property="VerticalGridLinesBrush" Value="{StaticResource GridLineBrush}" />
+        <Setter Property="ColumnHeaderStyle" Value="{StaticResource MainDataGridColumnHeader}" />
+        <Setter Property="RowStyle" Value="{StaticResource MainDataGridRow}" />
+        <Setter Property="CellStyle" Value="{StaticResource MainDataGridCell}" />
+    </Style>
+
+
+</ResourceDictionary>

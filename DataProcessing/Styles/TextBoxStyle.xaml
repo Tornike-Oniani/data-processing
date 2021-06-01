@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:DataProcessing.Styles">
+    
+    <Style TargetType="{x:Type TextBox}">
+        <Setter Property="BorderThickness" Value="1 1 1 1" />
+        <Setter Property="BorderBrush" Value="#c6c6c6" />
+        <Setter Property="Padding" Value="1 2 1 2" />
+    </Style>
+</ResourceDictionary>

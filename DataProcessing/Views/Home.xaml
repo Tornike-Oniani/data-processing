@@ -1,0 +1,185 @@
+﻿<UserControl x:Class="DataProcessing.Views.Home"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:local="clr-namespace:DataProcessing.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- ListView Template -->
+        <ControlTemplate x:Key="ListViewTemplate" TargetType="{x:Type ListView}">
+            <Grid Background="#f3f3f3">
+                <Grid.RowDefinitions>
+                    <!-- Lables row -->
+                    <RowDefinition Height="Auto" />
+                    <!-- Content row-->
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <!-- Labels -->
+                <Border BorderBrush="#d2d2d2"
+                        BorderThickness="0 0 0 1"
+                        Grid.Row="0">
+                    <Grid Margin="15 7 15 7">
+                        <Grid.ColumnDefinitions>
+                            <!-- Icon column -->
+                            <ColumnDefinition Width="30" />
+                            <!-- Name column -->
+                            <ColumnDefinition Width="*" />
+                            <!-- Books count column -->
+                            <ColumnDefinition Width=".5*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Icon -->
+                        <iconPacks:PackIconBootstrapIcons Kind="FileEarmark"
+                                                          Foreground="#555555"
+                                                          HorizontalAlignment="Center"
+                                                          Grid.Column="0" />
+                        
+                        <!-- Name label -->
+                        <TextBlock Text="Name"
+                                   Margin="10 0 0 0"
+                                   Grid.Column="1" />
+
+                        <!-- Name label -->
+                        <TextBlock Text="Date Modified"
+                                   Foreground="#555555"
+                                   Grid.Column="2" />
+                    </Grid>
+                </Border>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1">
+                    <ItemsPresenter />
+                </ScrollViewer>
+            </Grid>
+        </ControlTemplate>
+        
+        <!-- ListItem Tempalte -->
+        <ControlTemplate x:Key="ItemView" TargetType="{x:Type ListViewItem}">
+            <Border x:Name="wrapper"
+                    BorderThickness="0 0 0 1"
+                    BorderBrush="#d2d2d2"
+                    Padding="15 5 15 5">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding DataContext.OpenWorkfileCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                </Border.InputBindings>
+                <ContentPresenter x:Name="content" />
+            </Border>
+
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="wrapper" Property="Background" Value="#d2d2d2" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter TargetName="wrapper" Property="Background" Value="#b1b1b1" />
+                    <Setter TargetName="wrapper" Property="BorderThickness" Value="2 2 2 2" />
+                    <Setter TargetName="wrapper" Property="BorderBrush" Value="#000000" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- ListItem data template (Workfile template)-->
+        <DataTemplate x:Key="DataView">
+            <Grid Margin="0 5 0 5">
+                <Grid.ColumnDefinitions>
+                    <!-- Icon column -->
+                    <ColumnDefinition Width="30" />
+                    <!-- Name column -->
+                    <ColumnDefinition Width="*" />
+                    <!-- Date modified column -->
+                    <ColumnDefinition Width=".5*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Icon -->
+                <iconPacks:PackIconBootstrapIcons Kind="FileBarGraph" 
+                                                  Foreground="{StaticResource MainButtonBackgroundBrush}"
+                                                  Width="30"
+                                                  Height="30"
+                                                  HorizontalAlignment="Center"
+                                                  Grid.Column="0" />
+                
+                <!-- Name -->
+                <TextBlock Text="{Binding Name}"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           Margin="10 0 0 0"
+                           Grid.Column="1" />
+
+                <!-- Date modified -->
+                <TextBlock Text="2h ago"
+                           Foreground="#555555"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           Grid.Column="2" />
+            </Grid>
+        </DataTemplate>
+
+        <Style x:Key="ItemStyle" TargetType="{x:Type ListViewItem}">
+            <Setter Property="Template" Value="{StaticResource ItemView}" />
+            <Setter Property="ContentTemplate" Value="{StaticResource DataView}" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Header row -->
+            <RowDefinition Height="57" />
+            <!-- Content row -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Border BorderBrush="#d2d2d2"
+                BorderThickness="0 0 0 1"
+                Background="#ffffff"
+                Padding="20 0 20 0"
+                Grid.Row="0">
+            <TextBlock Text="Home"
+                       FontWeight="Bold"
+                       FontSize="22"
+                       VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Content -->
+        <Grid Background="#f3f3f3"
+              Grid.Row="1">
+            <Grid.RowDefinitions>
+                <!-- Menu row -->
+                <RowDefinition Height="65" />
+                <!-- List row -->
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Menu item and border -->
+            <Button Content="Import excel file"
+                    Command="{Binding ImportExcelCommand}"
+                    Style="{StaticResource MainButtonStyle}"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="left"
+                    Margin="20 0 0 15"
+                    Padding="8 7"
+                    Grid.Row="0"/>
+            <Border BorderBrush="#d2d2d2" 
+                    BorderThickness="0 0 0 1"
+                    VerticalAlignment="Bottom"
+                    Margin="20 0 20 10" />
+
+            <ListView ItemsSource="{Binding Workfiles}"
+                      SelectedItem="{Binding SelectedWorkfile}"
+                      Template="{StaticResource ListViewTemplate}"
+                      ItemContainerStyle="{StaticResource ItemStyle}"
+                      Margin="20 0 20 0"
+                      Grid.Row="2">
+                <ListView.ContextMenu>
+                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Rename" Command="{Binding RenameWorkfileCommand}" />
+                        <MenuItem Header="Delete" Command="{Binding DeleteWorkfileCommand}" />
+                    </ContextMenu>
+                </ListView.ContextMenu>
+            </ListView>
+
+        </Grid>
+    </Grid>
+</UserControl>
