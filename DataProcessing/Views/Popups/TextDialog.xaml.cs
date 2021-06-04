@@ -23,6 +23,12 @@ namespace DataProcessing.Views
         public TextDialog()
         {
             InitializeComponent();
+
+            this.Loaded += (s, e) =>
+            {
+                Keyboard.Focus(this);
+                txbInput.Focus();
+            };
         }
     }
 }

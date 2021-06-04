@@ -41,7 +41,8 @@ CREATE TABLE ""{name}"" (
 	""C""	NUMERIC,
 	""D""	NUMERIC,
 	""State""	INTEGER,
-	""Counter""	INTEGER,
+	""IsMarker""	NUMERIC NOT NULL,
+    ""Counter""	INTEGER,
 	""PreviousId""	INTEGER UNIQUE,
 	PRIMARY KEY(""Id"" AUTOINCREMENT),
 	FOREIGN KEY(""PreviousId"") REFERENCES ""{name}""(""Id"") ON DELETE SET NULL

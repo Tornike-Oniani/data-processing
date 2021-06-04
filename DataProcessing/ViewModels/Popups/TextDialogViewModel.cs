@@ -11,6 +11,7 @@ namespace DataProcessing.ViewModels
 {
     class TextDialogViewModel : BaseViewModel
     {
+        // Private attributes
         private IWindow window;
 
         // Public properties
@@ -23,11 +24,12 @@ namespace DataProcessing.ViewModels
         public ICommand CancelCommand { get; set; }
 
         // Constructor
-        public TextDialogViewModel(string label, IWindow window)
+        public TextDialogViewModel(string label, string input, IWindow window)
         {
             // Init
             this.Label = label;
             this.window = window;
+            this.Input = input;
 
             // Initialize commands
             OkCommand = new RelayCommand(Ok);
