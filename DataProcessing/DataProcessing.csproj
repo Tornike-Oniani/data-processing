@@ -189,10 +189,10 @@
     <Compile Include="Classes\ObservableObject.cs" />
     <Compile Include="Classes\WorkfileManager.cs" />
     <Compile Include="Utils\Converters\TimeSpanToStringConverter.cs" />
-    <Compile Include="Models\DataSample.cs" />
+    <Compile Include="Models\TimeStamp.cs" />
     <Compile Include="Models\Workfile.cs" />
     <Compile Include="Repositories\BaseRepo.cs" />
-    <Compile Include="Repositories\SampleRepo.cs" />
+    <Compile Include="Repositories\TimeStampRepo.cs" />
     <Compile Include="Repositories\WorkfileRepo.cs" />
     <Compile Include="Utils\FocusExtension.cs" />
     <Compile Include="Utils\RelayCommand.cs" />

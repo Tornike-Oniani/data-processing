@@ -13,9 +13,9 @@ namespace DataProcessing.Classes
     class DisplayManager
     {
         // Properties
-        public ObservableCollection<DataSample> Items { get; set; }
-        public DataSample SelectedRow { get; set; }
-        public List<DataSample> SelectedRows { get; set; }
+        public ObservableCollection<TimeStamp> Items { get; set; }
+        public TimeStamp SelectedRow { get; set; }
+        public List<TimeStamp> SelectedRows { get; set; }
 
         // Commands
         public ICommand PopulateCommand { get; set; }
@@ -25,8 +25,8 @@ namespace DataProcessing.Classes
         public DisplayManager()
         {
             //Init
-            Items = new ObservableCollection<DataSample>();
-            SelectedRows = new List<DataSample>();
+            Items = new ObservableCollection<TimeStamp>();
+            SelectedRows = new List<TimeStamp>();
 
             // Command initialization
             PopulateCommand = new RelayCommand(Populate);
@@ -36,30 +36,33 @@ namespace DataProcessing.Classes
         // Command actions
         public async void Populate(object input = null)
         {
-            List<DataSample> items = new List<DataSample>();
+            //List<TimeStamp> items = new List<TimeStamp>();
 
-            Services.GetInstance().SetWorkStatus(true);
-            await Task.Run(() =>
-            {
-                items = DataSample.Find();
-            });
-            Services.GetInstance().SetWorkStatus(false);
+            //Services.GetInstance().SetWorkStatus(true);
+            //await Task.Run(() =>
+            //{
+            //    items = TimeStamp.Find();
+            //});
+            //Services.GetInstance().SetWorkStatus(false);
 
+            //PopulateCollection(items);
+
+            List<TimeStamp> items = TimeStamp.Find();
             PopulateCollection(items);
         }
         public void Test(object input = null)
         {
             foreach (var item in SelectedRows)
             {
-                Console.WriteLine(item.AT);
+                Console.WriteLine(item.Time);
             }
         }
 
         // Private helpers
-        private void PopulateCollection(List<DataSample> items)
+        private void PopulateCollection(List<TimeStamp> items)
         {
             Items.Clear();
-            foreach (DataSample item in items)
+            foreach (TimeStamp item in items)
             {
                 Items.Add(item);
             }

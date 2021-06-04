@@ -20,10 +20,10 @@ namespace DataProcessing.Models
         public Dictionary<int, string> StatesMapping { get; set; }
         public double LastSectionTime { get; set; }
 
-        public void CalculateStats(List<DataSample> calculatedSamples, ExportOptions options)
+        public void CalculateStats(List<TimeStamp> calculatedSamples, ExportOptions options)
         {
             // Calculate total stats
-            Stats.TotalTime = calculatedSamples.Sum((sample) => sample.D);
+            Stats.TotalTime = calculatedSamples.Sum((sample) => sample.TimeDifferenceInSeconds);
             states = calculatedSamples.Where(sample => sample.State != 0).Select(sample => sample.State).Distinct().ToList();
             states.Sort();
 
@@ -67,30 +67,30 @@ namespace DataProcessing.Models
 
             Stats.CalculatePercentages();
 
-            int previous = calculatedSamples[0].D;
+            int previous = calculatedSamples[0].TimeDifferenceInSeconds;
             DuplicatedTimes.Add(new Tuple<int, int>(previous, calculatedSamples[1].State));
             for (int i = 1; i < calculatedSamples.Count; i++)
             {
-                DuplicatedTimes.Add(new Tuple<int, int>(calculatedSamples[i].D + previous, calculatedSamples[i].State));
+                DuplicatedTimes.Add(new Tuple<int, int>(calculatedSamples[i].TimeDifferenceInSeconds + previous, calculatedSamples[i].State));
                 if (i < calculatedSamples.Count - 1)
                 {
-                    DuplicatedTimes.Add(new Tuple<int, int>(calculatedSamples[i].D + previous, calculatedSamples[i + 1].State));
+                    DuplicatedTimes.Add(new Tuple<int, int>(calculatedSamples[i].TimeDifferenceInSeconds + previous, calculatedSamples[i + 1].State));
                 }
-                previous = previous + calculatedSamples[i].D;
+                previous = previous + calculatedSamples[i].TimeDifferenceInSeconds;
             }
         }
-        public void CalculateHourlyStats(List<DataSample> calculatedSamples, int seconds, ExportOptions options)
+        public void CalculateHourlyStats(List<TimeStamp> calculatedSamples, int seconds, ExportOptions options)
         {
             int time = 0;
             int timeMark = 0;
             int indexCounter = 1;
 
-            List<DataSample> hourSamples = new List<DataSample>();
+            List<TimeStamp> hourSamples = new List<TimeStamp>();
             int[] indexes = new int[2];
             indexes[0] = indexCounter;
-            foreach (DataSample sample in calculatedSamples)
+            foreach (TimeStamp sample in calculatedSamples)
             {
-                time += sample.D;
+                time += sample.TimeDifferenceInSeconds;
 
                 if (time > seconds) { throw new Exception("Invalid hour marks"); }
 
@@ -133,7 +133,7 @@ namespace DataProcessing.Models
                 indexes[1] = indexCounter - 1;
                 HourlyIndexes.Add(timeMark, indexes);
                 Stats statHourlyLast = new Stats();
-                statHourlyLast.TotalTime = hourSamples.Sum(_sample => _sample.D);
+                statHourlyLast.TotalTime = hourSamples.Sum(_sample => _sample.TimeDifferenceInSeconds);
                 LastSectionTime = Math.Round((double)statHourlyLast.TotalTime / 60, 2);
                 foreach (int state in StatesMapping.Keys)
                 {
@@ -160,17 +160,17 @@ namespace DataProcessing.Models
             StatesMapping = new Dictionary<int, string>();
         }
 
-        private int calculateStateTime(List<DataSample> samples, int state)
+        private int calculateStateTime(List<TimeStamp> samples, int state)
         {
-           return samples.Where((sample) => sample.State == state).Select((sample) => sample.D).Sum();
+           return samples.Where((sample) => sample.State == state).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
         }
-        private int calculateStateNumber(List<DataSample> samples, int state)
+        private int calculateStateNumber(List<TimeStamp> samples, int state)
         {
             return samples.Count(sample => sample.State == state);
         }
-        private int calculateStateCriteriaNumber(List<DataSample> samples, int state, int below)
+        private int calculateStateCriteriaNumber(List<TimeStamp> samples, int state, int below)
         {
-            return samples.Count(sample => sample.State == state && sample.D < below);
+            return samples.Count(sample => sample.State == state && sample.TimeDifferenceInSeconds < below);
         }        
     }
 }

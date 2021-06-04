@@ -10,21 +10,16 @@ using DataProcessing.Models;
 namespace DataProcessing.Repositories
 {
 
-	/*
-CREATE TABLE ""TimeStamp"" (
+    /*
+CREATE TABLE ""TimeStampBlueprint"" (
 	""Id""	INTEGER NOT NULL UNIQUE,
-	""A""	NUMERIC,
-	""B""	NUMERIC,
-	""C""	NUMERIC,
-	""D""	NUMERIC,
-	""State""	INTEGER,
-	""Counter""	INTEGER,
-	""PreviousId""	INTEGER UNIQUE,
-	PRIMARY KEY(""Id"" AUTOINCREMENT),
-	FOREIGN KEY(""PreviousId"") REFERENCES ""TimeStamp""(""Id"") ON DELETE SET NULL
+	""Time""	NUMERIC NOT NULL,
+	""State""	NUMERIC NOT NULL,
+	""IsMarker""	NUMERIC NOT NULL,
+	PRIMARY KEY(""Id"" AUTOINCREMENT)
 );
      */
-	class WorkfileRepo : BaseRepo
+    class WorkfileRepo : BaseRepo
     {
 		public void Create(string name)
         {
@@ -36,16 +31,10 @@ CREATE TABLE ""TimeStamp"" (
                     string tableQuery = $@"
 CREATE TABLE ""{name}"" (
 	""Id""	INTEGER NOT NULL UNIQUE,
-	""A""	NUMERIC,
-	""B""	NUMERIC,
-	""C""	NUMERIC,
-	""D""	NUMERIC,
-	""State""	INTEGER,
+	""Time""	NUMERIC NOT NULL,
+	""State""	NUMERIC NOT NULL,
 	""IsMarker""	NUMERIC NOT NULL,
-    ""Counter""	INTEGER,
-	""PreviousId""	INTEGER UNIQUE,
-	PRIMARY KEY(""Id"" AUTOINCREMENT),
-	FOREIGN KEY(""PreviousId"") REFERENCES ""{name}""(""Id"") ON DELETE SET NULL
+	PRIMARY KEY(""Id"" AUTOINCREMENT)
 );
 ";
                     conn.Execute(tableQuery, transaction: transaction);

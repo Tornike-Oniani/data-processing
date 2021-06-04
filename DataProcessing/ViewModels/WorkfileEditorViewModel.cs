@@ -25,7 +25,6 @@ namespace DataProcessing.ViewModels
         public ICommand NewWorkfileDialogCommand { get; set; }
         public ICommand EditCommand { get; set; }
         public ICommand ExportCommand { get; set; }
-        public ICommand CalculateCommand { get; set; }
 
         // Constructor
         public WorkfileEditorViewModel()
@@ -40,7 +39,6 @@ namespace DataProcessing.ViewModels
             NewWorkfileDialogCommand = new RelayCommand(NewWorkfileDialog);
             EditCommand = new RelayCommand(Edit);
             ExportCommand = new RelayCommand(Export);
-            CalculateCommand = new RelayCommand(Calculate);
         }
 
         // Command actions
@@ -61,30 +59,21 @@ namespace DataProcessing.ViewModels
             if (!IsTimeSpanStringCorrect(timeSpan, out times)) { throw new Exception("Incorrect value. Correct format is hh:mm:ss"); }
 
             TimeSpan span = new TimeSpan(times[0], times[1], times[2]);
-            DisplayManager.SelectedRow.AT = span;
+            DisplayManager.SelectedRow.Time = span;
             DisplayManager.SelectedRow.Update();
             DisplayManager.PopulateCommand.Execute(null);
         }
         public void Export(object input)
         {
-            List<DataSample> samples = DisplayManager.Items.ToList();
-            TimeSpan from = samples[0].AT;
-            TimeSpan till = samples[samples.Count - 1].AT;
+            List<TimeStamp> samples = DisplayManager.Items.ToList();
+            TimeSpan from = samples[0].Time;
+            TimeSpan till = samples[samples.Count - 1].Time;
             if (DisplayManager.SelectedRows.Count > 1)
             {
-                from = DisplayManager.SelectedRows[0].AT;
-                till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].AT;
+                from = DisplayManager.SelectedRows[0].Time;
+                till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].Time;
             }
             Services.GetInstance().WindowService.OpenWindow(new ExportSettingsViewModel(DisplayManager.Items.ToList(), from, till));
-            //int stateMode = Services.GetInstance().DialogService.OpenRadioDialog();
-            //if (stateMode == -1) { return; }
-
-            //await new ExcelManager().ExportToExcel(DisplayManager.Items.ToList());
-        }
-        public void Calculate(object input = null)
-        {
-            //WorkfileManager.GetInstance().SelectedWorkFile.CalculateStats();
-            //WorkfileManager.GetInstance().SelectedWorkFile.CalculateHourlyStats();
         }
 
         // Event subscribers

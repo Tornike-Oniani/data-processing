@@ -96,14 +96,14 @@ namespace DataProcessing.Classes
                     timeData.Add(tuple);
                 }
 
-                List<DataSample> samples = new List<DataSample>();
+                List<TimeStamp> samples = new List<TimeStamp>();
 
                 for (int i = 0; i < timeData.Count; i++)
                 {
                     updateStatus("Importing data", i + 1, rowCount);
                     TimeSpan span = timeData[i].Item1;
                     int state = timeData[i].Item2;
-                    DataSample sample = new DataSample() { AT = span, State = state };
+                    TimeStamp sample = new TimeStamp() { Time = span, State = state };
                     samples.Add(sample);
                 }
 
@@ -117,25 +117,25 @@ namespace DataProcessing.Classes
                 bool hasDarkMarker = false;
                 TimeSpan lightMarker = new TimeSpan(10, 0, 0);
                 TimeSpan darkMarker = new TimeSpan(22, 0, 0);
-                List<DataSample> markAddedSamples = new List<DataSample>();
-                if (samples[0].AT == lightMarker) { hasLightMarker = true; }
-                if (samples[1].AT == darkMarker) { hasDarkMarker = true; }
+                List<TimeStamp> markAddedSamples = new List<TimeStamp>();
+                if (samples[0].Time == lightMarker) { hasLightMarker = true; }
+                if (samples[1].Time == darkMarker) { hasDarkMarker = true; }
                 markAddedSamples.Add(samples[0]);
                 for (int i = 1; i < samples.Count; i++)
                 {
-                    DataSample curSample = samples[i];
-                    DataSample prevSample = samples[i - 1];
-                    if (curSample.AT == lightMarker) { hasLightMarker = true; curSample.IsMarker = true; }
-                    if (curSample.AT == darkMarker) { hasDarkMarker = true; curSample.IsMarker = true; }
+                    TimeStamp curSample = samples[i];
+                    TimeStamp prevSample = samples[i - 1];
+                    if (curSample.Time == lightMarker) { hasLightMarker = true; curSample.IsMarker = true; }
+                    if (curSample.Time == darkMarker) { hasDarkMarker = true; curSample.IsMarker = true; }
 
-                    if (!hasLightMarker && isBetweenTimeInterval(prevSample.AT, curSample.AT, lightMarker))
+                    if (!hasLightMarker && isBetweenTimeInterval(prevSample.Time, curSample.Time, lightMarker))
                     {
-                        markAddedSamples.Add(new DataSample() { AT = lightMarker, State = curSample.State, IsMarker = true });
+                        markAddedSamples.Add(new TimeStamp() { Time = lightMarker, State = curSample.State, IsMarker = true });
                     }
 
-                    if (!hasDarkMarker && isBetweenTimeInterval(prevSample.AT, curSample.AT, darkMarker))
+                    if (!hasDarkMarker && isBetweenTimeInterval(prevSample.Time, curSample.Time, darkMarker))
                     {
-                        markAddedSamples.Add(new DataSample() { AT = darkMarker, State = curSample.State, IsMarker = true });
+                        markAddedSamples.Add(new TimeStamp() { Time = darkMarker, State = curSample.State, IsMarker = true });
                     }
 
                     markAddedSamples.Add(curSample);
@@ -143,12 +143,12 @@ namespace DataProcessing.Classes
 
                 // Persist to database
                 Services.GetInstance().UpdateWorkStatus($"Persisting data");
-                DataSample.SaveMany(markAddedSamples);
+                TimeStamp.SaveMany(markAddedSamples);
             });
 
             services.SetWorkStatus(false);
         }
-        public async Task ExportToExcel(List<DataSample> records)
+        public async Task ExportToExcel(List<TimeStamp> records)
         {
             services.SetWorkStatus(true);
             await Task.Run(() =>
@@ -173,7 +173,7 @@ namespace DataProcessing.Classes
             services.SetWorkStatus(false);
         }
 
-        private void CreateAndWriteRawDataSheet(List<DataSample> records, _Worksheet rawDataSheet)
+        private void CreateAndWriteRawDataSheet(List<TimeStamp> records, _Worksheet rawDataSheet)
         {
             ExportSamples(records, rawDataSheet);
             FormatColumns(rawDataSheet);
@@ -223,18 +223,18 @@ namespace DataProcessing.Classes
                 index++;
             }
         }
-        private void ExportSamples(List<DataSample> records, _Worksheet sheet)
+        private void ExportSamples(List<TimeStamp> records, _Worksheet sheet)
         {
-            DataSample sample;
+            TimeStamp sample;
             int count = records.Count;
             for (int i = 0; i < count; i++)
             {
                 updateStatus("Exporting raw data", i + 1, count);
                 sample = records[i];
-                sheet.Cells[i + 1, 1] = sample.AT.ToString();
-                sheet.Cells[i + 1, 2] = sample.BT.ToString();
-                sheet.Cells[i + 1, 3] = sample.C;
-                sheet.Cells[i + 1, 4] = sample.D;
+                sheet.Cells[i + 1, 1] = sample.Time.ToString();
+                sheet.Cells[i + 1, 2] = sample.TimeDifference.ToString();
+                sheet.Cells[i + 1, 3] = sample.TimeDifferenceInDouble;
+                sheet.Cells[i + 1, 4] = sample.TimeDifferenceInSeconds;
                 sheet.Cells[i + 1, 5] = sample.State;
 
                 // Coloring markers
@@ -439,7 +439,7 @@ namespace DataProcessing.Classes
                 return from <= time || time <= till;
             }
         }
-        public async Task ExportToExcelBackup(List<DataSample> records)
+        public async Task ExportToExcelBackup(List<TimeStamp> records)
         {
             Services services = Services.GetInstance();
             services.SetWorkStatus(true);
@@ -458,8 +458,8 @@ namespace DataProcessing.Classes
                 for (int i = 0; i < max; i++)
                 {
                     if (index % 10 == 0 || index == max) { services.UpdateWorkStatus($"Exporting data {index}/{max}"); }
-                    DataSample record = records[i];
-                    sheet.Cells[index, 1] = record.AT.ToString();
+                    TimeStamp record = records[i];
+                    sheet.Cells[index, 1] = record.Time.ToString();
                     sheet.Cells[index, 5] = record.State;
                     index++;
                 }

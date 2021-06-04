@@ -52,7 +52,7 @@ namespace DataProcessing.Classes
 
             await Task.Run(() =>
             {
-                DataSample sample = new DataSample() { AT = timeAndState.Item1, State = timeAndState.Item2 };
+                TimeStamp sample = new TimeStamp() { Time = timeAndState.Item1, State = timeAndState.Item2 };
                 sample.Save();
             });
 

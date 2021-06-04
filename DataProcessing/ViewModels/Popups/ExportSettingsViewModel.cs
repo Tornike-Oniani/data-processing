@@ -13,7 +13,7 @@ namespace DataProcessing.ViewModels
     class ExportSettingsViewModel : BaseWindowViewModel
     {
         // Private attributes
-        private List<DataSample> records;
+        private List<TimeStamp> records;
         private bool _exportSelectedPeriod;
 
         // Public properties
@@ -36,7 +36,7 @@ namespace DataProcessing.ViewModels
         public ICommand CancelCommand { get; set; }
 
         // Constructor
-        public ExportSettingsViewModel(List<DataSample> records, TimeSpan from, TimeSpan till)
+        public ExportSettingsViewModel(List<TimeStamp> records, TimeSpan from, TimeSpan till)
         {
             // Init
             this.Title = "Export settings";
@@ -62,13 +62,13 @@ namespace DataProcessing.ViewModels
             if (WakefulnessBelow != null) { exportOptions.StateAndCriteria.Add(MaxStates, (int)WakefulnessBelow); }
             if (ParadoxicalSleepBelow != null) { exportOptions.StateAndCriteria.Add(1, (int)ParadoxicalSleepBelow); }
 
-            List<DataSample> markedRecords;
+            List<TimeStamp> markedRecords;
             if (ExportSelectedPeriod)
             {
-                int fromCheck = records.Where(sample => sample.AT == From).ToList().Count;
-                int tillCheck = records.Where(sample => sample.AT == Till).ToList().Count;
+                int fromCheck = records.Where(sample => sample.Time == From).ToList().Count;
+                int tillCheck = records.Where(sample => sample.Time == Till).ToList().Count;
                 if ( fromCheck == 0 || tillCheck == 0) { throw new Exception("Specified period doesn't exist!"); }
-                markedRecords = records.Where(sample => isBetweenTimeInterval(From, Till, sample.AT)).ToList();
+                markedRecords = records.Where(sample => isBetweenTimeInterval(From, Till, sample.Time)).ToList();
             }
             else
             {
@@ -93,25 +93,25 @@ namespace DataProcessing.ViewModels
         }
 
         // Private helpers
-        private List<DataSample> AddTimeMarksToSamples(List<DataSample> records)
+        private List<TimeStamp> AddTimeMarksToSamples(List<TimeStamp> records)
         {
-            List<DataSample> result = new List<DataSample>();
+            List<TimeStamp> result = new List<TimeStamp>();
 
             TimeSpan markCap = TimeSpan.FromHours(SelectedTimeMark);
             TimeSpan markSum = new TimeSpan(0, 0, 0);
-            TimeSpan lastMarkTime = records[0].AT;
+            TimeSpan lastMarkTime = records[0].Time;
 
             result.Add(records[0]);
             for (int i = 1; i < records.Count; i++)
             {
-                TimeSpan span = records[i].AT;
+                TimeSpan span = records[i].Time;
                 int state = records[i].State;
 
                 // Difference between times
-                if (span > records[i - 1].AT)
-                    markSum += span - records[i - 1].AT;
+                if (span > records[i - 1].Time)
+                    markSum += span - records[i - 1].Time;
                 else
-                    markSum += span + new TimeSpan(24, 0, 0) - records[i - 1].AT;
+                    markSum += span + new TimeSpan(24, 0, 0) - records[i - 1].Time;
 
                 if (span == new TimeSpan(23, 50, 16))
                 {
@@ -129,7 +129,7 @@ namespace DataProcessing.ViewModels
                         timeMark = lastMarkTime + markCap >= new TimeSpan(24, 0, 0) ? 
                             lastMarkTime + markCap - new TimeSpan(24, 0, 0) : 
                             lastMarkTime + markCap;
-                        result.Add(new DataSample() { AT = timeMark, State = state, IsTimeMarked = true });
+                        result.Add(new TimeStamp() { Time = timeMark, State = state, IsTimeMarked = true });
                         lastMarkTime = timeMark;
                     }
 
@@ -143,12 +143,12 @@ namespace DataProcessing.ViewModels
                     lastMarkTime = span;
                 }
 
-                result.Add(new DataSample() { AT = span, State = state, IsMarker = records[i].IsMarker });
+                result.Add(new TimeStamp() { Time = span, State = state, IsMarker = records[i].IsMarker });
             }
 
             return result;
         }
-        private void CalculateSamples(List<DataSample> records)
+        private void CalculateSamples(List<TimeStamp> records)
         {
             for (int i = 1; i < records.Count; i++)
             {

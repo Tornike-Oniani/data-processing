@@ -11,7 +11,7 @@ namespace DataProcessing.Classes
 {
     class Testing
     {
-        public async Task ExportToExcelBackup(List<DataSample> records)
+        public async Task ExportToExcelBackup(List<TimeStamp> records)
         {
             Services services = Services.GetInstance();
             services.SetWorkStatus(true);
@@ -30,8 +30,8 @@ namespace DataProcessing.Classes
                 for (int i = 0; i < max; i++)
                 {
                     if (index % 10 == 0 || index == max) { services.UpdateWorkStatus($"Exporting data {index}/{max}"); }
-                    DataSample record = records[i];
-                    sheet.Cells[index, 1] = record.AT.ToString();
+                    TimeStamp record = records[i];
+                    sheet.Cells[index, 1] = record.Time.ToString();
                     sheet.Cells[index, 5] = record.State;
                     index++;
                 }
