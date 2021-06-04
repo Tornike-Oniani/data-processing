@@ -11,6 +11,8 @@ namespace DataProcessing.Models
         public int TotalTime { get; set; }
         public Dictionary<int, int> StateTimes { get; set; } = new Dictionary<int, int>();
         public Dictionary<int, double> TimePercentages { get; set; } = new Dictionary<int, double>();
+        public Dictionary<int, int> StateNumber { get; set; } = new Dictionary<int, int>();
+        public Dictionary<int, int> SpecificCrietriaStates { get; set; } = new Dictionary<int, int>();
 
         public void CalculatePercentages()
         {

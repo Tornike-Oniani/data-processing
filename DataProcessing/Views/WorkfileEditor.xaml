@@ -11,6 +11,7 @@
     
     <UserControl.Resources>
         <converters:TimeSpanToStringConverter x:Key="TimeSpanToString" />
+        <converters:MarkerToColorConverter x:Key="MarkerToColor" />
     </UserControl.Resources>
     
     <Grid>
@@ -20,40 +21,28 @@
             <!-- Content row -->
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <!-- Menu -->
-        <Menu Grid.Row="0">
-            <MenuItem Header="_File">
-                <!--<MenuItem Header="_New" Command="{Binding NewWorkfileDialogCommand}" />
-                <MenuItem Header="_Open" Command="{Binding OpenWorkfileDialogCommand}" />-->
-                <MenuItem Header="_Export" Command="{Binding ExportCommand}" />
-                <MenuItem Header="_Calculate" Command="{Binding CalculateCommand}" />
-                <!--<MenuItem Header="_Test" Command="{Binding TestCommand}" />-->
-            </MenuItem>
-        </Menu>
         <!-- Content -->
         <Border Padding="10" Grid.Row="1">
             <Grid>
                 <Grid.RowDefinitions>
-                    <!-- Entry column -->
+                    <!-- Entry row -->
                     <RowDefinition Height="Auto" />
-                    <!-- Display column -->
+                    <!-- Display row -->
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
                 <!-- Entry -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <!-- Add text column -->
+                        <!-- Add text column --><!--
                         <ColumnDefinition Width="125" />
-                        <!-- Add button column -->
-                        <ColumnDefinition Width="Auto" />
-                        <!-- Edit text column-->
-                        <ColumnDefinition Width="125" />
-                        <!-- Edit button column-->
+                        --><!-- Add button column --><!--
+                        <ColumnDefinition Width="Auto" />-->
+                        <!-- Export button column -->
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Add text -->
+                    <!-- Add text --><!--
                     <TextBox Text="{Binding EntryManager.TimeStamp, UpdateSourceTrigger=PropertyChanged}" 
                          utils:FocusExtension.IsFocused="{Binding EntryManager.IsEntryFocused}"
                          Grid.Column="0"
@@ -63,46 +52,44 @@
                         </TextBox.InputBindings>
                     </TextBox>
 
-                    <!-- Add button -->
+                    --><!-- Add button --><!--
                     <Button Content="Add" 
                         Command="{Binding EntryManager.AddCommand}"
                         Style="{StaticResource MainButtonStyle}"
                         Width="70" 
                         Margin="10 0 10 0" 
-                        Grid.Column="1" />
+                        Grid.Column="1" />-->
 
-                    <!-- Edit text -->
-                    <TextBox x:Name="txbEdit"
-                         Text="{Binding DisplayManager.SelectedRow.AT, UpdateSourceTrigger=Explicit, Converter={StaticResource TimeSpanToString}}" 
-                         utils:FocusExtension.IsFocused="{Binding EntryManager.IsEntryFocused}"
-                         Margin="0 0 10 0" 
-                         Grid.Column="2"
-                         PreviewTextInput="TextBox_TimeSpanInput">
-                    </TextBox>
-
-                    <!-- Edit button -->
-                    <Button Content="Edit"
-                        Command="{Binding EditCommand}"
-                        CommandParameter="{Binding ElementName=txbEdit, Path=Text}"
-                        Style="{StaticResource MainButtonStyle}"
-                        Width="70" 
-                        Grid.Column="3" />
+                    <Button Content="Export to Excel"
+                            Command="{Binding ExportCommand}"
+                            Style="{StaticResource MainButtonStyle}"
+                            Width="125"
+                            Margin="10 0 0 0"
+                            Grid.Column="0" />
                 </Grid>
 
                 <!-- Display -->
-                <DataGrid x:Name="myDataGrid" ItemsSource="{Binding DisplayManager.Items}"
-                      SelectedItem="{Binding DisplayManager.SelectedRow}"
-                      Style="{StaticResource MainDataGrid}"
-                      Margin="0 10 0 0" 
-                      Grid.Row="1"
-                      MouseUp="DataGrid_MouseUp">
+                <DataGrid x:Name="myDataGrid" 
+                          ItemsSource="{Binding DisplayManager.Items}"
+                          utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
+                          Style="{StaticResource MainDataGrid}"
+                          Margin="0 10 0 0" 
+                          Grid.Row="1"
+                          MouseUp="DataGrid_MouseUp">
 
                     <!-- Columns -->
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="A" MinWidth="95" Binding="{Binding AT}" />
-                        <DataGridTextColumn Header="B" MinWidth="95" Binding="{Binding BT}" />
-                        <DataGridTextColumn Header="C" MinWidth="95" Binding="{Binding C}" />
-                        <DataGridTextColumn Header="D" MinWidth="95" Binding="{Binding D}" />
+                        <!-- Title column -->
+                        <DataGridTemplateColumn Header="Time" MinWidth="95" SortMemberPath="AT">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="wrapper" Background="{Binding IsMarker, Converter={StaticResource MarkerToColor}}">
+                                        <TextBlock Text="{Binding AT}" 
+                                                   TextWrapping="Wrap" />
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
                     </DataGrid.Columns>
                 </DataGrid>

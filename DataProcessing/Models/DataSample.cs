@@ -21,6 +21,8 @@ namespace DataProcessing.Models
         public double C { get; set; }
         public int D { get; set; }
         public int State { get; set; }
+        public bool IsMarker { get; set; }
+        public bool IsTimeMarked { get; set; }
 
         // Blank constructor
         public DataSample()
@@ -37,10 +39,10 @@ namespace DataProcessing.Models
         public static void SaveMany(List<DataSample> samples)
         {
             // Calculate
-            for (int i = 1; i < samples.Count; i++)
-            {
-                samples[i].CalculateStatsWhenMany(samples[i - 1]);
-            }
+            //for (int i = 1; i < samples.Count; i++)
+            //{
+            //    samples[i].CalculateStatsWhenMany(samples[i - 1]);
+            //}
 
             new SampleRepo().CreateMany(samples);
         }

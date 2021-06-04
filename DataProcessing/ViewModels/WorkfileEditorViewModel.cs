@@ -41,17 +41,6 @@ namespace DataProcessing.ViewModels
             EditCommand = new RelayCommand(Edit);
             ExportCommand = new RelayCommand(Export);
             CalculateCommand = new RelayCommand(Calculate);
-
-            // Global error hanlder
-            if (Application.Current != null)
-            {
-                Application.Current.DispatcherUnhandledException += (s, a) =>
-                {
-                    // 2. Generic unhandled exceptions
-                    MessageBox.Show($"{a.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    a.Handled = true;
-                };
-            }
         }
 
         // Command actions
@@ -78,7 +67,15 @@ namespace DataProcessing.ViewModels
         }
         public void Export(object input)
         {
-            Services.GetInstance().WindowService.OpenWindow(new ExportSettingsViewModel());
+            List<DataSample> samples = DisplayManager.Items.ToList();
+            TimeSpan from = samples[0].AT;
+            TimeSpan till = samples[samples.Count - 1].AT;
+            if (DisplayManager.SelectedRows.Count > 1)
+            {
+                from = DisplayManager.SelectedRows[0].AT;
+                till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].AT;
+            }
+            Services.GetInstance().WindowService.OpenWindow(new ExportSettingsViewModel(DisplayManager.Items.ToList(), from, till));
             //int stateMode = Services.GetInstance().DialogService.OpenRadioDialog();
             //if (stateMode == -1) { return; }
 
@@ -86,8 +83,8 @@ namespace DataProcessing.ViewModels
         }
         public void Calculate(object input = null)
         {
-            WorkfileManager.GetInstance().SelectedWorkFile.CalculateStats();
-            WorkfileManager.GetInstance().SelectedWorkFile.CalculateHourlyStats();
+            //WorkfileManager.GetInstance().SelectedWorkFile.CalculateStats();
+            //WorkfileManager.GetInstance().SelectedWorkFile.CalculateHourlyStats();
         }
 
         // Event subscribers

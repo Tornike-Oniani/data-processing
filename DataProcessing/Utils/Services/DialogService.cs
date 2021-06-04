@@ -11,11 +11,11 @@ namespace DataProcessing.Utils.Services
 {
     class DialogService : IDialogService
     {
-        public string OpenTextDialog(string label)
+        public string OpenTextDialog(string label, string name = null)
         {
             Window window = new GenericWindow();
             window.Owner = Application.Current.MainWindow;
-            window.DataContext = new TextDialogViewModel(label, (IWindow)window);
+            window.DataContext = new TextDialogViewModel(label, name, (IWindow)window);
             window.ShowDialog();
             return (window.DataContext as TextDialogViewModel).DialogResult;
         }

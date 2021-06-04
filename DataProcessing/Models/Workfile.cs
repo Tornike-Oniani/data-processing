@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataProcessing.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,45 +18,27 @@ namespace DataProcessing.Models
         public Dictionary<int, int[]> HourlyIndexes { get; set; } = new Dictionary<int, int[]>();
         public List<Tuple<int, int>> DuplicatedTimes { get; set; } = new List<Tuple<int, int>>();
         public Dictionary<int, string> StatesMapping { get; set; }
+        public double LastSectionTime { get; set; }
 
-        public void CalculateStats()
+        public void CalculateStats(List<DataSample> calculatedSamples, ExportOptions options)
         {
-            List<DataSample> samples = DataSample.Find();
-
             // Calculate total stats
-            Stats.TotalTime = samples.Sum((sample) => sample.D);
-            states = samples.Where(sample => sample.State != 0).Select(sample => sample.State).Distinct().ToList();
+            Stats.TotalTime = calculatedSamples.Sum((sample) => sample.D);
+            states = calculatedSamples.Where(sample => sample.State != 0).Select(sample => sample.State).Distinct().ToList();
             states.Sort();
-            foreach (int state in states)
-            {
-                Stats.StateTimes.Add(state, calculateStateTime(samples, state));
-            }
-            Stats.CalculatePercentages();
 
-            samples = DataSample.Find();
-
-            int previous = samples[0].D;
-            DuplicatedTimes.Add(new Tuple<int, int>(previous, 1));
-            for (int i = 1; i < samples.Count; i++)
-            {
-                DuplicatedTimes.Add(new Tuple<int, int>(samples[i].D + previous, samples[i].State));
-                if (i < samples.Count - 1)
-                {
-                    DuplicatedTimes.Add(new Tuple<int, int>(samples[i].D + previous, samples[i + 1].State));
-                }
-                previous = previous + samples[i].D;
-            }
+            if (states.Count > options.MaxStates) { ClearStats(); throw new Exception($"File contains more than {options.MaxStates} states!"); }
 
             // Map states and phases
-            if (states.Count == 3)
+            if (options.MaxStates == 3)
             {
                 StatesMapping = new Dictionary<int, string>();
                 StatesMapping.Add(1, "Paradoxical sleep");
-                StatesMapping.Add(2, "Sleep"); // ???
+                StatesMapping.Add(2, "Sleep");
                 StatesMapping.Add(3, "Wakefulness");
 
             }
-            else if (states.Count == 4)
+            else if (options.MaxStates == 4)
             {
                 StatesMapping = new Dictionary<int, string>();
                 StatesMapping.Add(1, "Paradoxical sleep");
@@ -65,13 +48,39 @@ namespace DataProcessing.Models
             }
             else
             {
-                throw new Exception($"File has {states.Count} states");
+                ClearStats();
+                throw new Exception($"Max states can be either 3 or 4");
+            }
+
+
+            foreach (int state in StatesMapping.Keys)
+            {
+                Stats.StateTimes.Add(state, calculateStateTime(calculatedSamples, state));
+                Stats.StateNumber.Add(state, calculateStateNumber(calculatedSamples, state));
+            }
+
+            // Calculate specific criteria states
+            foreach (KeyValuePair<int, int> entry in options.StateAndCriteria)
+            {
+                Stats.SpecificCrietriaStates.Add(entry.Key, calculateStateCriteriaNumber(calculatedSamples, entry.Key, entry.Value));
+            }
+
+            Stats.CalculatePercentages();
+
+            int previous = calculatedSamples[0].D;
+            DuplicatedTimes.Add(new Tuple<int, int>(previous, calculatedSamples[1].State));
+            for (int i = 1; i < calculatedSamples.Count; i++)
+            {
+                DuplicatedTimes.Add(new Tuple<int, int>(calculatedSamples[i].D + previous, calculatedSamples[i].State));
+                if (i < calculatedSamples.Count - 1)
+                {
+                    DuplicatedTimes.Add(new Tuple<int, int>(calculatedSamples[i].D + previous, calculatedSamples[i + 1].State));
+                }
+                previous = previous + calculatedSamples[i].D;
             }
         }
-        public void CalculateHourlyStats()
+        public void CalculateHourlyStats(List<DataSample> calculatedSamples, int seconds, ExportOptions options)
         {
-            List<DataSample> samples = DataSample.Find();
-
             int time = 0;
             int timeMark = 0;
             int indexCounter = 1;
@@ -79,14 +88,15 @@ namespace DataProcessing.Models
             List<DataSample> hourSamples = new List<DataSample>();
             int[] indexes = new int[2];
             indexes[0] = indexCounter;
-            foreach (DataSample sample in samples)
+            foreach (DataSample sample in calculatedSamples)
             {
                 time += sample.D;
-                if (time > 3600) { throw new Exception("Invalid 1 hour marks"); }
+
+                if (time > seconds) { throw new Exception("Invalid hour marks"); }
 
                 hourSamples.Add(sample);
 
-                if (time == 3600)
+                if (time == seconds)
                 {
                     indexes[1] = indexCounter;
                     timeMark++;
@@ -94,11 +104,19 @@ namespace DataProcessing.Models
                     indexes = new int[2];
                     indexes[0] = indexCounter + 1;
                     Stats statHourly = new Stats();
-                    statHourly.TotalTime = 3600;
-                    foreach (int state in states)
+                    statHourly.TotalTime = seconds;
+                    foreach (int state in StatesMapping.Keys)
                     {
                         statHourly.StateTimes.Add(state, calculateStateTime(hourSamples, state));
+                        statHourly.StateNumber.Add(state, calculateStateNumber(hourSamples, state));
                     }
+
+                    // Calculate specific criteria states
+                    foreach (KeyValuePair<int, int> entry in options.StateAndCriteria)
+                    {
+                        statHourly.SpecificCrietriaStates.Add(entry.Key, calculateStateCriteriaNumber(hourSamples, entry.Key, entry.Value));
+                    }
+
                     statHourly.CalculatePercentages();
                     HourlyStats.Add(timeMark, statHourly);
                     time = 0;
@@ -108,22 +126,51 @@ namespace DataProcessing.Models
                 indexCounter++;
             }
 
-            timeMark++;
-            indexes[1] = indexCounter;
-            HourlyIndexes.Add(timeMark, indexes);
-            Stats statHourlyLast = new Stats();
-            statHourlyLast.TotalTime = hourSamples.Sum(_sample => _sample.D);
-            foreach (int state in states)
+            // Do last part (might be less than marked time)
+            if (hourSamples.Count > 0)
             {
-                statHourlyLast.StateTimes.Add(state, calculateStateTime(hourSamples, state));
+                timeMark++;
+                indexes[1] = indexCounter - 1;
+                HourlyIndexes.Add(timeMark, indexes);
+                Stats statHourlyLast = new Stats();
+                statHourlyLast.TotalTime = hourSamples.Sum(_sample => _sample.D);
+                LastSectionTime = Math.Round((double)statHourlyLast.TotalTime / 60, 2);
+                foreach (int state in StatesMapping.Keys)
+                {
+                    statHourlyLast.StateTimes.Add(state, calculateStateTime(hourSamples, state));
+                    statHourlyLast.StateNumber.Add(state, calculateStateNumber(hourSamples, state));
+                }
+
+                // Calculate specific criteria states
+                foreach (KeyValuePair<int, int> entry in options.StateAndCriteria)
+                {
+                    statHourlyLast.SpecificCrietriaStates.Add(entry.Key, calculateStateCriteriaNumber(hourSamples, entry.Key, entry.Value));
+                }
+
+                statHourlyLast.CalculatePercentages();
+                HourlyStats.Add(timeMark, statHourlyLast);
             }
-            statHourlyLast.CalculatePercentages();
-            HourlyStats.Add(timeMark, statHourlyLast);
+        }
+        public void ClearStats()
+        {
+            Stats = new Stats();
+            HourlyStats = new Dictionary<int, Stats>();
+            HourlyIndexes = new Dictionary<int, int[]>();
+            DuplicatedTimes = new List<Tuple<int, int>>();
+            StatesMapping = new Dictionary<int, string>();
         }
 
         private int calculateStateTime(List<DataSample> samples, int state)
         {
            return samples.Where((sample) => sample.State == state).Select((sample) => sample.D).Sum();
         }
+        private int calculateStateNumber(List<DataSample> samples, int state)
+        {
+            return samples.Count(sample => sample.State == state);
+        }
+        private int calculateStateCriteriaNumber(List<DataSample> samples, int state, int below)
+        {
+            return samples.Count(sample => sample.State == state && sample.D < below);
+        }        
     }
 }

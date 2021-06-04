@@ -5,9 +5,11 @@ using DataProcessing.Utils;
 using DataProcessing.Utils.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace DataProcessing.ViewModels
@@ -59,7 +61,7 @@ namespace DataProcessing.ViewModels
             if (file == null) { return; }
 
             // 2. Create new workbook to import into
-            string name = Services.GetInstance().DialogService.OpenTextDialog("Name:");
+            string name = Services.GetInstance().DialogService.OpenTextDialog("Name:", Path.GetFileNameWithoutExtension(file));
             if (name == null) { return; }
 
             WorkfileManager.GetInstance().CreateWorkfile(name);
@@ -68,7 +70,7 @@ namespace DataProcessing.ViewModels
             WorkfileManager.GetInstance().SelectedWorkFile = workfile;
 
             // 3. Import data
-            await new ExcelManager().ImportFromExcel(file);
+            await new ExcelManager(new ExportOptions()).ImportFromExcel(file);
 
             // 4. Refresh Workfile list
             Workfiles = WorkfileManager.GetInstance().GetWorkfiles();
@@ -81,6 +83,9 @@ namespace DataProcessing.ViewModels
         }
         public void DeleteWorkfile(object input = null)
         {
+            MessageBoxResult dialogResult = MessageBox.Show($"Are you sure you want to delete \"{SelectedWorkfile.Name}\"?", "Delete workfile", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (dialogResult == MessageBoxResult.No) { return; }
+
             new WorkfileRepo().Delete(SelectedWorkfile);
             Workfiles = WorkfileManager.GetInstance().GetWorkfiles();
         }

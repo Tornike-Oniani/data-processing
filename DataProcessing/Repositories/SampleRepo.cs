@@ -12,8 +12,10 @@ namespace DataProcessing.Repositories
 {
     class SampleRepo : BaseRepo
     {
+        // Private attributes
         private string table;
 
+        // Constructor
         public SampleRepo()
         {
             if (WorkfileManager.GetInstance().SelectedWorkFile == null) throw new Exception("Can not do data operation without workfile");
@@ -32,8 +34,8 @@ namespace DataProcessing.Repositories
                 long tickA = record.AT.Ticks;
                 long tickB = record.BT.Ticks;
                 int prevId = GetLastRecordId(conn);
-                conn.Execute($"INSERT INTO {table} (A, B, C, D, State, Counter, PreviousId) VALUES (@A, @B, @C, @D, @State, @Counter, @PreviousId);",
-                    new { A = tickA, B = tickB, C = record.C, D = record.D, State = record.State, Counter = counter, PreviousId = prevId });
+                conn.Execute($"INSERT INTO {table} (A, B, C, D, State, IsMarker Counter, PreviousId) VALUES (@A, @B, @C, @D, @State, @IsMarker, @Counter, @PreviousId);",
+                    new { A = tickA, B = tickB, C = record.C, D = record.D, State = record.State, IsMarker = record.IsMarker, Counter = counter, PreviousId = prevId });
             }
         }
         public void CreateMany(List<DataSample> records)
@@ -51,8 +53,8 @@ namespace DataProcessing.Repositories
                         long tickA = record.AT.Ticks;
                         long tickB = record.BT.Ticks;
                         int prevId = GetLastRecordId(conn);
-                        conn.Execute($"INSERT INTO {table} (A, B, C, D, State, Counter, PreviousId) VALUES (@A, @B, @C, @D, @State, @Counter, @PreviousId);",
-                            new { A = tickA, B = tickB, C = record.C, D = record.D, State = record.State, Counter = counter, PreviousId = prevId }, transaction: transaction);
+                        conn.Execute($"INSERT INTO {table} (A, B, C, D, State, IsMarker, Counter, PreviousId) VALUES (@A, @B, @C, @D, @State, @IsMarker, @Counter, @PreviousId);",
+                            new { A = tickA, B = tickB, C = record.C, D = record.D, State = record.State, IsMarker = record.IsMarker, Counter = counter, PreviousId = prevId }, transaction: transaction);
                     }
 
                     transaction.Commit();
@@ -76,7 +78,7 @@ namespace DataProcessing.Repositories
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                string query = $@"SELECT t.Id, t.A, t.B, t.C, t.D, t.State, t.Counter, tt.A AS PrevA
+                string query = $@"SELECT t.Id, t.A, t.B, t.C, t.D, t.State, t.IsMarker, t.Counter, tt.A AS PrevA
 FROM {table} AS t
 LEFT JOIN {table} AS tt ON t.PreviousId = tt.Id;";
                 return   conn.Query<DataSample>(query).ToList();

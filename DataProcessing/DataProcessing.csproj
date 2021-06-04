@@ -86,7 +86,10 @@
     <Compile Include="UserControls\LoadingControl.xaml.cs">
       <DependentUpon>LoadingControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils\AttachedProperties\SelectionExtension.cs" />
     <Compile Include="Utils\Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Utils\Converters\MarkerToColorConverter.cs" />
+    <Compile Include="Utils\ExportOptions.cs" />
     <Compile Include="Utils\Interfaces\IDialogService.cs" />
     <Compile Include="Utils\Interfaces\IWindow.cs" />
     <Compile Include="Utils\Interfaces\IWindowService.cs" />
@@ -136,7 +139,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Styles\Colors.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Styles\DataGridStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Global.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

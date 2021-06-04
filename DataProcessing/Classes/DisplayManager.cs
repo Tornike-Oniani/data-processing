@@ -13,20 +13,24 @@ namespace DataProcessing.Classes
     class DisplayManager
     {
         // Properties
-        public DataSample SelectedRow { get; set; }
         public ObservableCollection<DataSample> Items { get; set; }
+        public DataSample SelectedRow { get; set; }
+        public List<DataSample> SelectedRows { get; set; }
 
         // Commands
         public ICommand PopulateCommand { get; set; }
+        public ICommand TestCommand { get; set; }
 
         // Constructor
         public DisplayManager()
         {
             //Init
             Items = new ObservableCollection<DataSample>();
+            SelectedRows = new List<DataSample>();
 
             // Command initialization
             PopulateCommand = new RelayCommand(Populate);
+            TestCommand = new RelayCommand(Test);
         }
 
         // Command actions
@@ -42,6 +46,13 @@ namespace DataProcessing.Classes
             Services.GetInstance().SetWorkStatus(false);
 
             PopulateCollection(items);
+        }
+        public void Test(object input = null)
+        {
+            foreach (var item in SelectedRows)
+            {
+                Console.WriteLine(item.AT);
+            }
         }
 
         // Private helpers

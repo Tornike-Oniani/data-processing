@@ -24,5 +24,11 @@ namespace DataProcessing.Views
         {
             InitializeComponent();
         }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            TextBox txbThis = sender as TextBox;
+            if (String.IsNullOrWhiteSpace(txbThis.Text)) { txbThis.Text = null; }
+        }
     }
 }

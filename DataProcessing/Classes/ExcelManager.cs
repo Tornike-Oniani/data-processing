@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DataProcessing.Models;
 using DataProcessing.Repositories;
+using DataProcessing.Utils;
 using Microsoft.Office.Interop.Excel;
 
 namespace DataProcessing.Classes
@@ -26,8 +27,20 @@ namespace DataProcessing.Classes
         private Color secondaryDark = Color.FromArgb(250, 148, 75);
         private Color primaryLight = Color.FromArgb(148, 216, 255);
         private Color secondaryLight = Color.FromArgb(255, 187, 148);
+        private Color timeMarkColor = Color.FromArgb(202, 255, 138);
+        private Color darkLightMarkColor = Color.FromArgb(250, 228, 102);
+        private Color alternateColor = Color.FromArgb(230, 229, 225);
         private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
         private int distanceBetweenTables = 2;
+        private int additionalDistanceFromSpecificCrietria = 0;
+        private ExportOptions options;
+        private Services services = Services.GetInstance();
+        private List<int> markerLocations = new List<int>();
+
+        public ExcelManager(ExportOptions options)
+        {
+            this.options = options;
+        }
 
         public async Task ImportFromExcel(string filePath)
         {
@@ -76,63 +89,22 @@ namespace DataProcessing.Classes
                     string val = "";
                     if (dataValues[i, 2] != null)
                         val = dataValues[i, 2].ToString().Trim();
-                    Console.WriteLine(val);
                     int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
-                    Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(
-                        new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]), thisState);
+                    TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
+
+                    Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
                     timeData.Add(tuple);
                 }
-
-                TimeSpan oneHour = new TimeSpan(1, 0, 0);
-                TimeSpan previous = new TimeSpan(0, 0, 0);
-                TimeSpan markSum = new TimeSpan(0, 0, 0);
 
                 List<DataSample> samples = new List<DataSample>();
 
                 for (int i = 0; i < timeData.Count; i++)
                 {
-                    Services.GetInstance().UpdateWorkStatus($"Importing data {i}/{rowCount}");
-
-                    //if (timeCell.Value == null) { break; }
-
-                    // if (cuts.Length != 3) { /* Throw error */ }
-
+                    updateStatus("Importing data", i + 1, rowCount);
                     TimeSpan span = timeData[i].Item1;
                     int state = timeData[i].Item2;
-
-                    // On first iteration span and previous are the same
-                    if (i == 0) { previous = span; }
-
-                    // If its not the first row
-                    if (i > 0)
-                    {
-                        // Difference between times
-                        if (span > previous)
-                            markSum += span - previous;
-                        else
-                            markSum += span + new TimeSpan(24, 0, 0) - previous;
-
-                        // If sum exceed one hour
-                        if (markSum > oneHour)
-                        {
-                            TimeSpan oneHourMark = new TimeSpan(span.Hours, span.Minutes - markSum.Minutes, span.Seconds - markSum.Seconds);
-                            //sample = new DataSample() { AT = oneHourMark, State = state };
-                            //sample.Save();
-                            samples.Add(new DataSample() { AT = oneHourMark, State = state });
-                            markSum = span - oneHourMark;
-                        }
-
-                        // If sum is exactly one hour reset
-                        if (markSum == oneHour)
-                        {
-                            markSum = new TimeSpan(0, 0, 0);
-                        }
-                    }
-
-                    previous = span;
-                    //sample = new DataSample() { AT = span, State = state };
-                    //sample.Save();
-                    samples.Add(new DataSample() { AT = span, State = state });
+                    DataSample sample = new DataSample() { AT = span, State = state };
+                    samples.Add(sample);
                 }
 
                 // Supposed to clean excel from memory but fails miserably
@@ -140,16 +112,45 @@ namespace DataProcessing.Classes
                 excel.Workbooks.Close();
                 excel.Quit();
 
+                // Add markers
+                bool hasLightMarker = false;
+                bool hasDarkMarker = false;
+                TimeSpan lightMarker = new TimeSpan(10, 0, 0);
+                TimeSpan darkMarker = new TimeSpan(22, 0, 0);
+                List<DataSample> markAddedSamples = new List<DataSample>();
+                if (samples[0].AT == lightMarker) { hasLightMarker = true; }
+                if (samples[1].AT == darkMarker) { hasDarkMarker = true; }
+                markAddedSamples.Add(samples[0]);
+                for (int i = 1; i < samples.Count; i++)
+                {
+                    DataSample curSample = samples[i];
+                    DataSample prevSample = samples[i - 1];
+                    if (curSample.AT == lightMarker) { hasLightMarker = true; curSample.IsMarker = true; }
+                    if (curSample.AT == darkMarker) { hasDarkMarker = true; curSample.IsMarker = true; }
+
+                    if (!hasLightMarker && isBetweenTimeInterval(prevSample.AT, curSample.AT, lightMarker))
+                    {
+                        markAddedSamples.Add(new DataSample() { AT = lightMarker, State = curSample.State, IsMarker = true });
+                    }
+
+                    if (!hasDarkMarker && isBetweenTimeInterval(prevSample.AT, curSample.AT, darkMarker))
+                    {
+                        markAddedSamples.Add(new DataSample() { AT = darkMarker, State = curSample.State, IsMarker = true });
+                    }
+
+                    markAddedSamples.Add(curSample);
+                }
+
                 // Persist to database
                 Services.GetInstance().UpdateWorkStatus($"Persisting data");
-                DataSample.SaveMany(samples);
+                DataSample.SaveMany(markAddedSamples);
             });
 
             services.SetWorkStatus(false);
         }
         public async Task ExportToExcel(List<DataSample> records)
         {
-            Services.GetInstance().SetWorkStatus(true);
+            services.SetWorkStatus(true);
             await Task.Run(() =>
             {
                 // 1. Open excel
@@ -169,7 +170,7 @@ namespace DataProcessing.Classes
                 excel.Visible = true;
                 excel.UserControl = true;
             });
-            Services.GetInstance().SetWorkStatus(false);
+            services.SetWorkStatus(false);
         }
 
         private void CreateAndWriteRawDataSheet(List<DataSample> records, _Worksheet rawDataSheet)
@@ -184,14 +185,18 @@ namespace DataProcessing.Classes
 
             WriteStatsTable(hourlyCalcSheet, "Total", workfile.Stats, workfile.StatesMapping, 1, true);
 
-            int step = workfile.StatesMapping.Count + distanceBetweenTables;
+            int step = workfile.StatesMapping.Count + distanceBetweenTables + additionalDistanceFromSpecificCrietria;
             int curPosition = 2 + step;
+            int index = 1;
+            int count = workfile.HourlyStats.Count;
             foreach (KeyValuePair<int, Stats> entry in workfile.HourlyStats)
             {
-                WriteStatsTable(hourlyCalcSheet, $"{entry.Key} hour", entry.Value, workfile.StatesMapping, curPosition);
+                updateStatus("Calculating hourly stats", index, count);
+                string header = entry.Value.TotalTime != options.TimeMark * 3600 && index == count ? $"Last {Math.Round(workfile.LastSectionTime / 60, 2)} hour - {workfile.LastSectionTime} minutes" : $"{entry.Key * options.TimeMark} hour";
+                WriteStatsTable(hourlyCalcSheet, header, entry.Value, workfile.StatesMapping, curPosition);
                 curPosition += step;
+                index++;
             }
-
             hourlyCalcSheet.Range["A1"].EntireColumn.AutoFit();
         }
         private void CreateAndWriteGraphSheet(_Workbook wb)
@@ -206,53 +211,70 @@ namespace DataProcessing.Classes
         }
         private void CreateAndWriteDuplicateSheet(_Workbook wb)
         {
-            _Worksheet calcDuplicateSheet = CreateNewSheet(wb, "Duplicated Graph Stats", 1);
+            _Worksheet calcDuplicateSheet = CreateNewSheet(wb, "Duplicated Graph Stats", 3);
             int position = 1;
+            int index = 1;
+            int count = workfile.DuplicatedTimes.Count;
             foreach (Tuple<int, int> duplicate in workfile.DuplicatedTimes)
             {
+                updateStatus("Duplicating data", index, count);
                 WriteDuplicate(calcDuplicateSheet, duplicate, position);
                 position++;
+                index++;
             }
-        }
-        private void ExportRawDataCalculations(Workfile workfile, _Worksheet rawDataSheet)
-        {
-            Dictionary<int, int[]> indexes = workfile.HourlyIndexes;
-            Dictionary<int, Stats> hourlyStats = workfile.HourlyStats;
-            Range hourRange;
-            Stats hourlyStat;
-            bool gray = false;
-            foreach (KeyValuePair<int, int[]> entry in indexes)
-            {
-                hourRange = rawDataSheet.Range[$"F{entry.Value[0]}:F{entry.Value[1]}"];
-                hourRange.Merge();
-                hourRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
-                hourRange.HorizontalAlignment = XlHAlign.xlHAlignLeft;
-
-                if (gray) { hourRange.Interior.Color = XlRgbColor.rgbLightSlateGray; }
-                gray = !gray;
-
-                hourlyStat = hourlyStats[entry.Key];
-                string info = $"Hour: {entry.Key}\n";
-                foreach (KeyValuePair<int, int> stateAndTime in hourlyStat.StateTimes)
-                    info += $"State {stateAndTime.Key}: {stateAndTime.Value} - {hourlyStat.TimePercentages[stateAndTime.Key]}%\n";
-                hourRange.Value = info;
-            }
-
-            hourRange = rawDataSheet.Range["F1"];
-            hourRange.EntireColumn.ColumnWidth = 20;
         }
         private void ExportSamples(List<DataSample> records, _Worksheet sheet)
         {
             DataSample sample;
-            for (int i = 0; i < records.Count; i++)
+            int count = records.Count;
+            for (int i = 0; i < count; i++)
             {
+                updateStatus("Exporting raw data", i + 1, count);
                 sample = records[i];
                 sheet.Cells[i + 1, 1] = sample.AT.ToString();
                 sheet.Cells[i + 1, 2] = sample.BT.ToString();
                 sheet.Cells[i + 1, 3] = sample.C;
                 sheet.Cells[i + 1, 4] = sample.D;
                 sheet.Cells[i + 1, 5] = sample.State;
+
+                // Coloring markers
+                if (sample.IsTimeMarked)
+                {
+                    markerLocations.Add(i + 1);
+                    sheet.Range[sheet.Cells[i + 1, 1], sheet.Cells[i + 1, 5]].Interior.Color = timeMarkColor;
+                }
+                if (sample.IsMarker) 
+                {
+                    markerLocations.Add(i + 1);
+                    sheet.Range[sheet.Cells[i + 1, 1], sheet.Cells[i + 1, 5]].Interior.Color = darkLightMarkColor;
+                }
             }
+        }
+        private void ExportRawDataCalculations(Workfile workfile, _Worksheet rawDataSheet)
+        {
+            Dictionary<int, int[]> indexes = workfile.HourlyIndexes;
+            Range hourRange;
+            bool gray = false;
+            int count = indexes.Count;
+            int index = 1;
+            foreach (KeyValuePair<int, int[]> entry in indexes)
+            {
+                updateStatus("Indexing hours", index, count);
+                hourRange = rawDataSheet.Range[$"F{entry.Value[0]}:F{entry.Value[1]}"];
+                hourRange.Merge();
+                hourRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                hourRange.HorizontalAlignment = XlHAlign.xlHAlignLeft;
+
+                if (gray) { hourRange.Interior.Color = alternateColor; }
+                gray = !gray;
+
+                string info = $"Hour: {entry.Key * options.TimeMark}";
+                hourRange.Value = info;
+                index++;
+            }
+
+            hourRange = rawDataSheet.Range["F1"];
+            hourRange.EntireColumn.ColumnWidth = 20;
         }
         private void FormatColumns(_Worksheet rawDataSheet)
         {
@@ -270,8 +292,8 @@ namespace DataProcessing.Classes
         private void WriteStatsTable(_Worksheet sheet, string name, Stats stats, Dictionary<int, string> statesMapping, int position, bool isTotal = false)
         {
             WriteHeader(sheet, name, position, isTotal);
-            WritePhases(sheet, statesMapping, position + 1, isTotal);
-            WriteStats(sheet, stats, statesMapping, position + 1);
+            WritePhases(sheet, statesMapping, stats, position + 1, isTotal);
+            WriteStats(sheet, stats, statesMapping, position + 1, isTotal);
         }
         private void WriteHeader(_Worksheet sheet, string title, int position, bool isTotal = false)
         {
@@ -279,14 +301,15 @@ namespace DataProcessing.Classes
             sheet.Cells[position, 2] = "sec";
             sheet.Cells[position, 3] = "min";
             sheet.Cells[position, 4] = "%";
+            sheet.Cells[position, 5] = "num";
 
             Range startCell = sheet.Cells[position, 1];
-            Range endCell = sheet.Cells[position, 4];
+            Range endCell = sheet.Cells[position, 5];
             sheet.Range[startCell, endCell].Interior.Color = isTotal? secondaryDark : secondaryLight;
             startCell = sheet.Cells[position, 2];
             sheet.Range[startCell, endCell].HorizontalAlignment = XlHAlign.xlHAlignRight;
         }
-        private void WritePhases(_Worksheet sheet, Dictionary<int, string> phases, int position, bool isTotal = false)
+        private void WritePhases(_Worksheet sheet, Dictionary<int, string> phases, Stats stats, int position, bool isTotal = false)
         {
             int currPosition = position;
             for (int i = phases.Count; i > 0; i--)
@@ -295,14 +318,24 @@ namespace DataProcessing.Classes
                 currPosition++;
             }
 
-            if (isTotal) { sheet.Cells[currPosition, 1] = "Total"; }
-            if (!isTotal) { currPosition--; }
+            if (isTotal) { sheet.Cells[currPosition, 1] = "Total"; currPosition++; }
+
+            // Write specific criteria phases (example "Wakfeulness < 5")
+            foreach (KeyValuePair<int, int> entry in options.StateAndCriteria)
+            {
+                sheet.Cells[currPosition, 1] = $"{phases[entry.Key]} < {entry.Value}s";
+                additionalDistanceFromSpecificCrietria++;
+                currPosition++;
+            }
+
+            //if (!isTotal) { currPosition--; }
+            currPosition--;
 
             Range startCell = sheet.Cells[position, 1];
             Range endCell = sheet.Cells[currPosition, 1];
             sheet.Range[startCell, endCell].Interior.Color = isTotal ? primaryDark : primaryLight;
         }
-        private void WriteStats(_Worksheet sheet, Stats stats, Dictionary<int, string> phases, int position)
+        private void WriteStats(_Worksheet sheet, Stats stats, Dictionary<int, string> phases, int position, bool isTotal = false)
         {
             int curPosition = position;
             for (int i = phases.Count; i > 0; i--)
@@ -310,6 +343,20 @@ namespace DataProcessing.Classes
                 sheet.Cells[curPosition, 2] = stats.StateTimes[i];
                 sheet.Cells[curPosition, 3] = Math.Round((double)stats.StateTimes[i] / 60, 2);
                 sheet.Cells[curPosition, 4] = stats.TimePercentages[i];
+                sheet.Cells[curPosition, 5] = stats.StateNumber[i];
+                curPosition++;
+            }
+
+            if (isTotal) 
+            {
+                sheet.Cells[curPosition, 2] = stats.TotalTime;
+                sheet.Cells[curPosition, 3] = Math.Round((double)stats.TotalTime / 60, 2);
+                curPosition++;
+            }
+
+            foreach (KeyValuePair<int, int> CriteriaStateAndBelow in options.StateAndCriteria)
+            {
+                sheet.Cells[curPosition, 5] = stats.SpecificCrietriaStates[CriteriaStateAndBelow.Key];
                 curPosition++;
             }
         }
@@ -317,18 +364,24 @@ namespace DataProcessing.Classes
         {
             WriteGraphHeader(sheet, title, phases, position);
             int columnPos = 2;
+            int index = 1;
+            int count = workfile.HourlyStats.Count;
             foreach (KeyValuePair<int, Stats> entry in workfile.HourlyStats)
             {
-                sheet.Cells[position, columnPos] = $"{entry.Key}hr";
+                updateStatus("Calculating graph stats", index, count);
+                string header = entry.Value.TotalTime != options.TimeMark * 3600 && index == count ? $"Last {Math.Round(workfile.LastSectionTime / 60, 2)}hr - {workfile.LastSectionTime}min" : $"{entry.Key * options.TimeMark}hr";
+                sheet.Cells[position, columnPos] = header;
                 if (type == DataType.Percentage) { WriteGraphStats(sheet, entry.Value, phases, position + 1, columnPos, type); }
                 else if(type == DataType.Minute) { WriteGraphStats(sheet, entry.Value, phases, position + 1, columnPos, type); }
                 else if(type == DataType.Second) { WriteGraphStats(sheet, entry.Value, phases, position + 1, columnPos, type); }
-                
                 columnPos++;
+                index++;
             }
             ColorRange(sheet, sheet.Cells[position, 2], sheet.Cells[position, columnPos - 1], secondaryLight);
             Range range = sheet.Range[sheet.Cells[position, 2], sheet.Cells[position, columnPos - 1]];
             range.HorizontalAlignment = XlHAlign.xlHAlignRight;
+            range = sheet.Cells[position, columnPos - 1];
+            range.EntireColumn.AutoFit();
         }
         private void WriteGraphHeader(_Worksheet sheet, string title, Dictionary<int, string> phases, int position)
         {
@@ -371,8 +424,21 @@ namespace DataProcessing.Classes
         {
             sheet.Range[start, end].Interior.Color = color;
         }
-
-
+        private void updateStatus(string label, int index, int count)
+        {
+            if (index % 10 == 0 || index == count) { services.UpdateWorkStatus($"{label} {index}/{count}"); }
+        }
+        private bool isBetweenTimeInterval(TimeSpan from, TimeSpan till, TimeSpan time)
+        {
+            if (from < till)
+            {
+                return from <= time && time <= till;
+            }
+            else
+            {
+                return from <= time || time <= till;
+            }
+        }
         public async Task ExportToExcelBackup(List<DataSample> records)
         {
             Services services = Services.GetInstance();

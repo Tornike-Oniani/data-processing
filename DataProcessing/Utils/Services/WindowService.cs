@@ -17,7 +17,7 @@ namespace DataProcessing.Utils.Services
             viewModel.Window = (IWindow)window;
             window.DataContext = viewModel;
             window.Owner = Application.Current.MainWindow;
-            window.Show();
+            window.ShowDialog();
         }
     }
 }
