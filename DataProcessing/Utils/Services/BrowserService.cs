@@ -28,5 +28,25 @@ namespace DataProcessing.Utils.Services
             else
                 return null;
         }
+
+        public string OpenFolderDialog()
+        {
+            string destination = null;
+
+            // 1. Open forms folder dialog box
+            using (var fbd = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    // Set the destination to dialog box's result
+                    destination = fbd.SelectedPath;
+                    Classes.Services.GetInstance().DialogFolder = fbd.SelectedPath;
+                }
+            }
+
+            return destination;
+        }
     }
 }

@@ -21,7 +21,7 @@ CREATE TABLE ""TimeStampBlueprint"" (
      */
     class WorkfileRepo : BaseRepo
     {
-		public void Create(string name)
+		public void Create(Workfile workfile)
         {
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
@@ -29,7 +29,7 @@ CREATE TABLE ""TimeStampBlueprint"" (
                 using (SQLiteTransaction transaction = conn.BeginTransaction())
                 {
                     string tableQuery = $@"
-CREATE TABLE ""{name}"" (
+CREATE TABLE ""{workfile.Name}"" (
 	""Id""	INTEGER NOT NULL UNIQUE,
 	""Time""	NUMERIC NOT NULL,
 	""State""	NUMERIC NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE ""{name}"" (
 );
 ";
                     conn.Execute(tableQuery, transaction: transaction);
-                    conn.Execute("INSERT INTO Workfile (Name) VALUES (@Name)", new { Name = name }, transaction: transaction);
+                    conn.Execute("INSERT INTO Workfile (Name, ImportDate) VALUES (@Name, @ImportDate)", new { Name = workfile.Name, ImportDate = workfile.ImportDate }, transaction: transaction);
                     transaction.Commit();
                 }
             }
@@ -48,7 +48,15 @@ CREATE TABLE ""{name}"" (
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                return conn.Query<Workfile>("SELECT Id, Name FROM Workfile").ToList();
+                return conn.Query<Workfile>("SELECT Id, Name, ImportDate FROM Workfile ORDER BY date(ImportDate) ASC;").ToList();
+            }
+        }
+        public Workfile FindByName(string name)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                return conn.QuerySingleOrDefault<Workfile>("SELECT Id, Name, ImportDate FROM Workfile WHERE Name=@Name;", new { Name = name });
             }
         }
 		public Workfile FindById(int id)
@@ -56,7 +64,8 @@ CREATE TABLE ""{name}"" (
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                return conn.QuerySingleOrDefault<Workfile>("SELECT Id, Name FROM Workfile WHERE Id=@Id", new { Id = id });
+                return conn.QuerySingleOrDefault<Workfile>("SELECT Id, Name, ImportDate FROM Workfile WHERE Id=@Id", 
+                    new { Id = id });
             }
         }
 		public void Update(Workfile workfile, string oldName)

@@ -36,18 +36,15 @@ namespace DataProcessing.Classes
         // Command actions
         public async void Populate(object input = null)
         {
-            //List<TimeStamp> items = new List<TimeStamp>();
+            List<TimeStamp> items = new List<TimeStamp>();
 
-            //Services.GetInstance().SetWorkStatus(true);
-            //await Task.Run(() =>
-            //{
-            //    items = TimeStamp.Find();
-            //});
-            //Services.GetInstance().SetWorkStatus(false);
+            Services.GetInstance().SetWorkStatus(true);
+            await Task.Run(() =>
+            {
+                items = TimeStamp.Find();
+            });
+            Services.GetInstance().SetWorkStatus(false);
 
-            //PopulateCollection(items);
-
-            List<TimeStamp> items = TimeStamp.Find();
             PopulateCollection(items);
         }
         public void Test(object input = null)

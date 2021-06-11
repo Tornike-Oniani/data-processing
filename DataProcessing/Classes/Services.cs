@@ -26,5 +26,6 @@ namespace DataProcessing.Classes
         public IWindowService WindowService { get; set; }
         public Action<bool> SetWorkStatus { get; set; }
         public Action<string> UpdateWorkStatus { get; set; }
+        public string DialogFolder { get; set; }
     }
 }

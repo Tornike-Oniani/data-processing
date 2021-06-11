@@ -37,7 +37,7 @@
                 </StackPanel>
 
                 <StackPanel Width="100">
-                    <Label Content="Till:" />
+                    <Label Content="Until:" />
                     <TextBox Text="{Binding Till, Converter={StaticResource TimeSpanToString}}" />
                 </StackPanel>
             </StackPanel>
@@ -46,26 +46,63 @@
             <StackPanel Orientation="Horizontal"
                         Margin="0 0 0 10">
                 <Label Content="Max number of states:" FontWeight="Bold" />
-                <TextBox Width="25" Text="{Binding MaxStates}" />
+                <TextBox Width="25" Text="{Binding MaxStates}" IsReadOnly="True" />
             </StackPanel>
 
             <!-- Specific criteria-->
-            <StackPanel Margin="0 0 0 20">
-                <Label Content="Specific criteria" FontWeight="Bold" />
-                <StackPanel Orientation="Horizontal"
+            <Label Content="Specific criteria" FontWeight="Bold" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="0 0 0 20" Grid.Column="0">
+                    <StackPanel Orientation="Horizontal"
                             Margin="0 0 0 5">
-                    <Label Content="Wakefulness (s) &lt; " />
-                    <TextBox Text="{Binding WakefulnessBelow}"
+                        <Label Content="Wakefulness (s) &lt;= " />
+                        <TextBox Text="{Binding WakefulnessBelow}"
                              MinWidth="25"
                              LostFocus="TextBox_LostFocus" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Label Content="Paradoxical sleep (s) &lt; " />
-                    <TextBox Text="{Binding ParadoxicalSleepBelow}"
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                            Margin="0 0 0 5">
+                        <Label Content="Sleep (s) &lt;= " />
+                        <TextBox Text="{Binding SleepBelow}"
                              MinWidth="25"
                              LostFocus="TextBox_LostFocus" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Paradoxical sleep (s) &lt;= " />
+                        <TextBox Text="{Binding ParadoxicalSleepBelow}"
+                             MinWidth="25"
+                             LostFocus="TextBox_LostFocus" />
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+
+                <StackPanel Margin="20 0 0 20" Grid.Column="1">
+                    <StackPanel Orientation="Horizontal"
+                            Margin="0 0 0 5">
+                        <Label Content="Wakefulness (s) &gt;= " />
+                        <TextBox Text="{Binding WakefulnessAbove}"
+                             MinWidth="25"
+                             LostFocus="TextBox_LostFocus" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                            Margin="0 0 0 5">
+                        <Label Content="Sleep (s) &gt;= " />
+                        <TextBox Text="{Binding SleepAbove}"
+                             MinWidth="25"
+                             LostFocus="TextBox_LostFocus" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Paradoxical sleep (s) &gt;= " />
+                        <TextBox Text="{Binding ParadoxicalSleepAbove}"
+                             MinWidth="25"
+                             LostFocus="TextBox_LostFocus" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+            
             
             <!-- Buttons -->
             <StackPanel Orientation="Horizontal">

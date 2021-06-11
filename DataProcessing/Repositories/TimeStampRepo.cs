@@ -67,7 +67,7 @@ namespace DataProcessing.Repositories
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                string query = $@"SELECT Id, Time, State, IsMarker FROM {table};";
+                string query = $@"SELECT Id, Time AS TimeTicks, State, IsMarker FROM {table};";
                 return conn.Query<TimeStamp>(query).ToList();
             }
         }

@@ -43,7 +43,7 @@
                                    Grid.Column="1" />
 
                         <!-- Name label -->
-                        <TextBlock Text="Date Modified"
+                        <TextBlock Text="Date Imported"
                                    Foreground="#555555"
                                    Grid.Column="2" />
                     </Grid>
@@ -108,7 +108,7 @@
                            Grid.Column="1" />
 
                 <!-- Date modified -->
-                <TextBlock Text="2h ago"
+                <TextBlock Text="{Binding ImportDate}"
                            Foreground="#555555"
                            FontSize="14"
                            VerticalAlignment="Center"
@@ -161,12 +161,19 @@
                     Margin="20 0 0 15"
                     Padding="8 7"
                     Grid.Row="0"/>
+            <StackPanel Orientation="Horizontal" 
+                        VerticalAlignment="Center" 
+                        HorizontalAlignment="Right"
+                        Margin="0 0 20 0">
+                <Label Content="Search:" Margin="0 0 5 0" />
+                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Width="135" />
+            </StackPanel>
             <Border BorderBrush="#d2d2d2" 
                     BorderThickness="0 0 0 1"
                     VerticalAlignment="Bottom"
                     Margin="20 0 20 10" />
 
-            <ListView ItemsSource="{Binding Workfiles}"
+            <ListView ItemsSource="{Binding WorkfilesCollection}"
                       SelectedItem="{Binding SelectedWorkfile}"
                       Template="{StaticResource ListViewTemplate}"
                       ItemContainerStyle="{StaticResource ItemStyle}"

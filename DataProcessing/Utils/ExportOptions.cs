@@ -13,5 +13,6 @@ namespace DataProcessing.Utils
         public TimeSpan From { get; set; }
         public TimeSpan Till { get; set; }
         public Dictionary<int, int> StateAndCriteria { get; set; } = new Dictionary<int, int>();
+        public Dictionary<int, int> StateAndCriteriaAbove { get; set; } = new Dictionary<int, int>();
     }
 }

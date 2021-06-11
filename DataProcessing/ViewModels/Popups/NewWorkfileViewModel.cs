@@ -41,7 +41,7 @@ namespace DataProcessing.ViewModels
         {
             if (String.IsNullOrEmpty(Name)) throw new Exception("Workfile must have a name!");
 
-            WorkfileManager.GetInstance().CreateWorkfile(Name);
+            WorkfileManager.GetInstance().CreateWorkfile(new Models.Workfile() { Name = Name, ImportDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") });
             this.Window.Close();
         }
         public void Close(object input = null)

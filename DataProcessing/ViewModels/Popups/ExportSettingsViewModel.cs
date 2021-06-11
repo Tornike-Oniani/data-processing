@@ -14,6 +14,8 @@ namespace DataProcessing.ViewModels
     {
         // Private attributes
         private List<TimeStamp> records;
+        private string folderPath;
+        private string fileName;
         private bool _exportSelectedPeriod;
 
         // Public properties
@@ -23,7 +25,11 @@ namespace DataProcessing.ViewModels
         public TimeSpan From { get; set; }
         public TimeSpan Till { get; set; }
         public int? WakefulnessBelow { get; set; }
+        public int? SleepBelow { get; set; }
         public int? ParadoxicalSleepBelow { get; set; }
+        public int? WakefulnessAbove { get; set; }
+        public int? SleepAbove { get; set; }
+        public int? ParadoxicalSleepAbove { get; set; }
         public bool ExportSelectedPeriod
         {
             get { return _exportSelectedPeriod; }
@@ -55,12 +61,23 @@ namespace DataProcessing.ViewModels
         // Command actions
         public async void Export(object input = null)
         {
+            string folderPath = Services.GetInstance().BrowserService.OpenFolderDialog();
+            if (String.IsNullOrEmpty(folderPath)) { return; }
+
+            string fileName = Services.GetInstance().DialogService.OpenTextDialog("Export file name:", WorkfileManager.GetInstance().SelectedWorkFile.Name + " - Export");
+            if (String.IsNullOrEmpty(fileName)) { return; }
+
             ExportOptions exportOptions = new ExportOptions() { 
                 TimeMark = SelectedTimeMark, MaxStates = MaxStates, 
                 From = From, Till = Till
             };
+
             if (WakefulnessBelow != null) { exportOptions.StateAndCriteria.Add(MaxStates, (int)WakefulnessBelow); }
+            if (SleepBelow != null) { exportOptions.StateAndCriteria.Add(2, (int)SleepBelow); }
             if (ParadoxicalSleepBelow != null) { exportOptions.StateAndCriteria.Add(1, (int)ParadoxicalSleepBelow); }
+            if (WakefulnessAbove != null) { exportOptions.StateAndCriteriaAbove.Add(MaxStates, (int)WakefulnessAbove); }
+            if (SleepAbove != null) { exportOptions.StateAndCriteriaAbove.Add(2, (int)SleepAbove); }
+            if (ParadoxicalSleepAbove != null) { exportOptions.StateAndCriteriaAbove.Add(1, (int)ParadoxicalSleepAbove); }
 
             List<TimeStamp> markedRecords;
             if (ExportSelectedPeriod)
@@ -84,7 +101,7 @@ namespace DataProcessing.ViewModels
 
             // 4. Export to excel
             this.Window.Close();
-            await new ExcelManager(exportOptions).ExportToExcel(markedRecords);
+            await new ExcelManager(exportOptions).ExportToExcel(markedRecords, folderPath, fileName);
             currentWorkfile.ClearStats();
         }
         public void Cancel(object input = null)

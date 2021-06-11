@@ -5,11 +5,14 @@ using DataProcessing.Utils;
 using DataProcessing.Utils.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace DataProcessing.ViewModels
@@ -18,20 +21,30 @@ namespace DataProcessing.ViewModels
     {
         // Private attributes
         private ICommand updateViewCommand;
-        private List<Workfile> _workfiles;
         private Workfile _selectedWorkfile;
 
         // Public properties
-        public List<Workfile> Workfiles
-        {
-            get { return _workfiles; }
-            set { _workfiles = value; OnPropertyChanged("Workfiles"); }
-        }
+        public ObservableCollection<Workfile> Workfiles { get; set; }
+        public CollectionViewSource _workfilesCollection { get; set; }
+        public ICollectionView WorkfilesCollection { get { return _workfilesCollection.View; } }
         public Workfile SelectedWorkfile
         {
             get { return _selectedWorkfile; }
             set { _selectedWorkfile = value; OnPropertyChanged("SelectedWorkfile"); }
         }
+        private string _search;
+
+        public string Search
+        {
+            get { return _search; }
+            set 
+            { 
+                _search = value;
+                _workfilesCollection.View.Refresh();
+                OnPropertyChanged("Search");
+            }
+        }
+
 
         // Commands
         public ICommand ImportExcelCommand { get; set; }
@@ -44,7 +57,11 @@ namespace DataProcessing.ViewModels
         {
             // Init
             this.updateViewCommand = updateViewCommand;
-            Workfiles = WorkfileManager.GetInstance().GetWorkfiles();
+            Workfiles = new ObservableCollection<Workfile>();
+            _workfilesCollection = new CollectionViewSource();
+            _workfilesCollection.Source = Workfiles;
+            _workfilesCollection.Filter += OnSearch;
+            PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
 
             // Initialize commands
             ImportExcelCommand = new RelayCommand(ImportExcel);
@@ -53,27 +70,60 @@ namespace DataProcessing.ViewModels
             RenameWorkfileCommand = new RelayCommand(RenameWorkfile);
         }
 
+        private void OnSearch(object sender, FilterEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(Search))
+            {
+                e.Accepted = true;
+                return;
+            }
+
+            e.Accepted = false;
+
+            Workfile current = e.Item as Workfile;
+            if (current.Name.ToUpper().Contains(Search.ToUpper()))
+            {
+                e.Accepted = true;
+            }
+        }
+
         // Command actions
         public async void ImportExcel(object input = null)
         {
+            WorkfileManager workfileManager = WorkfileManager.GetInstance();
+
             // 1. Select file to import
             string file = Services.GetInstance().BrowserService.OpenFileDialog("", "Excel Files|*.xls;*.xlsx;*.xlsm");
             if (file == null) { return; }
 
-            // 2. Create new workbook to import into
+            // 2. Create new workfile to import into
             string name = Services.GetInstance().DialogService.OpenTextDialog("Name:", Path.GetFileNameWithoutExtension(file));
             if (name == null) { return; }
 
-            WorkfileManager.GetInstance().CreateWorkfile(name);
-            // TEMPORARY
-            Workfile workfile = new Workfile() { Name = name };
-            WorkfileManager.GetInstance().SelectedWorkFile = workfile;
+            WorkfileManager.GetInstance().CreateWorkfile(new Workfile() { Name = name, ImportDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") });
+            // TEMPORARY (MAYBE FIXED?)
+            workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
 
-            // 3. Import data
-            await new ExcelManager(new ExportOptions()).ImportFromExcel(file);
+            //// 3. Check file for errors
+            ExcelManager excelManager = new ExcelManager(new ExportOptions());
+            List<int> errorRows = await excelManager.CheckExcelFile(file);
 
-            // 4. Refresh Workfile list
-            Workfiles = WorkfileManager.GetInstance().GetWorkfiles();
+            if (errorRows.Count > 0)
+            {
+                MessageBoxResult result = MessageBox.Show("There might be erorrs in the excel file, do you want to stop importing and highlight possible errors?\nYes - Stop import and highlight errors\nNo - import file", "Excel file check", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    await excelManager.HighlightExcelFileErrors(file, errorRows);
+                    workfileManager.DeleteWorkfile(workfileManager.SelectedWorkFile);
+                    return;
+                }
+            }
+
+            // 4. Import data
+            await excelManager.ImportFromExcel(file);
+
+            // 5. Refresh Workfile list
+            PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
         }
         public void OpenWorkfile(object input = null)
         {
@@ -87,7 +137,7 @@ namespace DataProcessing.ViewModels
             if (dialogResult == MessageBoxResult.No) { return; }
 
             new WorkfileRepo().Delete(SelectedWorkfile);
-            Workfiles = WorkfileManager.GetInstance().GetWorkfiles();
+            PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
         }
         public void RenameWorkfile(object input = null)
         {
@@ -96,7 +146,16 @@ namespace DataProcessing.ViewModels
             string oldName = SelectedWorkfile.Name;
             SelectedWorkfile.Name = name;
             new WorkfileRepo().Update(SelectedWorkfile, oldName);
-            Workfiles = WorkfileManager.GetInstance().GetWorkfiles();
+            PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
         }
-    }
+
+        private void PopulateWorkfiles(List<Workfile> workfiles)
+        {
+            Workfiles.Clear();
+            foreach (Workfile workfile in workfiles)
+            {
+                Workfiles.Add(workfile);
+            }
+        }
+    } 
 }

@@ -41,10 +41,11 @@ namespace DataProcessing.Classes
         public event Action<Workfile> OnWorkfileChanged;
 
         // Database operations
-        public void CreateWorkfile(string name) { new WorkfileRepo().Create(name); }
+        public void CreateWorkfile(Workfile workfile) { new WorkfileRepo().Create(workfile); }
         public List<Workfile> GetWorkfiles() { return new WorkfileRepo().Find(); }
-        public void UpdateWorkgile(Workfile workfile, string oldName) { new WorkfileRepo().Update(workfile, oldName); }
-        public void DeleteWorkgile(Workfile workfile) { new WorkfileRepo().Delete(workfile); }
+        public void UpdateWorkfile(Workfile workfile, string oldName) { new WorkfileRepo().Update(workfile, oldName); }
+        public void DeleteWorkfile(Workfile workfile) { new WorkfileRepo().Delete(workfile); this.SelectedWorkFile = null; }
+        public Workfile GetWorkfileByName(string name) { return new WorkfileRepo().FindByName(name); }
 
     }
 }

@@ -9,5 +9,6 @@ namespace DataProcessing.Utils.Interfaces
     interface IBrowserService
     {
         string OpenFileDialog(string defaultEx, string filter);
+        string OpenFolderDialog();
     }
 }

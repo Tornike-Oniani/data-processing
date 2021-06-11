@@ -10,12 +10,12 @@ namespace DataProcessing.Models
     class TimeStamp
     {
         private TimeStampRepo repo = new TimeStampRepo();
-        private long _time;
+        private long TimeTicks;
         private long _timeDifference;
 
         // Properties
         public int Id { get; set; }
-        public TimeSpan Time { get { return new TimeSpan(_time); } set { _time = value.Ticks; } }
+        public TimeSpan Time { get { return new TimeSpan(TimeTicks); } set { TimeTicks = value.Ticks; } }
         public TimeSpan TimeDifference { get { return new TimeSpan(_timeDifference); } set { _timeDifference = value.Ticks; } }
         public double TimeDifferenceInDouble { get; set; }
         public int TimeDifferenceInSeconds { get; set; }

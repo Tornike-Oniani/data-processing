@@ -77,9 +77,9 @@
                           Grid.Row="1"
                           MouseUp="DataGrid_MouseUp">
 
-                    <!-- Columns --><!--
+                    <!-- Columns -->
                     <DataGrid.Columns>
-                        --><!-- Title column --><!--
+                         <!-- Title column --> 
                         <DataGridTemplateColumn Header="Time" MinWidth="95" SortMemberPath="AT">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -90,7 +90,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                         <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
-                    </DataGrid.Columns>-->
+                    </DataGrid.Columns>
                 </DataGrid>
             </Grid>
         </Border>
