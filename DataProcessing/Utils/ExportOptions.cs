@@ -12,7 +12,11 @@ namespace DataProcessing.Utils
         public int MaxStates { get; set; }
         public TimeSpan From { get; set; }
         public TimeSpan Till { get; set; }
-        public Dictionary<int, int> StateAndCriteria { get; set; } = new Dictionary<int, int>();
-        public Dictionary<int, int> StateAndCriteriaAbove { get; set; } = new Dictionary<int, int>();
+        public List<SpecificCriteria> Criterias { get; set; }
+
+        public List<SpecificCriteria> GetExistentCriterias()
+        {
+            return Criterias.Where(c => c.Value != null).ToList();
+        }
     }
 }

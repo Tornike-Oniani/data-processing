@@ -68,15 +68,15 @@ namespace DataProcessing.ViewModels
             UpdateViewCommand.Execute(ViewType.Home);
 
             // Global error hanlder
-            if (Application.Current != null)
-            {
-                Application.Current.DispatcherUnhandledException += (s, a) =>
-                {
-                    // 2. Generic unhandled exceptions
-                    MessageBox.Show($"{a.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    a.Handled = true;
-                };
-            }
+            //if (Application.Current != null)
+            //{
+            //    Application.Current.DispatcherUnhandledException += (s, a) =>
+            //    {
+            //        // 2. Generic unhandled exceptions
+            //        MessageBox.Show($"{a.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            //        a.Handled = true;
+            //    };
+            //}
         }
 
         // Command actions

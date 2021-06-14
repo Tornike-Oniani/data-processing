@@ -35,6 +35,7 @@ namespace DataProcessing.Models
         }
         public void SetMarkerStates(string markerStates) { this.MarkerStates = markerStates; }
 
+        /* BACKUP
         // Public actions
         public void CalculateStats(List<TimeStamp> calculatedSamples, ExportOptions options)
         {
@@ -244,5 +245,6 @@ namespace DataProcessing.Models
         {
             return samples.Count(sample => sample.State == state && sample.TimeDifferenceInSeconds >= below);
         }
+        */
     }
 }

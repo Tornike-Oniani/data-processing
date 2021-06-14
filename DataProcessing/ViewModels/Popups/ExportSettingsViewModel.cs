@@ -3,6 +3,7 @@ using DataProcessing.Models;
 using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,8 +54,15 @@ namespace DataProcessing.ViewModels
             this.From = from;
             this.Till = till;
 
+            WakefulnessBelow = 5;
+            SleepBelow = 5;
+            ParadoxicalSleepBelow = 5;
+            WakefulnessAbove = 20;
+            SleepAbove = 20;
+            ParadoxicalSleepAbove = 20;
+
             // Initialize commands
-            ExportCommand = new RelayCommand(Export);
+            ExportCommand = new RelayCommand(ExportAlt);
             CancelCommand = new RelayCommand(Cancel);
         }
 
@@ -72,12 +80,12 @@ namespace DataProcessing.ViewModels
                 From = From, Till = Till
             };
 
-            if (WakefulnessBelow != null) { exportOptions.StateAndCriteria.Add(MaxStates, (int)WakefulnessBelow); }
-            if (SleepBelow != null) { exportOptions.StateAndCriteria.Add(2, (int)SleepBelow); }
-            if (ParadoxicalSleepBelow != null) { exportOptions.StateAndCriteria.Add(1, (int)ParadoxicalSleepBelow); }
-            if (WakefulnessAbove != null) { exportOptions.StateAndCriteriaAbove.Add(MaxStates, (int)WakefulnessAbove); }
-            if (SleepAbove != null) { exportOptions.StateAndCriteriaAbove.Add(2, (int)SleepAbove); }
-            if (ParadoxicalSleepAbove != null) { exportOptions.StateAndCriteriaAbove.Add(1, (int)ParadoxicalSleepAbove); }
+            //if (WakefulnessBelow != null) { exportOptions.StateAndCriteria.Add(MaxStates, (int)WakefulnessBelow); }
+            //if (SleepBelow != null) { exportOptions.StateAndCriteria.Add(2, (int)SleepBelow); }
+            //if (ParadoxicalSleepBelow != null) { exportOptions.StateAndCriteria.Add(1, (int)ParadoxicalSleepBelow); }
+            //if (WakefulnessAbove != null) { exportOptions.StateAndCriteriaAbove.Add(MaxStates, (int)WakefulnessAbove); }
+            //if (SleepAbove != null) { exportOptions.StateAndCriteriaAbove.Add(2, (int)SleepAbove); }
+            //if (ParadoxicalSleepAbove != null) { exportOptions.StateAndCriteriaAbove.Add(1, (int)ParadoxicalSleepAbove); }
 
             List<TimeStamp> markedRecords;
             if (ExportSelectedPeriod)
@@ -95,14 +103,54 @@ namespace DataProcessing.ViewModels
             CalculateSamples(markedRecords);
 
             // 3. Calculate workfile intormation
-            Workfile currentWorkfile = WorkfileManager.GetInstance().SelectedWorkFile;
-            currentWorkfile.CalculateStats(markedRecords, exportOptions);
-            currentWorkfile.CalculateHourlyStats(markedRecords, (int)TimeSpan.FromHours(SelectedTimeMark).TotalSeconds, exportOptions);
+            //Workfile currentWorkfile = WorkfileManager.GetInstance().SelectedWorkFile;
+            //currentWorkfile.CalculateStats(markedRecords, exportOptions);
+            //currentWorkfile.CalculateHourlyStats(markedRecords, (int)TimeSpan.FromHours(SelectedTimeMark).TotalSeconds, exportOptions);
+
+            //// 4. Export to excel
+            //this.Window.Close();
+            //await new ExcelManager(exportOptions).ExportToExcel(markedRecords, folderPath, fileName);
+            //currentWorkfile.ClearStats();
+        }
+        public async void ExportAlt(object input = null)
+        {
+            ExportOptions exportOptions = new ExportOptions()
+            {
+                TimeMark = SelectedTimeMark,
+                MaxStates = MaxStates,
+                From = From,
+                Till = Till,
+                Criterias = new List<SpecificCriteria>()
+                {
+                    new SpecificCriteria() { State = MaxStates, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 2, Operand = "Below", Value = SleepBelow },
+                    new SpecificCriteria() { State = 1, Operand = "Below", Value = ParadoxicalSleepBelow },
+                    new SpecificCriteria() { State = MaxStates, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
+                    new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
+                }
+            };
+
+            List<TimeStamp> markedRecords;
+            if (ExportSelectedPeriod)
+            {
+                int fromCheck = records.Where(sample => sample.Time == From).ToList().Count;
+                int tillCheck = records.Where(sample => sample.Time == Till).ToList().Count;
+                if (fromCheck == 0 || tillCheck == 0) { throw new Exception("Specified period doesn't exist!"); }
+                markedRecords = records.Where(sample => isBetweenTimeInterval(From, Till, sample.Time)).ToList();
+            }
+            else
+            {
+                markedRecords = records;
+            }
+            markedRecords = AddTimeMarksToSamples(markedRecords);
+            CalculateSamples(markedRecords);
 
             // 4. Export to excel
             this.Window.Close();
-            await new ExcelManager(exportOptions).ExportToExcel(markedRecords, folderPath, fileName);
-            currentWorkfile.ClearStats();
+            DataProcessor dataProcessor = new DataProcessor(markedRecords, exportOptions);
+            dataProcessor.Calculate();
+            await new ExcelManager(exportOptions, dataProcessor.CreateStatTables(), dataProcessor.CreateGraphTables()).ExportToExcel(markedRecords, dataProcessor.getDuplicatedTimes(), dataProcessor.getHourRowIndexes());
         }
         public void Cancel(object input = null)
         {

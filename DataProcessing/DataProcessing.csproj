@@ -83,6 +83,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\DataProcessor.cs" />
     <Compile Include="Classes\Services.cs" />
     <Compile Include="Classes\Testing.cs" />
     <Compile Include="Models\Stats.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Utils\AttachedProperties\SelectionExtension.cs" />
     <Compile Include="Utils\Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Utils\Converters\MarkerToColorConverter.cs" />
+    <Compile Include="Utils\DataTableInfo.cs" />
     <Compile Include="Utils\ExportOptions.cs" />
     <Compile Include="Utils\Interfaces\IDialogService.cs" />
     <Compile Include="Utils\Interfaces\IWindow.cs" />
@@ -104,6 +106,8 @@
     </Compile>
     <Compile Include="Utils\Interfaces\IBrowserService.cs" />
     <Compile Include="Utils\Services\WindowService.cs" />
+    <Compile Include="Utils\SpecificCriteria.cs" />
+    <Compile Include="Utils\SpecificCriteriaComparer.cs" />
     <Compile Include="Utils\UpdateViewCommand.cs" />
     <Compile Include="Utils\ViewType.cs" />
     <Compile Include="ViewModels\Base\BaseDialogViewModel.cs" />

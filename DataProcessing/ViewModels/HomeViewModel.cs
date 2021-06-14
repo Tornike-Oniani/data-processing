@@ -105,7 +105,7 @@ namespace DataProcessing.ViewModels
             workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
 
             //// 3. Check file for errors
-            ExcelManager excelManager = new ExcelManager(new ExportOptions());
+            ExcelManager excelManager = new ExcelManager(new ExportOptions(), null, null);
             List<int> errorRows = await excelManager.CheckExcelFile(file);
 
             if (errorRows.Count > 0)

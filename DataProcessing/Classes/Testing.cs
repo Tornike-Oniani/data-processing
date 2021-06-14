@@ -80,7 +80,7 @@ namespace DataProcessing.Classes
                     string statInfo = $"Hour: {entry.Key}\n";
                     foreach (KeyValuePair<int, int> stateAndTime in stats.StateTimes)
                     {
-                        statInfo += $"State {stateAndTime.Key}: {stateAndTime.Value} - {stats.TimePercentages[stateAndTime.Key]}%\n";
+                        statInfo += $"State {stateAndTime.Key}: {stateAndTime.Value} - {stats.StatePercentages[stateAndTime.Key]}%\n";
                     }
                     statRange.Value = statInfo;
                 }
@@ -111,19 +111,19 @@ namespace DataProcessing.Classes
                 Stats totlaStats = WorkfileManager.GetInstance().SelectedWorkFile.Stats;
                 calcSheet.Cells[2, 2] = totlaStats.StateTimes[4];
                 calcSheet.Cells[2, 3] = Math.Round((double)totlaStats.StateTimes[4] / 60, 2);
-                calcSheet.Cells[2, 4] = totlaStats.TimePercentages[4];
+                calcSheet.Cells[2, 4] = totlaStats.StatePercentages[4];
 
                 calcSheet.Cells[3, 2] = totlaStats.StateTimes[3];
                 calcSheet.Cells[3, 3] = Math.Round((double)totlaStats.StateTimes[3] / 60, 2);
-                calcSheet.Cells[3, 4] = totlaStats.TimePercentages[3];
+                calcSheet.Cells[3, 4] = totlaStats.StatePercentages[3];
 
                 calcSheet.Cells[4, 2] = totlaStats.StateTimes[2];
                 calcSheet.Cells[4, 3] = Math.Round((double)totlaStats.StateTimes[2] / 60, 2);
-                calcSheet.Cells[4, 4] = totlaStats.TimePercentages[2];
+                calcSheet.Cells[4, 4] = totlaStats.StatePercentages[2];
 
                 calcSheet.Cells[5, 2] = totlaStats.StateTimes[1];
                 calcSheet.Cells[5, 3] = Math.Round((double)totlaStats.StateTimes[1] / 60, 2);
-                calcSheet.Cells[5, 4] = totlaStats.TimePercentages[1];
+                calcSheet.Cells[5, 4] = totlaStats.StatePercentages[1];
 
                 calcSheet.Cells[6, 2] = totlaStats.TotalTime;
                 calcSheet.Cells[6, 3] = Math.Round((double)totlaStats.TotalTime / 60, 2);
@@ -159,23 +159,23 @@ namespace DataProcessing.Classes
                     calcSheet.Cells[step, 2] = entry.Value.StateTimes[4];
                     calcSheet.Cells[step, 3] = Math.Round((double)entry.Value.StateTimes[4] / 60, 2);
                     endCell = calcSheet.Cells[step, 4];
-                    calcSheet.Cells[step, 4] = entry.Value.TimePercentages[4];
+                    calcSheet.Cells[step, 4] = entry.Value.StatePercentages[4];
                     step++;
                     calcSheet.Cells[step, 1] = "Light sleep";
                     calcSheet.Cells[step, 2] = entry.Value.StateTimes[3];
                     calcSheet.Cells[step, 3] = Math.Round((double)entry.Value.StateTimes[3] / 60, 2);
-                    calcSheet.Cells[step, 4] = entry.Value.TimePercentages[3];
+                    calcSheet.Cells[step, 4] = entry.Value.StatePercentages[3];
                     step++;
                     calcSheet.Cells[step, 1] = "Deep sleep";
                     calcSheet.Cells[step, 2] = entry.Value.StateTimes[2];
                     calcSheet.Cells[step, 3] = Math.Round((double)entry.Value.StateTimes[2] / 60, 2);
-                    calcSheet.Cells[step, 4] = entry.Value.TimePercentages[2];
+                    calcSheet.Cells[step, 4] = entry.Value.StatePercentages[2];
                     step++;
                     endCell = calcSheet.Cells[step, 1];
                     calcSheet.Cells[step, 1] = "Paradoxical sleep";
                     calcSheet.Cells[step, 2] = entry.Value.StateTimes[1];
                     calcSheet.Cells[step, 3] = Math.Round((double)entry.Value.StateTimes[1] / 60, 2);
-                    calcSheet.Cells[step, 4] = entry.Value.TimePercentages[1];
+                    calcSheet.Cells[step, 4] = entry.Value.StatePercentages[1];
                     coloring = calcSheet.Range[startCell, endCell];
                     coloring.Interior.Color = System.Drawing.Color.FromArgb(148, 216, 255);
                     //coloring.Interior.Color = XlRgbColor.rgbLightBlue;
@@ -206,10 +206,10 @@ namespace DataProcessing.Classes
                 {
                     if (index % 10 == 0 || index == max) { services.UpdateWorkStatus($"Calculating {index}/{max}"); }
                     calcGraphSheet.Cells[1, step] = $"{entry.Key}hr";
-                    calcGraphSheet.Cells[2, step] = entry.Value.TimePercentages[4];
-                    calcGraphSheet.Cells[3, step] = entry.Value.TimePercentages[3];
-                    calcGraphSheet.Cells[4, step] = entry.Value.TimePercentages[2];
-                    calcGraphSheet.Cells[5, step] = entry.Value.TimePercentages[1];
+                    calcGraphSheet.Cells[2, step] = entry.Value.StatePercentages[4];
+                    calcGraphSheet.Cells[3, step] = entry.Value.StatePercentages[3];
+                    calcGraphSheet.Cells[4, step] = entry.Value.StatePercentages[2];
+                    calcGraphSheet.Cells[5, step] = entry.Value.StatePercentages[1];
                     step++;
                     index++;
                 }
