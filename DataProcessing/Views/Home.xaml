@@ -10,57 +10,68 @@
     <UserControl.Resources>
         <!-- ListView Template -->
         <ControlTemplate x:Key="ListViewTemplate" TargetType="{x:Type ListView}">
-            <Grid Background="#f3f3f3">
-                <Grid.RowDefinitions>
-                    <!-- Lables row -->
-                    <RowDefinition Height="Auto" />
-                    <!-- Content row-->
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <!-- Labels -->
-                <Border BorderBrush="#d2d2d2"
-                        BorderThickness="0 0 0 1"
-                        Grid.Row="0">
-                    <Grid Margin="15 7 15 7">
-                        <Grid.ColumnDefinitions>
-                            <!-- Icon column -->
-                            <ColumnDefinition Width="30" />
-                            <!-- Name column -->
-                            <ColumnDefinition Width="*" />
-                            <!-- Books count column -->
-                            <ColumnDefinition Width=".5*" />
-                        </Grid.ColumnDefinitions>
+            <Border BorderThickness="1 1 1 1" 
+                    CornerRadius="3" 
+                    BorderBrush="{StaticResource LabelTextColorBrush}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <!-- Lables row -->
+                        <RowDefinition Height="Auto" />
+                        <!-- Content row-->
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <!-- Labels -->
+                    <Border BorderBrush="{StaticResource LabelTextColorBrush}"
+                            Background="{StaticResource VeryLightGrayColorBrush}"
+                            BorderThickness="0 0 0 1"
+                            Grid.Row="0">
+                        <Grid Margin="20 15 15 15">
+                            <Grid.ColumnDefinitions>
+                                <!-- Icon column -->
+                                <ColumnDefinition Width="Auto" />
+                                <!-- Name column -->
+                                <ColumnDefinition Width="*" />
+                                <!-- Books count column -->
+                                <ColumnDefinition Width=".5*" />
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Icon -->
-                        <iconPacks:PackIconBootstrapIcons Kind="FileEarmark"
-                                                          Foreground="#555555"
-                                                          HorizontalAlignment="Center"
-                                                          Grid.Column="0" />
-                        
-                        <!-- Name label -->
-                        <TextBlock Text="Name"
-                                   Margin="10 0 0 0"
-                                   Grid.Column="1" />
+                            <!-- Icon -->
+                            <iconPacks:PackIconBootstrapIcons Kind="FileEarmark"
+                                                              Width="20"
+                                                              Height="20"
+                                                              Foreground="#555555"
+                                                              HorizontalAlignment="Center"
+                                                              Grid.Column="0" />
 
-                        <!-- Name label -->
-                        <TextBlock Text="Date Imported"
-                                   Foreground="#555555"
-                                   Grid.Column="2" />
-                    </Grid>
-                </Border>
+                            <!-- Name label -->
+                            <TextBlock Text="Name"
+                                       FontSize="16"
+                                       VerticalAlignment="Center"
+                                       Margin="15 0 0 0"
+                                       Grid.Column="1" />
 
-                <!-- Content -->
-                <ScrollViewer Grid.Row="1">
-                    <ItemsPresenter />
-                </ScrollViewer>
-            </Grid>
+                            <!-- Name label -->
+                            <TextBlock Text="Date Imported"
+                                       FontSize="16"
+                                       VerticalAlignment="Center"
+                                       Foreground="#555555"
+                                       Grid.Column="2" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </Grid>
+            </Border>
         </ControlTemplate>
         
         <!-- ListItem Tempalte -->
         <ControlTemplate x:Key="ItemView" TargetType="{x:Type ListViewItem}">
             <Border x:Name="wrapper"
                     BorderThickness="0 0 0 1"
-                    BorderBrush="#d2d2d2"
+                    BorderBrush="{StaticResource LabelTextColorBrush}"
                     Padding="15 5 15 5">
                 <Border.InputBindings>
                     <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding DataContext.OpenWorkfileCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
@@ -70,12 +81,10 @@
 
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="wrapper" Property="Background" Value="#d2d2d2" />
+                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightGrayColorBrush}" />
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter TargetName="wrapper" Property="Background" Value="#b1b1b1" />
-                    <Setter TargetName="wrapper" Property="BorderThickness" Value="2 2 2 2" />
-                    <Setter TargetName="wrapper" Property="BorderBrush" Value="#000000" />
+                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource PrimaryColorHighlightBrush}" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -94,7 +103,7 @@
 
                 <!-- Icon -->
                 <iconPacks:PackIconBootstrapIcons Kind="FileBarGraph" 
-                                                  Foreground="{StaticResource MainButtonBackgroundBrush}"
+                                                  Foreground="{StaticResource PrimaryColorBrush}"
                                                   Width="30"
                                                   Height="30"
                                                   HorizontalAlignment="Center"
@@ -131,61 +140,84 @@
         </Grid.RowDefinitions>
         
         <!-- Header -->
-        <Border BorderBrush="#d2d2d2"
-                BorderThickness="0 0 0 1"
+        <Grid Grid.Row="0"
+              Margin="0 0 0 0">
+            <!-- Shadow -->
+            <Border Background="#ffffff"
+                    BorderThickness="0">
+                <Border.Effect>
+                    <DropShadowEffect Opacity="0.3" 
+                                      ShadowDepth="1" 
+                                      Direction="270"
+                                      BlurRadius="4" />
+                </Border.Effect>
+            </Border>
+            <Border BorderBrush="{StaticResource LabelTextColorBrush}"
+                BorderThickness="0 0 0 0"
                 Background="#ffffff"
                 Padding="20 0 20 0"
                 Grid.Row="0">
-            <TextBlock Text="Home"
-                       FontWeight="Bold"
-                       FontSize="22"
-                       VerticalAlignment="Center" />
-        </Border>
+                <TextBlock Text="Home"
+                           FontWeight="Bold"
+                           FontSize="22"
+                           Foreground="{StaticResource LabelTextColorBrush}"
+                           VerticalAlignment="Center" />
+            </Border>
+        </Grid>
 
         <!-- Content -->
-        <Grid Background="#f3f3f3"
-              Grid.Row="1">
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <!-- Menu row -->
-                <RowDefinition Height="65" />
+                <RowDefinition Height="Auto" />
                 <!-- List row -->
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Menu item and border -->
-            <Button Content="Import excel file"
-                    Command="{Binding ImportExcelCommand}"
-                    Style="{StaticResource MainButtonStyle}"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="left"
-                    Margin="20 0 0 15"
-                    Padding="8 7"
-                    Grid.Row="0"/>
-            <StackPanel Orientation="Horizontal" 
+            <!-- Menu -->
+            <Border Padding="20 10 20 10" 
+                    Grid.Row="0">
+                <Grid>
+                    <!-- Import button -->
+                    <Button Content="Import excel file"
+                            Command="{Binding ImportExcelCommand}"
+                            Style="{StaticResource MainButtonStyle}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="left"/>
+                    
+                    <!-- Search box -->
+                    <StackPanel Orientation="Horizontal" 
                         VerticalAlignment="Center" 
                         HorizontalAlignment="Right"
-                        Margin="0 0 20 0">
-                <Label Content="Search:" Margin="0 0 5 0" />
-                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Width="135" />
-            </StackPanel>
-            <Border BorderBrush="#d2d2d2" 
-                    BorderThickness="0 0 0 1"
-                    VerticalAlignment="Bottom"
-                    Margin="20 0 20 10" />
+                        Margin="0 0 1 0">
+                        <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" 
+                                 Tag="Search..."
+                                 Style="{StaticResource WatermarkTextBox}"
+                                 BorderThickness="1.5"
+                                 Width="135">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Esc" Command="{Binding ClearSearchCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-            <ListView ItemsSource="{Binding WorkfilesCollection}"
+            <!-- File list -->
+            <Border Padding="20 0 20 10"
+                    Grid.Row="1">
+                <ListView ItemsSource="{Binding WorkfilesCollection}"
                       SelectedItem="{Binding SelectedWorkfile}"
                       Template="{StaticResource ListViewTemplate}"
-                      ItemContainerStyle="{StaticResource ItemStyle}"
-                      Margin="20 0 20 0"
-                      Grid.Row="2">
-                <ListView.ContextMenu>
-                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                        <MenuItem Header="Rename" Command="{Binding RenameWorkfileCommand}" />
-                        <MenuItem Header="Delete" Command="{Binding DeleteWorkfileCommand}" />
-                    </ContextMenu>
-                </ListView.ContextMenu>
-            </ListView>
+                      ItemContainerStyle="{StaticResource ItemStyle}">
+                    <ListView.ContextMenu>
+                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="Rename" Command="{Binding RenameWorkfileCommand}" />
+                            <MenuItem Header="Delete" Command="{Binding DeleteWorkfileCommand}" />
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+            </Border>
 
         </Grid>
     </Grid>

@@ -51,6 +51,7 @@ namespace DataProcessing.ViewModels
         public ICommand OpenWorkfileCommand { get; set; }
         public ICommand DeleteWorkfileCommand { get; set; }
         public ICommand RenameWorkfileCommand { get; set; }
+        public ICommand ClearSearchCommand { get; set; }
 
         // Constuctor
         public HomeViewModel(UpdateViewCommand updateViewCommand)
@@ -68,6 +69,7 @@ namespace DataProcessing.ViewModels
             OpenWorkfileCommand = new RelayCommand(OpenWorkfile);
             DeleteWorkfileCommand = new RelayCommand(DeleteWorkfile);
             RenameWorkfileCommand = new RelayCommand(RenameWorkfile);
+            ClearSearchCommand = new RelayCommand(ClearSearch);
         }
 
         private void OnSearch(object sender, FilterEventArgs e)
@@ -148,7 +150,12 @@ namespace DataProcessing.ViewModels
             new WorkfileRepo().Update(SelectedWorkfile, oldName);
             PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
         }
+        public void ClearSearch(object input = null)
+        {
+            Search = null;
+        }
 
+        // Private helpers
         private void PopulateWorkfiles(List<Workfile> workfiles)
         {
             Workfiles.Clear();

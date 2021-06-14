@@ -9,7 +9,7 @@
         xmlns:converters="clr-namespace:DataProcessing.Converters"
         xmlns:usercontrols="clr-namespace:DataProcessing.UserControls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="Auto" Width="Auto" WindowStartupLocation="CenterScreen">
+        Title="Data Processing" Height="Auto" Width="Auto" WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
@@ -22,7 +22,7 @@
             <Rectangle Fill="#ffffff"
                        Opacity="0.7" />
             <Border BorderThickness="0 0 0 3"
-                    BorderBrush="{StaticResource MainButtonBackgroundBrush}"
+                    BorderBrush="{StaticResource PrimaryColorBrush}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Padding="10">
@@ -30,14 +30,15 @@
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center">
                     <usercontrols:LoadingControl Diameter="50"
-                                                 Color1="#217346"
+                                                 Color1="{StaticResource PrimaryColor}"
                                                  Color2="Transparent" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="{Binding WorkLabel,FallbackValue=Working...}" 
-                           FontSize="18" 
-                           FontWeight="Bold"
-                           VerticalAlignment="Center"
-                           Margin="5 0 0 0" />
+                               Foreground="{StaticResource LabelTextColorBrush}"
+                               FontSize="18" 
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Margin="5 0 0 0" />
                     </StackPanel>
                 </StackPanel>
             </Border>

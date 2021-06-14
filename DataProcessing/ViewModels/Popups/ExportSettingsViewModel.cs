@@ -54,13 +54,6 @@ namespace DataProcessing.ViewModels
             this.From = from;
             this.Till = till;
 
-            WakefulnessBelow = 5;
-            SleepBelow = 5;
-            ParadoxicalSleepBelow = 5;
-            WakefulnessAbove = 20;
-            SleepAbove = 20;
-            ParadoxicalSleepAbove = 20;
-
             // Initialize commands
             ExportCommand = new RelayCommand(ExportAlt);
             CancelCommand = new RelayCommand(Cancel);

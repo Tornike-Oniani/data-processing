@@ -34,37 +34,12 @@
                 <!-- Entry -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <!-- Add text column --><!--
-                        <ColumnDefinition Width="125" />
-                        --><!-- Add button column --><!--
-                        <ColumnDefinition Width="Auto" />-->
-                        <!-- Export button column -->
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-
-                    <!-- Add text --><!--
-                    <TextBox Text="{Binding EntryManager.TimeStamp, UpdateSourceTrigger=PropertyChanged}" 
-                         utils:FocusExtension.IsFocused="{Binding EntryManager.IsEntryFocused}"
-                         Grid.Column="0"
-                         PreviewTextInput="TextBox_PreviewTextInput">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Enter" Command="{Binding EntryManager.AddCommand}" />
-                        </TextBox.InputBindings>
-                    </TextBox>
-
-                    --><!-- Add button --><!--
-                    <Button Content="Add" 
-                        Command="{Binding EntryManager.AddCommand}"
-                        Style="{StaticResource MainButtonStyle}"
-                        Width="70" 
-                        Margin="10 0 10 0" 
-                        Grid.Column="1" />-->
 
                     <Button Content="Export to Excel"
                             Command="{Binding ExportCommand}"
                             Style="{StaticResource MainButtonStyle}"
-                            Width="125"
-                            Margin="10 0 0 0"
                             Grid.Column="0" />
                 </Grid>
 

@@ -365,11 +365,15 @@ namespace DataProcessing.Classes
 
                 int position = 1;
                 statTablePositions.Add(position);
+                int index = 1;
+                int max = statTableCollection.Count;
                 foreach (DataTableInfo tableInfo in statTableCollection)
                 {
+                    updateStatus("Stat tables", index, max);
                     position = WriteDataTable(statsSheet, tableInfo, position);
                     position += distanceBetweenTables;
                     statTablePositions.Add(position);
+                    index++;
                 }
 
                 statsSheet.Range["A1"].EntireColumn.AutoFit();
@@ -387,10 +391,13 @@ namespace DataProcessing.Classes
 
                 int tableCount = 1;
                 double chartTop = 0;
+                index = 1;
                 foreach (DataTableInfo tableInfo in statTableCollection)
                 {
+                    updateStatus("Stat charts", index, max);
                     chartTop = WriteStatChart(statsSheet, tableInfo, 5, 10, tableCount, chartTop);
                     tableCount++;
+                    index++;
                 }
 
                 // Graph table
@@ -400,12 +407,16 @@ namespace DataProcessing.Classes
 
                 position = 1;
                 Range lastHour;
+                index = 1;
+                max = graphTableCollection.Count;
                 foreach (DataTableInfo tableInfo in graphTableCollection)
                 {
+                    updateStatus("Graph tables", index, max);
                     position = WriteDataTable(graphSheet, tableInfo, position);
                     lastHour = graphSheet.Cells[position, tableInfo.HeaderIndexes.Item2];
                     lastHour.EntireColumn.AutoFit();
                     position += distanceBetweenTables;
+                    index++;
                 }
 
                 graphSheet.Range["A1"].EntireColumn.AutoFit();
@@ -459,10 +470,13 @@ namespace DataProcessing.Classes
             // Color criteria
             if (tableInfo.CriteriaPhases != null)
             {
-                start = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + 1, 1];
-                end = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + tableInfo.CriteriaPhases.Item2, 1];
-                tableRange = sheet.Range[start, end];
-                tableRange.Interior.Color = tableInfo.IsTotal ? criteriaDark : criteriaLight;
+                if (tableInfo.CriteriaPhases.Item2 > 0)
+                {
+                    start = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + 1, 1];
+                    end = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + tableInfo.CriteriaPhases.Item2, 1];
+                    tableRange = sheet.Range[start, end];
+                    tableRange.Interior.Color = tableInfo.IsTotal ? criteriaDark : criteriaLight;
+                }
             }
 
             // Set alignments

@@ -4,7 +4,7 @@
                     xmlns:local="clr-namespace:DataProcessing.Styles">
     
     <Style x:Key="Navigation" TargetType="{x:Type StackPanel}">
-        <Setter Property="Background" Value="#217346" />
+        <Setter Property="Background" Value="{StaticResource PrimaryColorDarkBrush}" />
     </Style>
 
     <Style x:Key="Naviagtion__Button" TargetType="{x:Type RadioButton}">
@@ -29,10 +29,10 @@
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="wrapper" Property="Background" Value="#0e5c2f" />
+                            <Setter TargetName="wrapper" Property="Background" Value="{StaticResource PrimaryColorBrush}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="wrapper" Property="Background" Value="#004b1c" />
+                            <Setter TargetName="wrapper" Property="Background" Value="{StaticResource PrimaryColorBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

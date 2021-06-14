@@ -47,8 +47,8 @@
                         Margin="0 0 0 10">
                 <Label Content="Max number of states:" FontWeight="Bold" />
                 <TextBox Text="{Binding MaxStates}"
-                         Width="25" 
-                         IsReadOnly="False" />
+                         IsReadOnly="True"
+                         Width="25" />
             </StackPanel>
 
             <!-- Specific criteria-->
