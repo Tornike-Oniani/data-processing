@@ -58,7 +58,13 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Margin="0 0 0 20" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Margin="0 0 0 20" 
+                            Grid.Column="0"
+                            Grid.Row="0">
                     <StackPanel Orientation="Horizontal"
                             Margin="0 0 0 5">
                         <Label Content="Wakefulness (s) &lt;= " />
@@ -81,7 +87,9 @@
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Margin="20 0 0 20" Grid.Column="1">
+                <StackPanel Margin="20 0 0 20" 
+                            Grid.Column="1"
+                            Grid.Row="0">
                     <StackPanel Orientation="Horizontal"
                             Margin="0 0 0 5">
                         <Label Content="Wakefulness (s) &gt;= " />
@@ -103,6 +111,14 @@
                              LostFocus="TextBox_LostFocus" />
                     </StackPanel>
                 </StackPanel>
+                
+                <!-- Name to clipboard -->
+                <CheckBox IsChecked="{Binding SetNameToClipboard}"
+                          Content="Set file name to clipboard"
+                          Margin="0 0 0 20"
+                          Grid.Column="0"
+                          Grid.ColumnSpan="2"
+                          Grid.Row="1" />
             </Grid>
             
             

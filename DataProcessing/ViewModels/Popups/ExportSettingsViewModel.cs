@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace DataProcessing.ViewModels
@@ -36,6 +37,7 @@ namespace DataProcessing.ViewModels
             get { return _exportSelectedPeriod; }
             set { _exportSelectedPeriod = value; OnPropertyChanged("ExportSelectedPeriod"); }
         }
+        public bool SetNameToClipboard { get; set; }
 
 
         // Commands
@@ -48,7 +50,7 @@ namespace DataProcessing.ViewModels
             // Init
             this.Title = "Export settings";
             this.records = records;
-            this.TimeMarks = new List<float>() { 0.5f, 1, 2 };
+            this.TimeMarks = new List<float>() { 0.5f, 1, 2, 4 };
             this.SelectedTimeMark = TimeMarks[1];
             this.MaxStates = 3;
             this.From = from;
@@ -144,6 +146,8 @@ namespace DataProcessing.ViewModels
             DataProcessor dataProcessor = new DataProcessor(markedRecords, exportOptions);
             dataProcessor.Calculate();
             await new ExcelManager(exportOptions, dataProcessor.CreateStatTables(), dataProcessor.CreateGraphTables()).ExportToExcel(markedRecords, dataProcessor.getDuplicatedTimes(), dataProcessor.getHourRowIndexes());
+            if (SetNameToClipboard)
+                Clipboard.SetText("Calc - " + WorkfileManager.GetInstance().SelectedWorkFile.Name);
         }
         public void Cancel(object input = null)
         {
