@@ -34,7 +34,7 @@
                                                  Color2="Transparent" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="{Binding WorkLabel,FallbackValue=Working...}" 
-                               Foreground="{StaticResource LabelTextColorBrush}"
+                               Foreground="{StaticResource DarkGrayColorBrush}"
                                FontSize="18" 
                                FontWeight="Bold"
                                VerticalAlignment="Center"

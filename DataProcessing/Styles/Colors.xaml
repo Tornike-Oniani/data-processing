@@ -8,6 +8,7 @@
     <Color x:Key="PrimaryColorDeep">#436692</Color>
     <Color x:Key="PrimaryColorHighLight">#d6e7f3</Color>
     <Color x:Key="LabelTextColor">#bfc1c2</Color>
+    <Color x:Key="DarkGrayColor">#7d7f80</Color>
     <Color x:Key="LightGrayColor">#e6e6e6</Color>
     <Color x:Key="VeryLightGrayColor">#f3f3f3</Color>
 
@@ -17,6 +18,7 @@
     <SolidColorBrush x:Key="PrimaryColorDeepBrush" Color="{StaticResource PrimaryColorDeep}" />
     <SolidColorBrush x:Key="PrimaryColorHighlightBrush" Color="{StaticResource PrimaryColorHighLight}" />
     <SolidColorBrush x:Key="LabelTextColorBrush" Color="{StaticResource LabelTextColor}" />
+    <SolidColorBrush x:Key="DarkGrayColorBrush" Color="{StaticResource DarkGrayColor}" />
     <SolidColorBrush x:Key="LightGrayColorBrush" Color="{StaticResource LightGrayColor}" />
     <SolidColorBrush x:Key="VeryLightGrayColorBrush" Color="{StaticResource VeryLightGrayColor}" />
 

@@ -22,6 +22,7 @@ namespace DataProcessing.ViewModels
         // Private attributes
         private ICommand updateViewCommand;
         private Workfile _selectedWorkfile;
+        private string _search;
 
         // Public properties
         public ObservableCollection<Workfile> Workfiles { get; set; }
@@ -32,8 +33,6 @@ namespace DataProcessing.ViewModels
             get { return _selectedWorkfile; }
             set { _selectedWorkfile = value; OnPropertyChanged("SelectedWorkfile"); }
         }
-        private string _search;
-
         public string Search
         {
             get { return _search; }
