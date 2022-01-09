@@ -6,6 +6,7 @@ using DataProcessing.Utils.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -73,7 +74,8 @@ namespace DataProcessing.ViewModels
                 Application.Current.DispatcherUnhandledException += (s, a) =>
                 {
                     // 2. Generic unhandled exceptions
-                    MessageBox.Show($"{a.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    string errorMessage = a.Exception.Message + (a.Exception.Data.Contains("Iteration") ? ("\nRow: " + a.Exception.Data["Iteration"]) : "");
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     a.Handled = true;
                 };
             }

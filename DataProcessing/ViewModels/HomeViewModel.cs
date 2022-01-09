@@ -105,9 +105,20 @@ namespace DataProcessing.ViewModels
             // TEMPORARY (MAYBE FIXED?)
             workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
 
-            //// 3. Check file for errors
+            // 3. Check file for errors
             ExcelManager excelManager = new ExcelManager(new ExportOptions(), null, null);
-            List<int> errorRows = await excelManager.CheckExcelFile(file);
+            List<int> errorRows = new List<int>();
+            try
+            {
+                
+                errorRows = await excelManager.CheckExcelFile(file);
+            }
+            catch (Exception e)
+            {
+                Workfile wf = WorkfileManager.GetInstance().GetWorkfileByName(name);
+                WorkfileManager.GetInstance().DeleteWorkfile(wf);
+                throw e;
+            }
 
             if (errorRows.Count > 0)
             {

@@ -109,23 +109,37 @@ namespace DataProcessing.Classes
                 Range rangeCells = rangeData.Cells;
                 object[,] dataValues = rangeCells.Value;
                 List<Tuple<TimeSpan, int>> timeData = new List<Tuple<TimeSpan, int>>();
-                for (int i = 1; i <= dataValues.Length / 2; i++)
+                int iteration = 0;
+                try
                 {
-                    string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
-                    int[] nTimeData = new int[3] {
+                    for (int i = 1; i <= dataValues.Length / 2; i++)
+                    {
+                        iteration = i;
+                        string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
+                        int[] nTimeData = new int[3] {
                         int.Parse(sTimeSpan.Split(':')[0]),
                         int.Parse(sTimeSpan.Split(':')[1]),
                         int.Parse(sTimeSpan.Split(':')[2])
                     };
-                    string val = "";
-                    if (dataValues[i, 2] != null)
-                        val = dataValues[i, 2].ToString().Trim();
-                    int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
-                    TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
+                        string val = "";
+                        if (dataValues[i, 2] != null)
+                            val = dataValues[i, 2].ToString().Trim();
+                        int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
+                        TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
 
-                    Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
-                    timeData.Add(tuple);
+                        Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
+                        timeData.Add(tuple);
+                    }
                 }
+                catch (Exception e)
+                {
+                    Exception myException = new Exception(e.Message);
+                    myException.Data.Add("Iteration", iteration);
+                    GetExcelProcess(excel).Kill();
+                    services.SetWorkStatus(false);
+                    throw myException;
+                }
+
 
                 // Check time integrity
                 for (int i = 1; i < timeData.Count - 2; i++)
@@ -549,6 +563,7 @@ namespace DataProcessing.Classes
             chart.ChartWizard(
                 range,
                 XlChartType.xlColumnClustered,
+                PlotBy: XlRowCol.xlRows,
                 Title: tableInfo.Table.TableName,
                 ValueTitle: "Percents");
             chart.HasLegend = true;
@@ -672,7 +687,7 @@ namespace DataProcessing.Classes
             Range end = sheet.Cells[endRow, endColumn];
             return sheet.Range[start, end];
         }
-        Process GetExcelProcess(Application excelApp)
+        private Process GetExcelProcess(Application excelApp)
         {
             int id;
             GetWindowThreadProcessId(excelApp.Hwnd, out id);
