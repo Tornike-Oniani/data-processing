@@ -29,6 +29,19 @@ namespace DataProcessing.Models
 
         }
 
+        // For cloning purposes (violates encapsulation though)
+        public void SetTicks(long timeTicks)
+        {
+            this.TimeTicks = timeTicks;
+        }
+        public TimeStamp Clone()
+        {
+            TimeStamp cloned = new TimeStamp();
+            cloned.SetTicks(this.TimeTicks);
+            cloned.State = this.State;
+            return cloned;
+        }
+
         // Database functions
         public void Save()
         {

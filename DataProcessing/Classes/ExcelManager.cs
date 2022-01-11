@@ -45,6 +45,8 @@ namespace DataProcessing.Classes
         private ExportOptions options;
         private List<DataTableInfo> statTableCollection;
         private List<DataTableInfo> graphTableCollection;
+        private List<DataTableInfo> frequenciesCollection;
+        private DataTableInfo latencyTable;
         private Services services = Services.GetInstance();
         private List<int> markerLocations = new List<int>();
         private List<int> darkLightMarkerLocations = new List<int>();
@@ -57,11 +59,19 @@ namespace DataProcessing.Classes
         private double duplicatedChartLeft;
         List<int> statTablePositions = new List<int>();
 
-        public ExcelManager(ExportOptions options, List<DataTableInfo> statTableCollection, List<DataTableInfo> graphTableCollection)
+        public ExcelManager(
+            ExportOptions options, 
+            List<DataTableInfo> statTableCollection, 
+            List<DataTableInfo> graphTableCollection,
+            List<DataTableInfo> frequenciesCollection,
+            DataTableInfo latencyTable
+            )
         {
             this.options = options;
             this.statTableCollection = statTableCollection;
             this.graphTableCollection = graphTableCollection;
+            this.frequenciesCollection = frequenciesCollection;
+            this.latencyTable = latencyTable;
         }
 
         public async Task<List<int>> CheckExcelFile(string filePath)
@@ -320,7 +330,11 @@ namespace DataProcessing.Classes
 
             services.SetWorkStatus(false);
         }
-        public async Task ExportToExcel(List<TimeStamp> timeStamps, List<Tuple<int, int>> duplicatedTimes, List<int> hourRowIndexes)
+        public async Task ExportToExcel(
+            List<TimeStamp> timeStamps, 
+            List<Tuple<int, int>> duplicatedTimes, 
+            List<int> hourRowIndexes,
+            List<Tuple<int, string>> hourRowIndexesTime)
         {
             services.SetWorkStatus(true);
             await Task.Run(() =>
@@ -345,18 +359,37 @@ namespace DataProcessing.Classes
                 int prev = 1;
                 formatRange = rawDataSheet.Range[$"A{prev}:E{prev}"];
                 formatRange.Interior.Color = timeMarkColor;
-                for (int i = 0; i < hourRowIndexes.Count; i++)
+                //for (int i = 0; i < hourRowIndexes.Count; i++)
+                //{
+                //    formatRange = rawDataSheet.Range[$"A{hourRowIndexes[i]}:E{hourRowIndexes[i]}"];
+                //    formatRange.Interior.Color = timeMarkColor;
+                //    formatRange = rawDataSheet.Range[$"F{prev}:F{hourRowIndexes[i]}"];
+                //    formatRange.Merge();
+                //    formatRange.Value = $"Hour {(i + 1) * options.TimeMark}";
+                //    formatRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                //    formatRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+                //    if (i % 2 == 0) formatRange.Interior.Color = alternateColor;
+                //    prev = hourRowIndexes[i] + 1;
+                //}
+                Tuple<int, string> indexTime;
+                for (int i = 0; i < hourRowIndexesTime.Count; i++)
                 {
-                    formatRange = rawDataSheet.Range[$"A{hourRowIndexes[i]}:E{hourRowIndexes[i]}"];
+                    indexTime = hourRowIndexesTime[i];
+                    formatRange = rawDataSheet.Range[$"A{indexTime.Item1}:E{indexTime.Item1}"];
                     formatRange.Interior.Color = timeMarkColor;
-                    formatRange = rawDataSheet.Range[$"F{prev}:F{hourRowIndexes[i]}"];
+                    formatRange = rawDataSheet.Range[$"F{prev}:F{indexTime.Item1}"];
                     formatRange.Merge();
-                    formatRange.Value = $"Hour {(i + 1) * options.TimeMark}";
+                    formatRange.Value = indexTime.Item2;
                     formatRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
                     formatRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
                     if (i % 2 == 0) formatRange.Interior.Color = alternateColor;
-                    prev = hourRowIndexes[i] + 1;
+                    prev = indexTime.Item1 + 1;
+
+                    // Autofit after finishing
+                    if (i == hourRowIndexesTime.Count - 1)
+                        formatRange.EntireColumn.AutoFit();
                 }
+
                 //for (int i = 0; i < markerLocations.Count; i++)
                 //{
                 //    formatRange = rawDataSheet.Range[$"A{markerLocations[i]}:E{markerLocations[i]}"];
@@ -371,6 +404,9 @@ namespace DataProcessing.Classes
                 Range[] ranges = new Range[4] { rawDataSheet.Range["A1"], rawDataSheet.Range["B1"], rawDataSheet.Range["C1"], rawDataSheet.Range["D1"] };
                 foreach (Range r in ranges)
                     r.EntireColumn.AutoFit();
+
+                // Write latency table
+                WriteLatencyTable(rawDataSheet, latencyTable, 8);
 
                 // Stats table
                 services.UpdateWorkStatus("Exporting stats tables");
@@ -450,6 +486,30 @@ namespace DataProcessing.Classes
                 range = duplicatesSheet.Range["A1:D1"];
                 duplicatedChartLeft = range.Width;
                 WriteDuplicatesChart(duplicatesSheet, duplicatedTimes.Count, 17, 15);
+
+                // Frequency table
+                services.UpdateWorkStatus("Exporting frequencies");
+                _Worksheet frequencySheet = CreateNewSheet(wb, "Frequenies", 4);
+                frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
+                int pos = 1;
+                foreach (DataTableInfo tableInfo in frequenciesCollection)
+                {
+                    pos = WriteFrequencyTable(frequencySheet, tableInfo, pos);
+                }
+
+                // Autofit first column (In case the total hour is not round we will get 'Last x minutes' in the last table and we need autofit for that)
+                Range start = frequencySheet.Cells[1, 1];
+                start.EntireColumn.AutoFit();
+
+                // Autofit every second column (ones which have 'frequency' in title)
+                for (int i = 1; i <= frequenciesCollection[0].Table.Columns.Count; i++)
+                {
+                    if (i % 2 == 0)
+                    {
+                        start = frequencySheet.Cells[1, i];
+                        start.EntireColumn.AutoFit();
+                    }
+                }
 
                 wb.Sheets[1].Select(Type.Missing);
                 excel.Visible = true;
@@ -590,6 +650,52 @@ namespace DataProcessing.Classes
             xAxis.MaximumScale = 30000;
             yAxis.MajorUnit = 1;
         }
+        private int WriteFrequencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
+        {
+            object[,] values = FrequencyDataTableTo2DArray(tableInfo.Table);
+            Range start = sheet.Cells[position, 1];
+            Range end = sheet.Cells[position + tableInfo.Table.Rows.Count + 1, tableInfo.Table.Columns.Count];
+            Range tableRange = sheet.Range[start, end];
+            tableRange.Value = values;
+
+            // Color header
+            start = sheet.Cells[position, 1];
+            end = sheet.Cells[position, 1];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
+
+            // Color phases
+            start = sheet.Cells[position + 1, 1];
+            end = sheet.Cells[position + 1, tableInfo.Table.Columns.Count];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
+
+            return position + tableInfo.Table.Rows.Count + 3;
+        }
+        private void WriteLatencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
+        {
+            object[,] values = FrequencyDataTableTo2DArray(tableInfo.Table);
+            Range start = sheet.Cells[1, position];
+            Range end = sheet.Cells[tableInfo.Table.Rows.Count + 2, position + tableInfo.Table.Columns.Count - 1];
+            Range tableRange = sheet.Range[start, end];
+            tableRange.Value = values;
+
+            // Color header
+            start = sheet.Cells[1, position];
+            end = sheet.Cells[1, position];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
+
+            // Color phases
+            start = sheet.Cells[2, position];
+            end = sheet.Cells[2, position + tableInfo.Table.Columns.Count - 1];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
+
+            // Autofit
+            start.EntireColumn.AutoFit();
+            end.EntireColumn.AutoFit();
+        }
 
         private object[,] DataTableTo2DArray(System.Data.DataTable table)
         {
@@ -615,6 +721,38 @@ namespace DataProcessing.Classes
                 {
                     curColumn = table.Columns[j];
                     table2D[i + 1, j] = curRow[curColumn.ColumnName];
+                }
+            }
+
+            return table2D;
+        }
+        private object[,] FrequencyDataTableTo2DArray(System.Data.DataTable table)
+        {
+            // Rows + 1 because we also have to add column names and title
+            object[,] table2D = new object[table.Rows.Count + 2, table.Columns.Count];
+
+            // Title
+            table2D[0, 0] = table.TableName;
+
+            // Column names
+            for (int i = 0; i < table.Columns.Count; i++)
+            {
+                table2D[1, i] = table.Columns[i].ColumnName;
+            }
+
+            // Table contents
+            DataRow curRow;
+            DataColumn curColumn;
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                curRow = table.Rows[i];
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    curColumn = table.Columns[j];
+                    if ((int)curRow[curColumn.ColumnName] == 0)
+                        table2D[i + 2, j] = null;
+                    else
+                        table2D[i + 2, j] = curRow[curColumn.ColumnName];
                 }
             }
 

@@ -16,8 +16,6 @@ namespace DataProcessing.ViewModels
     {
         // Private attributes
         private List<TimeStamp> records;
-        private string folderPath;
-        private string fileName;
         private bool _exportSelectedPeriod;
 
         // Public properties
@@ -138,14 +136,31 @@ namespace DataProcessing.ViewModels
             {
                 markedRecords = records;
             }
+            // Keep non marked original records for total frequency calculation in DataProcessor
+            List<TimeStamp> nonMarkedRecords = new List<TimeStamp>();
+            foreach (TimeStamp timeStamp in markedRecords)
+            {
+                nonMarkedRecords.Add(timeStamp.Clone());
+            }
             markedRecords = AddTimeMarksToSamples(markedRecords);
             CalculateSamples(markedRecords);
+            CalculateSamples(nonMarkedRecords);
 
             // 4. Export to excel
             this.Window.Close();
             DataProcessor dataProcessor = new DataProcessor(markedRecords, exportOptions);
-            dataProcessor.Calculate();
-            await new ExcelManager(exportOptions, dataProcessor.CreateStatTables(), dataProcessor.CreateGraphTables()).ExportToExcel(markedRecords, dataProcessor.getDuplicatedTimes(), dataProcessor.getHourRowIndexes());
+            // We are also passing non marked records for total frequencies
+            dataProcessor.Calculate(nonMarkedRecords);
+            await new ExcelManager(exportOptions, 
+                dataProcessor.CreateStatTables(), 
+                dataProcessor.CreateGraphTables(),
+                dataProcessor.CreateFrequencyTables(),
+                dataProcessor.CreateLatencyTable()).
+                ExportToExcel(
+                    markedRecords, 
+                    dataProcessor.getDuplicatedTimes(), 
+                    dataProcessor.getHourRowIndexes(), 
+                    dataProcessor.getHourRowIndexesTime());
             if (SetNameToClipboard)
                 Clipboard.SetText("Calc - " + WorkfileManager.GetInstance().SelectedWorkFile.Name);
         }

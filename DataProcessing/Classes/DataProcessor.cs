@@ -23,10 +23,16 @@ namespace DataProcessing.Classes
         private Dictionary<int, string> stateAndPhases = new Dictionary<int, string>();
         private Stats totalStats;
         private Dictionary<int, Stats> hourAndStats = new Dictionary<int, Stats>();
+        // State frequencies total + each hour
+        private List<Dictionary<int, SortedList<int, int>>> hourStateFrequencies = new List<Dictionary<int, SortedList<int, int>>>();
         private List<int> hourRowIndexes = new List<int>();
+        private List<Tuple<int, string>> hourRowIndexesTime = new List<Tuple<int, string>>();
         private List<DataTableInfo> statTableCollection = new List<DataTableInfo>();
         private List<DataTableInfo> graphTableCollection = new List<DataTableInfo>();
         private List<Tuple<int, int>> duplicatedTimes = new List<Tuple<int, int>>();
+        private List<DataTableInfo> frequenciesCollection = new List<DataTableInfo>();
+        private int timeBeforeFirstSleep = 0;
+        private int timeBeforeFirstParadoxicalSleep = 0;
 
         // Constructor
         public DataProcessor(List<TimeStamp> timeStamps, ExportOptions options)
@@ -42,7 +48,7 @@ namespace DataProcessing.Classes
         }
 
         // Public methods
-        public void Calculate()
+        public void Calculate(List<TimeStamp> nonMarkedRecords)
         {
             // Create duplicated timestamps for graph
             int previous = timeStamps[0].TimeDifferenceInSeconds;
@@ -64,24 +70,81 @@ namespace DataProcessing.Classes
             int time = 0;
             int currentHour = 0;
 
+            // Hourly frequencies
+            Dictionary<int, SortedList<int, int>> totalFrequencies = new Dictionary<int, SortedList<int, int>>();
+            Dictionary<int, SortedList<int, int>> hourFrequencies = new Dictionary<int, SortedList<int, int>>();
+
+            foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+            {
+                // Create time and frequency dictionary for the state
+                totalFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
+                hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
+            }
+
+            // Add total here so it will be on top of hourly frequencies
+            hourStateFrequencies.Add(totalFrequencies);
+
+            // Calculate total frequencies with non marked original timestamps
+            for (int i = 1; i < nonMarkedRecords.Count; i++)
+            {
+                TimeStamp currentTimeStamp = nonMarkedRecords[i];
+
+                // We don't want program added timestamps (marker and hour marks) to be added to total
+                if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
+                    AddFrequencyToCollection(totalFrequencies, currentTimeStamp);
+            }
+
             List<TimeStamp> hourRegion = new List<TimeStamp>();
+            // Latency
+            bool foundFirstSleep = false;
+            bool foundFirstParadoxicalSleep = false;
+            int lastHourIndex = 0;
             for (int i = 0; i < timeStamps.Count; i++)
             {
                 TimeStamp currentTimeStamp = timeStamps[i];
                 time += currentTimeStamp.TimeDifferenceInSeconds;
 
+                // Calculate time before first sleep and paradoxical sleep (Latency)
+                if (!foundFirstSleep)
+                {
+                    timeBeforeFirstSleep += currentTimeStamp.TimeDifferenceInSeconds;
+                    if (currentTimeStamp.State == 2) { foundFirstSleep = true; }
+                }
+                if (!foundFirstParadoxicalSleep)
+                {
+                    timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
+                    if (currentTimeStamp.State == 1) { foundFirstParadoxicalSleep = true; }
+                }
+
                 if (time > options.TimeMark * 3600) { throw new Exception("Invalid hour marks"); }
 
                 hourRegion.Add(currentTimeStamp);
+                lastHourIndex = i + 1;
+
+                // Add frequencies, first timestamp doesn't have a state so we skip it
+                if (i > 0)
+                {
+                    AddFrequencyToCollection(hourFrequencies, currentTimeStamp);
+                }
 
                 if (time == options.TimeMark * 3600)
                 {
                     currentHour++;
                     hourRowIndexes.Add(i + 1);
+                    hourRowIndexesTime.Add(new Tuple<int, string>(i + 1, $"Hour {currentHour * options.TimeMark}"));
                     hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
+                    hourStateFrequencies.Add(hourFrequencies);
 
                     time = 0;
                     hourRegion.Clear();
+
+                    // Reset hour frequency collection
+                    hourFrequencies = new Dictionary<int, SortedList<int, int>>();
+                    foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+                    {
+                        // Create time and frequency dictionary for the state
+                        hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
+                    }
                 }
             }
 
@@ -89,6 +152,9 @@ namespace DataProcessing.Classes
             if (hourRegion.Count == 0) { return; }
             currentHour++;
             hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
+            hourStateFrequencies.Add(hourFrequencies);
+            hourRowIndexes.Add(lastHourIndex);
+            hourRowIndexesTime.Add(new Tuple<int, string>(lastHourIndex, getTimeForStats(hourAndStats.Last().Value.TotalTime)));
         }
         public List<DataTableInfo> CreateStatTables()
         {
@@ -118,6 +184,45 @@ namespace DataProcessing.Classes
         }
         public List<Tuple<int, int>> getDuplicatedTimes() { return duplicatedTimes; }
         public List<int> getHourRowIndexes() { return hourRowIndexes; }
+        public List<Tuple<int, string>> getHourRowIndexesTime() { return hourRowIndexesTime; }
+        public List<DataTableInfo> CreateFrequencyTables()
+        {
+            int hour = 0;
+            foreach (Dictionary<int, SortedList<int, int>> stateTimeFrequency in hourStateFrequencies)
+            {
+                // First item will be total not hourly
+                if (hour == 0)
+                {
+                    CreateFrequencyTable("Total", stateTimeFrequency, true);
+                    hour++;
+                    continue;
+                }
+
+                CreateFrequencyTable(hourRowIndexesTime[hour - 1].Item2, stateTimeFrequency);
+                hour++;
+            }
+
+            return frequenciesCollection;
+        }
+        public DataTableInfo CreateLatencyTable()
+        {
+            DataTableInfo tableInfo = new DataTableInfo();
+            DataTable table = new DataTable("Latency");
+            tableInfo.Table = table;
+
+            table.Columns.Add(new DataColumn("First sleep", typeof(int)));
+            table.Columns.Add(new DataColumn("First PS", typeof(int)));
+
+            DataRow row = table.NewRow();
+            row["First sleep"] = timeBeforeFirstSleep;
+            row["First PS"] = timeBeforeFirstParadoxicalSleep;
+            table.Rows.Add(row);
+
+            tableInfo.HeaderIndexes = new Tuple<int, int>(1, 1);
+            tableInfo.PhasesIndexes = new Tuple<int, int>(2, 2);
+
+            return tableInfo;
+        }
 
         // Private helpers
         private void CreateStatTable(string name, Stats stats, bool isTotal)
@@ -290,6 +395,64 @@ namespace DataProcessing.Classes
 
             return result;
         }
+        private void CreateFrequencyTable(string name, Dictionary<int, SortedList<int, int>> stateFrequencies, bool isTotal = false)
+        {
+            DataTableInfo tableInfo = new DataTableInfo();
+            DataTable table = new DataTable(name);
+            tableInfo.Table = table;
+            DataRow row;
+
+            // Add columns based on states
+            foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+            {
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} time", typeof(int)));
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} frequency", typeof(int)));
+            }
+
+            // Add data from dictionary to table
+            // Find largest dictionary to iterate with
+            int max = 0;
+            foreach (KeyValuePair<int, SortedList<int, int>> stateTimeFrequency in stateFrequencies)
+            {
+                if (stateTimeFrequency.Value.Count > max) { max = stateTimeFrequency.Value.Count; }
+            }
+
+            int time;
+            int frequency;
+            SortedList<int, int> current;
+            // Iterate with largest dictionary (let's say Wakefulness has more variety than others, its dictionary will be larger)
+            for (int i = 0; i < max; i++)
+            {
+                row = table.NewRow();
+
+                foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+                {
+                    current = stateFrequencies[stateAndPhase.Key];
+                    // Since we are going with largest dictionary there will be cases that index is out of range for smaller ones
+                    // in that case we just set time and frequency to 0, which we will convert into blank/null during excel export
+                    if (i < current.Count)
+                    {
+                        time = current.ElementAt(i).Key;
+                        frequency = current.ElementAt(i).Value;
+                    }
+                    else
+                    {
+                        time = 0;
+                        frequency = 0;
+                    }
+                    row[$"{stateAndPhase.Value.Substring(0, 1)} time"] = time;
+                    row[$"{stateAndPhase.Value.Substring(0, 1)} frequency"] = frequency;
+                }
+
+                table.Rows.Add(row);
+            }
+
+            tableInfo.HeaderIndexes = new Tuple<int, int>(1, 1);
+            tableInfo.PhasesIndexes = new Tuple<int, int>(1, table.Columns.Count);
+            tableInfo.IsTotal = isTotal;
+
+            frequenciesCollection.Add(tableInfo);
+        }
 
         private int calculateStateTime(List<TimeStamp> region, int state)
         {
@@ -346,9 +509,26 @@ namespace DataProcessing.Classes
         {
             if (seconds % 3600 == 0) { return $"{seconds / 3600}hr"; }
 
+            TimeSpan span = TimeSpan.FromSeconds(seconds);
+            if (span.TotalHours < 1) { return $"Last {Math.Round(span.TotalMinutes)} minutes"; }
+            return $"Last {span.Hours}hr {span.Minutes} min";
+            // This is weird it gives minutes as float hours
             double result = Math.Round((double)seconds / 3600, 2);
-            if (result < 1) { return $"Last {result % 1}min"; }
+            if (result < 1) { return $"Last {result % 1}hr"; }
             return $"Last {Math.Truncate(result)}hr {result % 1}min";
+        }
+        private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
+        {
+            // If time is already enetered increment frequency
+            if (collection[timeStamp.State].ContainsKey(timeStamp.TimeDifferenceInSeconds))
+            {
+                collection[timeStamp.State][timeStamp.TimeDifferenceInSeconds] += 1;
+            }
+            // Otherwise add it with frequency 1
+            else
+            {
+                collection[timeStamp.State].Add(timeStamp.TimeDifferenceInSeconds, 1);
+            }
         }
     }
 }
