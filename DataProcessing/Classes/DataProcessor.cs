@@ -107,13 +107,17 @@ namespace DataProcessing.Classes
                 // Calculate time before first sleep and paradoxical sleep (Latency)
                 if (!foundFirstSleep)
                 {
-                    timeBeforeFirstSleep += currentTimeStamp.TimeDifferenceInSeconds;
-                    if (currentTimeStamp.State == 2) { foundFirstSleep = true; }
+                    if (currentTimeStamp.State == 2)
+                        foundFirstSleep = true;
+                    else
+                        timeBeforeFirstSleep += currentTimeStamp.TimeDifferenceInSeconds;
                 }
                 if (!foundFirstParadoxicalSleep)
                 {
-                    timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
-                    if (currentTimeStamp.State == 1) { foundFirstParadoxicalSleep = true; }
+                    if (currentTimeStamp.State == 1)
+                        foundFirstParadoxicalSleep = true;
+                    else
+                        timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
                 }
 
                 if (time > options.TimeMark * 3600) { throw new Exception("Invalid hour marks"); }
