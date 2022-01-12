@@ -17,6 +17,7 @@ namespace DataProcessing.ViewModels
         // Private attributes
         private List<TimeStamp> records;
         private bool _exportSelectedPeriod;
+        private Dictionary<string, int[]> customFrequencyRanges;
 
         // Public properties
         public List<float> TimeMarks { get; set; }
@@ -43,7 +44,13 @@ namespace DataProcessing.ViewModels
         public ICommand CancelCommand { get; set; }
 
         // Constructor
-        public ExportSettingsViewModel(List<TimeStamp> records, TimeSpan from, TimeSpan till)
+        public ExportSettingsViewModel
+            (
+            List<TimeStamp> records, 
+            TimeSpan from, 
+            TimeSpan till, 
+            Dictionary<string, int[]> customFrequencyRanges
+            )
         {
             // Init
             this.Title = "Export settings";
@@ -53,6 +60,7 @@ namespace DataProcessing.ViewModels
             this.MaxStates = 3;
             this.From = from;
             this.Till = till;
+            this.customFrequencyRanges = customFrequencyRanges;
 
             // Initialize commands
             ExportCommand = new RelayCommand(ExportAlt);
@@ -121,7 +129,8 @@ namespace DataProcessing.ViewModels
                     new SpecificCriteria() { State = MaxStates, Operand = "Above", Value = WakefulnessAbove },
                     new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
                     new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
-                }
+                },
+                customFrequencyRanges = customFrequencyRanges
             };
 
             List<TimeStamp> markedRecords;
@@ -155,7 +164,8 @@ namespace DataProcessing.ViewModels
                 dataProcessor.CreateStatTables(), 
                 dataProcessor.CreateGraphTables(),
                 dataProcessor.CreateFrequencyTables(),
-                dataProcessor.CreateLatencyTable()).
+                dataProcessor.CreateLatencyTable(),
+                dataProcessor.CreateCustomFrequencyTables()).
                 ExportToExcel(
                     markedRecords, 
                     dataProcessor.getDuplicatedTimes(), 

@@ -1,0 +1,32 @@
+[
+  {
+    "Name": "Default",
+    "FrequencyRanges": [
+      {
+        "Range": "1-5",
+        "TimeUnit": 1
+      },
+      {
+        "Range": "6-10",
+        "TimeUnit": 1
+      },
+      {
+        "Range": "11-20",
+        "TimeUnit": 1
+      },
+      {
+        "Range": "21-25",
+        "TimeUnit": 1
+      }
+    ]
+  },
+  {
+    "Name": "Test",
+    "FrequencyRanges": [
+      {
+        "Range": "1-5",
+        "TimeUnit": 1
+      }
+    ]
+  }
+]

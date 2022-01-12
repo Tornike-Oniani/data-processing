@@ -5,19 +5,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace DataProcessing.Converters
 {
-    public class TimeSpanToStringConverter : IValueConverter
+    public class BoolToColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((TimeSpan)value).ToString("hh':'mm':'ss");
+            if ((bool)value)
+            {
+                return (SolidColorBrush)new BrushConverter().ConvertFrom("#f3e16b");
+            }
+
+            return (SolidColorBrush)new BrushConverter().ConvertFrom("#9c9c9e");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return TimeSpan.ParseExact((string)value, "hh':'mm':'ss", CultureInfo.CurrentCulture);
+            throw new NotImplementedException();
         }
     }
 }

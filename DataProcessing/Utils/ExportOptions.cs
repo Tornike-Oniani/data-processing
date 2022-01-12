@@ -13,6 +13,7 @@ namespace DataProcessing.Utils
         public TimeSpan From { get; set; }
         public TimeSpan Till { get; set; }
         public List<SpecificCriteria> Criterias { get; set; }
+        public Dictionary<string, int[]> customFrequencyRanges { get; set; }
 
         public List<SpecificCriteria> GetExistentCriterias()
         {

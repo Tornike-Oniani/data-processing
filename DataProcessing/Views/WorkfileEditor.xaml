@@ -3,17 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:local="clr-namespace:DataProcessing.Views"
              xmlns:utils="clr-namespace:DataProcessing.Utils"
-            xmlns:converters="clr-namespace:DataProcessing.Converters"
+             xmlns:converters="clr-namespace:DataProcessing.Converters"
+             xmlns:ap="clr-namespace:DataProcessing.Utils.AttachedProperties"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    
+
     <UserControl.Resources>
         <converters:TimeSpanToStringConverter x:Key="TimeSpanToString" />
         <converters:MarkerToColorConverter x:Key="MarkerToColor" />
+        <converters:SecondsToUnitConverter x:Key="SecondsToUnit" />
+        <converters:BoolToColorConverter x:Key="BoolToColor" />
+        <converters:BoolToThicknessConverter x:Key="BoolToThickness" />
     </UserControl.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <!-- Menu row -->
@@ -44,29 +49,275 @@
                 </Grid>
 
                 <!-- Display -->
-                <DataGrid x:Name="myDataGrid" 
+                <Grid Margin="0 10 0 0" Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <!-- Data grid column-->
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Frequency ranges column-->
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <DataGrid x:Name="myDataGrid" 
                           ItemsSource="{Binding DisplayManager.Items}"
                           utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
                           Style="{StaticResource MainDataGrid}"
-                          Margin="0 10 0 0" 
-                          Grid.Row="1"
-                          MouseUp="DataGrid_MouseUp">
+                          MouseUp="DataGrid_MouseUp"
+                          Grid.Column="0">
 
-                    <!-- Columns -->
-                    <DataGrid.Columns>
-                         <!-- Title column --> 
-                        <DataGridTemplateColumn Header="Time" MinWidth="95" SortMemberPath="AT">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border x:Name="wrapper" Background="{Binding IsMarker, Converter={StaticResource MarkerToColor}}">
-                                        <TextBlock Text="{Binding Time}" />
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                        <!-- Columns -->
+                        <DataGrid.Columns>
+                            <!-- Title column -->
+                            <DataGridTemplateColumn Header="Time" MinWidth="95" SortMemberPath="AT">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border x:Name="wrapper" Background="{Binding IsMarker, Converter={StaticResource MarkerToColor}}">
+                                            <TextBlock Text="{Binding Time}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Custom frequency ranges -->
+                    <Grid Margin="10 0 0 0" Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <!-- Enable ranges row -->
+                            <RowDefinition Height="Auto" />
+                            <!-- Frequencies entry & list row -->
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+
+                        <CheckBox IsChecked="{Binding CustomRangesEnabled}" 
+                                  Content="Add custom frequency ranges"
+                                  Grid.Row="0" />
+
+                        <!-- Frequencies enty & list -->
+                        <Grid IsEnabled="{Binding CustomRangesEnabled}" Margin="7 10 0 0" Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <!-- Frequency range entry * display column -->
+                                <ColumnDefinition Width="Auto" />
+                                <!-- Template management column -->
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <!-- Frequency entry row -->
+                                <RowDefinition Height="Auto" />
+                                <!-- Frequency list row -->
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Template management -->
+                            <Grid Margin="10 0 0 0" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2">
+                                <StackPanel Width="200" HorizontalAlignment="Left">
+                                    <!-- Label -->
+                                    <TextBlock Text="Selected template:" />
+                                    <ComboBox ItemsSource="{Binding FrequencyRangeTemplates}"
+                                              SelectedItem="{Binding SelectedFrequencyRangeTemplate}"
+                                              DisplayMemberPath="Name"
+                                              Margin="0 5 0 0"/>
+                                    <!-- Frequency range templates list -->
+                                    <StackPanel Margin="0 5 0 0" HorizontalAlignment="Right">
+                                        <!-- Save button -->
+                                        <Button Command="{Binding SaveTemplateCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                HorizontalContentAlignment="Stretch"
+                                                Margin="0 0 0 5">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <iconPacks:PackIconBootstrapIcons Kind="ArrowDownSquare"
+                                                                                      VerticalAlignment="Center"
+                                                                                      Grid.Column="0" />
+                                                    <TextBlock Text="Save"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Left"
+                                                               Margin="7 0 0 0"
+                                                               Grid.Column="1"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                        <!-- Save as button -->
+                                        <Button Command="{Binding SaveTemplateAsCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Margin="0 0 0 5">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <iconPacks:PackIconBootstrapIcons Kind="BoxArrowDown"
+                                                                                      VerticalAlignment="Center"
+                                                                                      Grid.Column="0" />
+                                                    <TextBlock Text="Save As"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Left"
+                                                               Margin="7 0 0 0"
+                                                               Grid.Column="1"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                        <!-- New button -->
+                                        <Button Command="{Binding NewTemplateCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Margin="0 0 0 5">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <iconPacks:PackIconBootstrapIcons Kind="PlusSquare"
+                                                                                      VerticalAlignment="Center"
+                                                                                      Grid.Column="0" />
+                                                    <TextBlock Text="New"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Left"
+                                                               Margin="7 0 0 0"
+                                                               Grid.Column="1"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                        <!-- Delete button -->
+                                        <Button Command="{Binding DeleteTemplateCommand}"
+                                                Style="{StaticResource SecondaryButtonStyle}">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <iconPacks:PackIconBootstrapIcons Kind="DashSquare"
+                                                                                      VerticalAlignment="Center"
+                                                                                      Grid.Column="0" />
+                                                    <TextBlock Text="Delete"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Left"
+                                                               Margin="7 0 0 0"
+                                                               Grid.Column="1"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Frequency range entry -->
+                            <StackPanel IsEnabled="{Binding IsTemplateSelected}"
+                                        Orientation="Horizontal"
+                                        Grid.Column="0"
+                                        Grid.Row="0">
+                                <!-- Entry field -->
+                                <TextBox Text="{Binding FrequencyRange, UpdateSourceTrigger=PropertyChanged}"
+                                         ap:FocusExtension.IsFocused="{Binding IsRangeEntryFocused}"
+                                         Width="70"
+                                         Margin="0 0 5 0">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding AddRangeCommand}" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                                <!-- Time unit selection -->
+                                <ComboBox ItemsSource="{Binding FrequencyTimeUnits}"
+                                          SelectedItem="{Binding SelectedFrequencyTimeUnit}"
+                                          Margin="0 0 5 0" >
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Converter={StaticResource SecondsToUnit}}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <!-- Add button-->
+                                <Button Command="{Binding AddRangeCommand}"
+                                        Style="{StaticResource MainButtonStyle}">
+                                    <Button.Content>
+                                        <iconPacks:BootstrapIcons Kind="Plus" />
+                                    </Button.Content>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Frequency range list -->
+                            <Grid IsEnabled="{Binding IsTemplateSelected}" Grid.Column="0" Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="133*"/>
+                                    <ColumnDefinition Width="438*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <!-- List label row -->
+                                    <RowDefinition Height="Auto" />
+                                    <!-- List row -->
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Frequency label -->
+                                <TextBlock Text="Custom frequency ranges:"
+                                           FontSize="14"
+                                           Margin="0 10 0 0"
+                                           Grid.Row="0" Grid.ColumnSpan="2" />
+
+                                <!-- Frequency range list -->
+                                <ListView ItemsSource="{Binding FrequencyRanges}"
+                                          SelectedItem="{Binding SelectedFrequencyRange}"
+                                          BorderThickness="{Binding IsTemplateChanged, Converter={StaticResource BoolToThickness}}"
+                                          BorderBrush="{Binding IsTemplateChanged, Converter={StaticResource BoolToColor}}"
+                                          AlternationCount="2"
+                                          HorizontalContentAlignment="Stretch"
+                                          HorizontalAlignment="Left"
+                                          Width="170"
+                                          Margin="0 10 0 0"
+                                          Grid.Row="1" 
+                                          Grid.ColumnSpan="2">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <!-- Range column -->
+                                                    <ColumnDefinition Width="*" />
+                                                    <!-- Time unit column -->
+                                                    <ColumnDefinition Width="35" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Grid.InputBindings>
+                                                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding DataContext.RemoveRangeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                                                </Grid.InputBindings>
+
+                                                <!-- Range -->
+                                                <Border BorderThickness="0 0 1 0"
+                                                        BorderBrush="#000000"
+                                                        Grid.Column="0">
+                                                    <TextBlock Text="{Binding Range}" />
+                                                </Border>
+
+                                                <!-- Time unit -->
+                                                <TextBlock Text="{Binding TimeUnit, Converter={StaticResource SecondsToUnit}}" 
+                                                           Margin="7 0 0 0"
+                                                           Grid.Column="1" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="{x:Type ListViewItem}">
+                                            <Setter Property="Padding" Value="5" />
+                                            <Style.Triggers>
+                                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                                    <Setter Property="Background" Value="#ffffff" />
+                                                </Trigger>
+                                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                                    <Setter Property="Background" Value="#F5f5f5" />
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Grid>
             </Grid>
         </Border>
     </Grid>

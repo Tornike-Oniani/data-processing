@@ -53,6 +53,9 @@
     <Reference Include="MahApps.Metro.IconPacks.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0c0d510f9915137a, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.IconPacks.BootstrapIcons.4.8.0\lib\net47\MahApps.Metro.IconPacks.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -85,16 +88,23 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\DataProcessor.cs" />
+    <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
     <Compile Include="Classes\Testing.cs" />
+    <Compile Include="Models\FrequencyRange.cs" />
+    <Compile Include="Models\FrequencyRangeTemplate.cs" />
     <Compile Include="Models\Stats.cs" />
     <Compile Include="Repositories\IRepo.cs" />
     <Compile Include="UserControls\LoadingControl.xaml.cs">
       <DependentUpon>LoadingControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils\AttachedProperties\FocusExtension.cs" />
     <Compile Include="Utils\AttachedProperties\SelectionExtension.cs" />
+    <Compile Include="Utils\Converters\BoolToColorConverter.cs" />
+    <Compile Include="Utils\Converters\BoolToThicknessConverter.cs" />
     <Compile Include="Utils\Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Utils\Converters\MarkerToColorConverter.cs" />
+    <Compile Include="Utils\Converters\SecondsToUnitConverter.cs" />
     <Compile Include="Utils\DataTableInfo.cs" />
     <Compile Include="Utils\ExportOptions.cs" />
     <Compile Include="Utils\Interfaces\IDialogService.cs" />
@@ -257,6 +267,9 @@
     </EmbeddedResource>
     <Resource Include="Data Processing icon.ico" />
     <Content Include="database.sqlite3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="frequencyRangeTemplates.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />

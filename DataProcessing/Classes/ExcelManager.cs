@@ -40,6 +40,7 @@ namespace DataProcessing.Classes
         private Color errorColor = Color.FromArgb(232, 128, 128);
         private Color criteriaLight = Color.FromArgb(255, 157, 148);
         private Color criteriaDark = Color.FromArgb(250, 92, 75);
+        private Color grayLight = Color.FromArgb(242, 242, 242);
         private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
         private int distanceBetweenTables = 2;
         private ExportOptions options;
@@ -47,6 +48,7 @@ namespace DataProcessing.Classes
         private List<DataTableInfo> graphTableCollection;
         private List<DataTableInfo> frequenciesCollection;
         private DataTableInfo latencyTable;
+        List<DataTableInfo> customFrequenciesCollection;
         private Services services = Services.GetInstance();
         private List<int> markerLocations = new List<int>();
         private List<int> darkLightMarkerLocations = new List<int>();
@@ -64,7 +66,8 @@ namespace DataProcessing.Classes
             List<DataTableInfo> statTableCollection, 
             List<DataTableInfo> graphTableCollection,
             List<DataTableInfo> frequenciesCollection,
-            DataTableInfo latencyTable
+            DataTableInfo latencyTable,
+            List<DataTableInfo> customFrequenciesCollection
             )
         {
             this.options = options;
@@ -72,6 +75,7 @@ namespace DataProcessing.Classes
             this.graphTableCollection = graphTableCollection;
             this.frequenciesCollection = frequenciesCollection;
             this.latencyTable = latencyTable;
+            this.customFrequenciesCollection = customFrequenciesCollection;
         }
 
         public async Task<List<int>> CheckExcelFile(string filePath)
@@ -359,18 +363,6 @@ namespace DataProcessing.Classes
                 int prev = 1;
                 formatRange = rawDataSheet.Range[$"A{prev}:E{prev}"];
                 formatRange.Interior.Color = timeMarkColor;
-                //for (int i = 0; i < hourRowIndexes.Count; i++)
-                //{
-                //    formatRange = rawDataSheet.Range[$"A{hourRowIndexes[i]}:E{hourRowIndexes[i]}"];
-                //    formatRange.Interior.Color = timeMarkColor;
-                //    formatRange = rawDataSheet.Range[$"F{prev}:F{hourRowIndexes[i]}"];
-                //    formatRange.Merge();
-                //    formatRange.Value = $"Hour {(i + 1) * options.TimeMark}";
-                //    formatRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
-                //    formatRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
-                //    if (i % 2 == 0) formatRange.Interior.Color = alternateColor;
-                //    prev = hourRowIndexes[i] + 1;
-                //}
                 Tuple<int, string> indexTime;
                 for (int i = 0; i < hourRowIndexesTime.Count; i++)
                 {
@@ -508,6 +500,33 @@ namespace DataProcessing.Classes
                     {
                         start = frequencySheet.Cells[1, i];
                         start.EntireColumn.AutoFit();
+                    }
+                }
+
+                // Custom frequency ranges
+                if (customFrequenciesCollection != null)
+                {
+                    services.UpdateWorkStatus("Exporting custom frequency ranges");
+                    _Worksheet customFrequencySheet = CreateNewSheet(wb, "Frequency ranges", 5);
+                    frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
+                    pos = 1;
+                    foreach (DataTableInfo tableInfo in customFrequenciesCollection)
+                    {
+                        pos = WriteCustomFrequencyTable(customFrequencySheet, tableInfo, pos);
+                    }
+
+                    // Autofit first column (In case the total hour is not round we will get 'Last x minutes' in the last table and we need autofit for that)
+                    start = customFrequencySheet.Cells[1, 1];
+                    start.EntireColumn.AutoFit();
+
+                    // Autofit every second column (ones which have 'frequency' in title)
+                    for (int i = 1; i <= customFrequenciesCollection[0].Table.Columns.Count; i++)
+                    {
+                        if (i % 2 == 0)
+                        {
+                            start = customFrequencySheet.Cells[1, i];
+                            start.EntireColumn.AutoFit();
+                        }
                     }
                 }
 
@@ -672,6 +691,41 @@ namespace DataProcessing.Classes
 
             return position + tableInfo.Table.Rows.Count + 3;
         }
+        private int WriteCustomFrequencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
+        {
+            object[,] values = CustomFrequencyDataTableTo2DArray(tableInfo.Table);
+            Range start = sheet.Cells[position, 1];
+            Range end = sheet.Cells[position + tableInfo.Table.Rows.Count + 1, tableInfo.Table.Columns.Count];
+            Range tableRange = sheet.Range[start, end];
+            tableRange.NumberFormat = "@";
+            tableRange.Value = values;
+
+            // Color header
+            start = sheet.Cells[position, 1];
+            end = sheet.Cells[position, 1];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
+
+            // Color phases
+            start = sheet.Cells[position + 1, 1];
+            end = sheet.Cells[position + 1, tableInfo.Table.Columns.Count];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
+
+            // Color times
+            for (int i = 1; i <= tableInfo.Table.Columns.Count; i++)
+            {
+                if (i % 2 != 0)
+                {
+                    start = sheet.Cells[position + 2, i];
+                    end = sheet.Cells[position + 1 + tableInfo.Table.Rows.Count, i];
+                    tableRange = sheet.Range[start, end];
+                    tableRange.Interior.Color = grayLight;
+                }
+            }
+
+            return position + tableInfo.Table.Rows.Count + 3;
+        }
         private void WriteLatencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
         {
             object[,] values = FrequencyDataTableTo2DArray(tableInfo.Table);
@@ -753,6 +807,35 @@ namespace DataProcessing.Classes
                         table2D[i + 2, j] = null;
                     else
                         table2D[i + 2, j] = curRow[curColumn.ColumnName];
+                }
+            }
+
+            return table2D;
+        }
+        private object[,] CustomFrequencyDataTableTo2DArray(System.Data.DataTable table)
+        {
+            // Rows + 1 because we also have to add column names and title
+            object[,] table2D = new object[table.Rows.Count + 2, table.Columns.Count];
+
+            // Title
+            table2D[0, 0] = table.TableName;
+
+            // Column names
+            for (int i = 0; i < table.Columns.Count; i++)
+            {
+                table2D[1, i] = table.Columns[i].ColumnName;
+            }
+
+            // Table contents
+            DataRow curRow;
+            DataColumn curColumn;
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                curRow = table.Rows[i];
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    curColumn = table.Columns[j];
+                    table2D[i + 2, j] = curRow[curColumn.ColumnName];
                 }
             }
 

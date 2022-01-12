@@ -8,16 +8,18 @@ using System.Windows.Data;
 
 namespace DataProcessing.Converters
 {
-    public class TimeSpanToStringConverter : IValueConverter
+    public class BoolToThicknessConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return ((TimeSpan)value).ToString("hh':'mm':'ss");
+            if ((bool)value) { return 2; }
+
+            return 1;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return TimeSpan.ParseExact((string)value, "hh':'mm':'ss", CultureInfo.CurrentCulture);
+            throw new NotImplementedException();
         }
     }
 }

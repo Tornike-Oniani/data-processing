@@ -25,12 +25,14 @@ namespace DataProcessing.Classes
         private Dictionary<int, Stats> hourAndStats = new Dictionary<int, Stats>();
         // State frequencies total + each hour
         private List<Dictionary<int, SortedList<int, int>>> hourStateFrequencies = new List<Dictionary<int, SortedList<int, int>>>();
+        private List<Dictionary<int, Dictionary<string, int>>> hourStateCustomFrequencies = new List<Dictionary<int, Dictionary<string, int>>>();
         private List<int> hourRowIndexes = new List<int>();
         private List<Tuple<int, string>> hourRowIndexesTime = new List<Tuple<int, string>>();
         private List<DataTableInfo> statTableCollection = new List<DataTableInfo>();
         private List<DataTableInfo> graphTableCollection = new List<DataTableInfo>();
         private List<Tuple<int, int>> duplicatedTimes = new List<Tuple<int, int>>();
         private List<DataTableInfo> frequenciesCollection = new List<DataTableInfo>();
+        private List<DataTableInfo> customFrequenciesCollection = new List<DataTableInfo>();
         private int timeBeforeFirstSleep = 0;
         private int timeBeforeFirstParadoxicalSleep = 0;
 
@@ -74,15 +76,40 @@ namespace DataProcessing.Classes
             Dictionary<int, SortedList<int, int>> totalFrequencies = new Dictionary<int, SortedList<int, int>>();
             Dictionary<int, SortedList<int, int>> hourFrequencies = new Dictionary<int, SortedList<int, int>>();
 
+            // Hourly custom frequncies
+            Dictionary<int, Dictionary<string, int>> totalCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
+            Dictionary<int, Dictionary<string, int>> hourCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
+
             foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
             {
                 // Create time and frequency dictionary for the state
                 totalFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
                 hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
+
+                // Create the same for customs
+                totalCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
+                hourCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
+            }
+
+            // Add ranges to each state for custom frequencies
+            foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in totalCustomFrequencies)
+            {
+                foreach (KeyValuePair<string, int[]> range in options.customFrequencyRanges)
+                {
+                    stateRange.Value.Add(range.Key, 0);
+                }
+            }
+            foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in hourCustomFrequencies)
+            {
+                foreach (KeyValuePair<string, int[]> range in options.customFrequencyRanges)
+                {
+                    stateRange.Value.Add(range.Key, 0);
+                }
             }
 
             // Add total here so it will be on top of hourly frequencies
             hourStateFrequencies.Add(totalFrequencies);
+            hourStateCustomFrequencies.Add(totalCustomFrequencies);
 
             // Calculate total frequencies with non marked original timestamps
             for (int i = 1; i < nonMarkedRecords.Count; i++)
@@ -92,6 +119,17 @@ namespace DataProcessing.Classes
                 // We don't want program added timestamps (marker and hour marks) to be added to total
                 if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
                     AddFrequencyToCollection(totalFrequencies, currentTimeStamp);
+
+                // Find fitting range for current timestamp
+                foreach (KeyValuePair<string, int[]> range in options.customFrequencyRanges)
+                {
+                    if (
+                        currentTimeStamp.TimeDifferenceInSeconds >= range.Value[0] && 
+                        currentTimeStamp.TimeDifferenceInSeconds <= range.Value[1])
+                    {
+                        totalCustomFrequencies[currentTimeStamp.State][range.Key] += 1;
+                    }
+                }
             }
 
             List<TimeStamp> hourRegion = new List<TimeStamp>();
@@ -129,6 +167,7 @@ namespace DataProcessing.Classes
                 if (i > 0)
                 {
                     AddFrequencyToCollection(hourFrequencies, currentTimeStamp);
+                    AddCustomFrequencyToCollection(hourCustomFrequencies, currentTimeStamp);
                 }
 
                 if (time == options.TimeMark * 3600)
@@ -138,6 +177,7 @@ namespace DataProcessing.Classes
                     hourRowIndexesTime.Add(new Tuple<int, string>(i + 1, $"Hour {currentHour * options.TimeMark}"));
                     hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
                     hourStateFrequencies.Add(hourFrequencies);
+                    hourStateCustomFrequencies.Add(hourCustomFrequencies);
 
                     time = 0;
                     hourRegion.Clear();
@@ -149,6 +189,20 @@ namespace DataProcessing.Classes
                         // Create time and frequency dictionary for the state
                         hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
                     }
+
+                    // Reset hour csutom frequency collection
+                    hourCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
+                    foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+                    {
+                        hourCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
+                    }
+                    foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in hourCustomFrequencies)
+                    {
+                        foreach (KeyValuePair<string, int[]> range in options.customFrequencyRanges)
+                        {
+                            stateRange.Value.Add(range.Key, 0);
+                        }
+                    }
                 }
             }
 
@@ -157,6 +211,7 @@ namespace DataProcessing.Classes
             currentHour++;
             hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
             hourStateFrequencies.Add(hourFrequencies);
+            hourStateCustomFrequencies.Add(hourCustomFrequencies);
             hourRowIndexes.Add(lastHourIndex);
             hourRowIndexesTime.Add(new Tuple<int, string>(lastHourIndex, getTimeForStats(hourAndStats.Last().Value.TotalTime)));
         }
@@ -226,6 +281,27 @@ namespace DataProcessing.Classes
             tableInfo.PhasesIndexes = new Tuple<int, int>(2, 2);
 
             return tableInfo;
+        }
+        public List<DataTableInfo> CreateCustomFrequencyTables()
+        {
+            if (options.customFrequencyRanges.Count == 0) { return null; }
+
+            int hour = 0;
+            foreach (Dictionary<int, Dictionary<string, int>> stateTimeFrequency in hourStateCustomFrequencies)
+            {
+                // First item will be total not hourly
+                if (hour == 0)
+                {
+                    CreateCustomFrequencyTable("Total", stateTimeFrequency, true);
+                    hour++;
+                    continue;
+                }
+
+                CreateCustomFrequencyTable(hourRowIndexesTime[hour - 1].Item2, stateTimeFrequency);
+                hour++;
+            }
+
+            return customFrequenciesCollection;
         }
 
         // Private helpers
@@ -457,6 +533,51 @@ namespace DataProcessing.Classes
 
             frequenciesCollection.Add(tableInfo);
         }
+        private void CreateCustomFrequencyTable(string name, Dictionary<int, Dictionary<string, int>> stateCustomFrequencies, bool isTotal = false)
+        {
+            DataTableInfo tableInfo = new DataTableInfo();
+            DataTable table = new DataTable(name);
+            tableInfo.Table = table;
+            DataRow row;
+
+            // Add columns based on states
+            foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+            {
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} range", typeof(string)));
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} frequency", typeof(int)));
+            }
+
+            int max = 0;
+            foreach (KeyValuePair<int, Dictionary<string, int>> stateTimeFrequency in stateCustomFrequencies)
+            {
+                if (stateTimeFrequency.Value.Count > max) { max = stateTimeFrequency.Value.Count; }
+            }
+
+            string range;
+            int frequency;
+            Dictionary<string, int> current;
+            for (int i = 0; i < max; i++)
+            {
+                row = table.NewRow();
+
+                foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+                {
+                    current = stateCustomFrequencies[stateAndPhase.Key];
+                    range = current.ElementAt(i).Key;
+                    frequency = current.ElementAt(i).Value;
+                    row[$"{stateAndPhase.Value.Substring(0, 1)} range"] = range;
+                    row[$"{stateAndPhase.Value.Substring(0, 1)} frequency"] = frequency;
+                }
+
+                table.Rows.Add(row);
+            }
+
+            tableInfo.HeaderIndexes = new Tuple<int, int>(1, 1);
+            tableInfo.PhasesIndexes = new Tuple<int, int>(1, table.Columns.Count);
+            tableInfo.IsTotal = isTotal;
+
+            customFrequenciesCollection.Add(tableInfo);
+        }
 
         private int calculateStateTime(List<TimeStamp> region, int state)
         {
@@ -532,6 +653,19 @@ namespace DataProcessing.Classes
             else
             {
                 collection[timeStamp.State].Add(timeStamp.TimeDifferenceInSeconds, 1);
+            }
+        }
+        private void AddCustomFrequencyToCollection(Dictionary<int, Dictionary<string, int>> collection, TimeStamp timeStamp)
+        {
+            // Find fitting range for current timestamp
+            foreach (KeyValuePair<string, int[]> range in options.customFrequencyRanges)
+            {
+                if (
+                    timeStamp.TimeDifferenceInSeconds >= range.Value[0] &&
+                    timeStamp.TimeDifferenceInSeconds <= range.Value[1])
+                {
+                    collection[timeStamp.State][range.Key] += 1;
+                }
             }
         }
     }
