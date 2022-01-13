@@ -513,6 +513,30 @@ namespace DataProcessing.Classes
                     foreach (DataTableInfo tableInfo in customFrequenciesCollection)
                     {
                         pos = WriteCustomFrequencyTable(customFrequencySheet, tableInfo, pos);
+                        if (tableInfo.IsTotal)
+                        {
+                            // chartTop = WriteStatChart(statsSheet, tableInfo, 5, 10, tableCount, chartTop);
+                            ChartObjects charts = customFrequencySheet.ChartObjects();
+                            ChartObject chartObject = charts.Add(chartLeft, 1, 17 * cellWidth, 22 * cellHeight);
+                            Chart chart = chartObject.Chart;
+
+                            //range = GetRange(customFrequencySheet, 3, 1, tableInfo.Table.Rows.Count + 2, tableInfo.Table.Columns.Count - 2);
+                            range = GetRange(customFrequencySheet, 2, 1, tableInfo.Table.Rows.Count + 2, tableInfo.Table.Columns.Count - 2);
+                            chart.ChartWizard(
+                                range,
+                                XlChartType.xlColumnClustered,
+                                Title: tableInfo.Table.TableName,
+                                ValueTitle: "Frequency");
+                            foreach (Series series in chart.SeriesCollection())
+                            {
+                                series.HasDataLabels = true;
+                            }
+                            chart.HasLegend = true;
+                            chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
+                            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
+                            //range = GetRange(customFrequencySheet, 2, 1, 2, tableInfo.Table.Columns.Count - 2);
+                            //xAxis.CategoryNames = range;
+                        }
                     }
 
                     // Autofit first column (In case the total hour is not round we will get 'Last x minutes' in the last table and we need autofit for that)
@@ -695,7 +719,7 @@ namespace DataProcessing.Classes
         {
             object[,] values = CustomFrequencyDataTableTo2DArray(tableInfo.Table);
             Range start = sheet.Cells[position, 1];
-            Range end = sheet.Cells[position + tableInfo.Table.Rows.Count + 1, tableInfo.Table.Columns.Count];
+            Range end = sheet.Cells[position + tableInfo.Table.Rows.Count + 1, tableInfo.Table.Columns.Count - 2];
             Range tableRange = sheet.Range[start, end];
             tableRange.NumberFormat = "@";
             tableRange.Value = values;
@@ -708,21 +732,25 @@ namespace DataProcessing.Classes
 
             // Color phases
             start = sheet.Cells[position + 1, 1];
-            end = sheet.Cells[position + 1, tableInfo.Table.Columns.Count];
+            end = sheet.Cells[position + 1, tableInfo.Table.Columns.Count - 2];
             tableRange = sheet.Range[start, end];
             tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
 
             // Color times
-            for (int i = 1; i <= tableInfo.Table.Columns.Count; i++)
-            {
-                if (i % 2 != 0)
-                {
-                    start = sheet.Cells[position + 2, i];
-                    end = sheet.Cells[position + 1 + tableInfo.Table.Rows.Count, i];
-                    tableRange = sheet.Range[start, end];
-                    tableRange.Interior.Color = grayLight;
-                }
-            }
+            //for (int i = 1; i <= tableInfo.Table.Columns.Count; i++)
+            //{
+            //    if (i % 2 != 0)
+            //    {
+            //        start = sheet.Cells[position + 2, i];
+            //        end = sheet.Cells[position + 1 + tableInfo.Table.Rows.Count, i];
+            //        tableRange = sheet.Range[start, end];
+            //        tableRange.Interior.Color = grayLight;
+            //    }
+            //}
+            start = sheet.Cells[position + 2, 1];
+            end = sheet.Cells[position + 1 + tableInfo.Table.Rows.Count, 1];
+            tableRange = sheet.Range[start, end];
+            tableRange.Interior.Color = grayLight;
 
             return position + tableInfo.Table.Rows.Count + 3;
         }
@@ -820,10 +848,21 @@ namespace DataProcessing.Classes
             // Title
             table2D[0, 0] = table.TableName;
 
+            int tempIndex = 0;
             // Column names
             for (int i = 0; i < table.Columns.Count; i++)
             {
-                table2D[1, i] = table.Columns[i].ColumnName;
+                // First column are frequency ranges
+                if (i == 0)
+                {
+                    table2D[1, tempIndex] = "Ranges";
+                    tempIndex++;
+                }
+                if (i % 2 != 0)
+                {
+                    table2D[1, tempIndex] = table.Columns[i].ColumnName;
+                    tempIndex++;
+                }
             }
 
             // Table contents
@@ -831,11 +870,16 @@ namespace DataProcessing.Classes
             DataColumn curColumn;
             for (int i = 0; i < table.Rows.Count; i++)
             {
+                tempIndex = 0;
                 curRow = table.Rows[i];
                 for (int j = 0; j < table.Columns.Count; j++)
                 {
-                    curColumn = table.Columns[j];
-                    table2D[i + 2, j] = curRow[curColumn.ColumnName];
+                    if (j == 0 || j % 2 != 0)
+                    {
+                        curColumn = table.Columns[j];
+                        table2D[i + 2, tempIndex] = curRow[curColumn.ColumnName];
+                        tempIndex++;
+                    }
                 }
             }
 

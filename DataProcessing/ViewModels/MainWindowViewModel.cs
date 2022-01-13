@@ -75,7 +75,7 @@ namespace DataProcessing.ViewModels
                 {
                     // 2. Generic unhandled exceptions
                     string errorMessage = a.Exception.Message + (a.Exception.Data.Contains("Iteration") ? ("\nRow: " + a.Exception.Data["Iteration"]) : "");
-                    MessageBox.Show(errorMessage + $"\n\n{a.Exception.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     a.Handled = true;
                 };
             }
