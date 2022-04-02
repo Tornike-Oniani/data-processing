@@ -50,7 +50,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        
+
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource PrimaryColorDarkBrush}" />
@@ -63,6 +63,146 @@
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource PrimaryColorHighlightBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource PrimaryColorHighlightBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ButtonMain" TargetType="{x:Type Button}">
+        <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGreenButton}" />
+        <Setter Property="BorderThickness" Value="1 1 1 1" />
+        <Setter Property="Background" Value="{StaticResource ColorBrushGreenButton}" />
+        <Setter Property="Foreground" Value="{StaticResource ColorBrushWhite}" />
+        <Setter Property="Padding" Value="10 7 10 7" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="2">
+                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ColorBrushGreenButtonHover}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.65" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="ButtonSecondary" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonMain}">
+        <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGreenSecondaryButton}" />
+        <Setter Property="Background" Value="{StaticResource ColorBrushGreenSecondaryButton}" />
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ColorBrushGreenSecondaryButtonHover}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.65" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="ButtonDefault" TargetType="{x:Type Button}">
+        <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGrayButtonBorder}" />
+        <Setter Property="BorderThickness" Value="1 1 1 1" />
+        <Setter Property="Background" Value="{StaticResource ColorBrushLightGrayButton}" />
+        <Setter Property="Foreground" Value="{StaticResource ColorBrushGrayText}" />
+        <Setter Property="Padding" Value="10 7 10 7" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border Background="{StaticResource ColorBrushWhite}"
+                                BorderBrush="{StaticResource ColorBrushWhite}"
+                                BorderThickness="1 1 1 1"
+                                CornerRadius="2"
+                                Effect="{StaticResource ShadowPanel}">
+                            <!--<Border.Effect>
+                                <DropShadowEffect BlurRadius="10"
+                                                  Color="#5a5a5a"
+                                                  Opacity="0.1"
+                                                  Direction="0"
+                                                  ShadowDepth="0" />
+                            </Border.Effect>-->
+                        </Border>
+                        <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="2">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
+                        </Border>
+                        <Border BorderBrush="#cccccc" BorderThickness="0 0 0 1" CornerRadius="2" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ColorBrushLightGrayButtonHover}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="#fafafa" />
+                <Setter Property="BorderBrush" Value="#dadada" />
+                <Setter Property="Opacity" Value="0.65" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="ButtonDefaultLeftAlign" TargetType="{x:Type Button}">
+        <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGrayButtonBorder}" />
+        <Setter Property="BorderThickness" Value="1 1 1 1" />
+        <Setter Property="Background" Value="{StaticResource ColorBrushLightGrayButton}" />
+        <Setter Property="Foreground" Value="{StaticResource ColorBrushGrayText}" />
+        <Setter Property="Padding" Value="10 7 10 7" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border Background="{StaticResource ColorBrushWhite}"
+                                BorderBrush="{StaticResource ColorBrushWhite}"
+                                BorderThickness="1 1 1 1"
+                                CornerRadius="2"
+                                Effect="{StaticResource ShadowPanel}">
+                            <!--<Border.Effect>
+                                <DropShadowEffect BlurRadius="10"
+                                                  Color="#5a5a5a"
+                                                  Opacity="0.1"
+                                                  Direction="0"
+                                                  ShadowDepth="0" />
+                            </Border.Effect>-->
+                        </Border>
+                        <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="2">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        </Border>
+                        <Border BorderBrush="#cccccc" BorderThickness="0 0 0 1" CornerRadius="2" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ColorBrushLightGrayButtonHover}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="#fafafa" />
+                <Setter Property="BorderBrush" Value="#dadada" />
+                <Setter Property="Opacity" Value="0.65" />
             </Trigger>
         </Style.Triggers>
     </Style>

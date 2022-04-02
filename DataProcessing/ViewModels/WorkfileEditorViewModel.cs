@@ -25,10 +25,12 @@ namespace DataProcessing.ViewModels
         private FrequencyRangeTemplate _selectedFrequencyRangeTemplate;
         private bool _isTemplateSelected;
         private bool _isTemplateChanged;
+        private int _selectedTabIndex;
 
         // Properties
         public DisplayManager DisplayManager { get; set; }
         public EntryManager EntryManager { get; set; }
+        public ExportSettingsManager ExportSettingsManager { get; set; }
         public bool CustomRangesEnabled
         {
             get { return _customRangesEnabled; }
@@ -81,6 +83,18 @@ namespace DataProcessing.ViewModels
             get { return _isTemplateChanged; }
             set { _isTemplateChanged = value; OnPropertyChanged("IsTemplateChanged"); }
         }
+        public int SelectedTabIndex
+        {
+            get { return _selectedTabIndex; }
+            set 
+            { 
+                _selectedTabIndex = value; 
+                OnPropertyChanged("SelectedTabIndex");
+                if (value == 2)
+                    SetExportSettings();
+            }
+        }
+
 
         // Commands
         public ICommand OpenWorkfileDialogCommand { get; set; }
@@ -101,6 +115,7 @@ namespace DataProcessing.ViewModels
             DisplayManager = new DisplayManager();
             EntryManager = new EntryManager(DisplayManager.PopulateCommand);
             WorkfileManager.GetInstance().OnWorkfileChanged += SetupDisplayAndEntry;
+            ExportSettingsManager = new ExportSettingsManager();
             // These values gets converted into 'sec', 'min' and 'hr' with converter
             FrequencyTimeUnits = new List<int>() { 1, 60, 3600 };
             SelectedFrequencyTimeUnit = FrequencyTimeUnits[0];
@@ -284,6 +299,18 @@ namespace DataProcessing.ViewModels
                 FrequencyRangeTemplates.Add(frequencyRangeTemplate);
             }
             if (FrequencyRangeTemplates.Count != 0) { SelectedFrequencyRangeTemplate = FrequencyRangeTemplates[0]; }
+        }
+        private void SetExportSettings()
+        {
+            List<TimeStamp> samples = DisplayManager.Items.ToList();
+            TimeSpan from = samples[0].Time;
+            TimeSpan till = samples[samples.Count - 1].Time;
+            if (DisplayManager.SelectedRows.Count > 1)
+            {
+                from = DisplayManager.SelectedRows[0].Time;
+                till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].Time;
+            }
+            ExportSettingsManager.SetSettings(DisplayManager.Items.ToList(), from, till, FrequencyRangesToArray());
         }
     }
 }

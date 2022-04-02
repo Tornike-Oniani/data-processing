@@ -22,4 +22,48 @@
     <SolidColorBrush x:Key="LightGrayColorBrush" Color="{StaticResource LightGrayColor}" />
     <SolidColorBrush x:Key="VeryLightGrayColorBrush" Color="{StaticResource VeryLightGrayColor}" />
 
+    <!-- Revamped -->
+    <Color x:Key="ColorWhite">#ffffff</Color>
+    <Color x:Key="ColorGrayText">#717171</Color>
+    <Color x:Key="ColorGrayBorder">#cccccc</Color>
+    <Color x:Key="ColorBlackLightBackground">#41586e</Color>
+    <Color x:Key="ColorBlackBackground">#344759</Color>
+    <Color x:Key="ColorBlackDarkBackground">#2e3e4e</Color>
+    <Color x:Key="ColorGreenButton">#65bd77</Color>
+    <Color x:Key="ColorGreenButtonHover">#53b567</Color>
+    <Color x:Key="ColorGreenSecondaryButton">#8ec165</Color>
+    <Color x:Key="ColorGreenSecondaryButtonHover">#81ba53</Color>
+    <Color x:Key="ColorLightGaryButton">#fafafa</Color>
+    <Color x:Key="ColorLightGrayButtonHover">#e6e6e6</Color>
+    <Color x:Key="ColorGrayButtonBorder">#dadada</Color>
+    <Color x:Key="ColorCyan">#4cc0c1</Color>
+    <Color x:Key="ColorGrayDark">#bebebe</Color>
+    <Color x:Key="ColorGrayTextboxBorder">#d9d9d9</Color>
+    <Color x:Key="ColorGrayPanelBackground">#e8e8e8</Color>
+    <Color x:Key="ColorGrayPanelBorder">#e8e8e8</Color>
+    <DropShadowEffect x:Key="ShadowPanel" BlurRadius="1"
+                                          Color="#5a5a5a"
+                                          Opacity=".1"
+                                          Direction="270"
+                                          ShadowDepth="1" />
+
+    <SolidColorBrush x:Key="ColorBrushWhite" Color="{StaticResource ColorWhite}" />
+    <SolidColorBrush x:Key="ColorBrushGrayText" Color="{StaticResource ColorGrayText}" />
+    <SolidColorBrush x:Key="ColorBrushGrayBorder" Color="{StaticResource ColorGrayBorder}" />
+    <SolidColorBrush x:Key="ColorBrushBlackLightBackground" Color="{StaticResource ColorBlackLightBackground}" />
+    <SolidColorBrush x:Key="ColorBrushBlackBackground" Color="{StaticResource ColorBlackBackground}" />
+    <SolidColorBrush x:Key="ColorBrushBlackDarkBackground" Color="{StaticResource ColorBlackDarkBackground}" />
+    <SolidColorBrush x:Key="ColorBrushGreenButton" Color="{StaticResource ColorGreenButton}" />
+    <SolidColorBrush x:Key="ColorBrushGreenButtonHover" Color="{StaticResource ColorGreenButtonHover}" />
+    <SolidColorBrush x:Key="ColorBrushGreenSecondaryButton" Color="{StaticResource ColorGreenSecondaryButton}" />
+    <SolidColorBrush x:Key="ColorBrushGreenSecondaryButtonHover" Color="{StaticResource ColorGreenSecondaryButtonHover}" />
+    <SolidColorBrush x:Key="ColorBrushLightGrayButton" Color="{StaticResource ColorLightGaryButton}" />
+    <SolidColorBrush x:Key="ColorBrushLightGrayButtonHover" Color="{StaticResource ColorLightGrayButtonHover}" />
+    <SolidColorBrush x:Key="ColorBrushGrayButtonBorder" Color="{StaticResource ColorGrayButtonBorder}" />
+    <SolidColorBrush x:Key="ColorBrushCyan" Color="{StaticResource ColorCyan}" />
+    <SolidColorBrush x:Key="ColorBrushGrayTextboxBorder" Color="{StaticResource ColorGrayBorder}" />
+    <SolidColorBrush x:Key="ColorBrushGrayDark" Color="{StaticResource ColorGrayDark}" />
+    <SolidColorBrush x:Key="ColorBrushGrayPanelBackground" Color="{StaticResource ColorGrayPanelBackground}" />
+    <SolidColorBrush x:Key="ColorBrushGrayPanelBorder" Color="{StaticResource ColorGrayPanelBorder}" />
+
 </ResourceDictionary>

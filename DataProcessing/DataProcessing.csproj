@@ -88,6 +88,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\DataProcessor.cs" />
+    <Compile Include="Classes\ExportSettingsManager.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
     <Compile Include="Classes\Testing.cs" />
@@ -171,6 +172,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\NavigationStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\TabControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Text.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

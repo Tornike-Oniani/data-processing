@@ -22,7 +22,7 @@
             <Rectangle Fill="#ffffff"
                        Opacity="0.7" />
             <Border BorderThickness="0 0 0 3"
-                    BorderBrush="{StaticResource PrimaryColorBrush}"
+                    BorderBrush="{StaticResource ColorBrushGreenButton}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Padding="10">
@@ -30,11 +30,11 @@
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center">
                     <usercontrols:LoadingControl Diameter="50"
-                                                 Color1="{StaticResource PrimaryColor}"
+                                                 Color1="{StaticResource ColorGreenButton}"
                                                  Color2="Transparent" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="{Binding WorkLabel,FallbackValue=Working...}" 
-                               Foreground="{StaticResource DarkGrayColorBrush}"
+                               Foreground="{StaticResource ColorBrushGrayText}"
                                FontSize="18" 
                                FontWeight="Bold"
                                VerticalAlignment="Center"

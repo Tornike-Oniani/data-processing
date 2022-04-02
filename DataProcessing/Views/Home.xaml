@@ -35,17 +35,18 @@
                                 <ColumnDefinition Width=".5*" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Icon -->
+                            <!-- Icon #555555 -->
                             <iconPacks:PackIconBootstrapIcons Kind="FileEarmark"
                                                               Width="20"
                                                               Height="20"
-                                                              Foreground="#555555"
+                                                              Foreground="{StaticResource ColorBrushGrayText}"
                                                               HorizontalAlignment="Center"
                                                               Grid.Column="0" />
 
                             <!-- Name label -->
                             <TextBlock Text="Name"
                                        FontSize="16"
+                                       Foreground="{StaticResource ColorBrushGrayText}"
                                        VerticalAlignment="Center"
                                        Margin="15 0 0 0"
                                        Grid.Column="1" />
@@ -54,7 +55,7 @@
                             <TextBlock Text="Date Imported"
                                        FontSize="16"
                                        VerticalAlignment="Center"
-                                       Foreground="#555555"
+                                       Foreground="{StaticResource ColorBrushGrayText}"
                                        Grid.Column="2" />
                         </Grid>
                     </Border>
@@ -84,7 +85,7 @@
                     <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightGrayColorBrush}" />
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource PrimaryColorHighlightBrush}" />
+                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightGrayColorBrush}" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -103,22 +104,25 @@
 
                 <!-- Icon -->
                 <iconPacks:PackIconBootstrapIcons Kind="FileBarGraph" 
-                                                  Foreground="{StaticResource PrimaryColorBrush}"
+                                                  Foreground="{StaticResource ColorBrushCyan}"
                                                   Width="30"
                                                   Height="30"
                                                   HorizontalAlignment="Center"
                                                   Grid.Column="0" />
                 
                 <!-- Name -->
-                <TextBlock Text="{Binding Name}"
+                <TextBlock x:Name="FileTitle"
+                           Text="{Binding Name}"
                            FontSize="14"
+                           Foreground="#2e3e4e"
                            VerticalAlignment="Center"
                            Margin="10 0 0 0"
                            Grid.Column="1" />
 
                 <!-- Date modified -->
-                <TextBlock Text="{Binding ImportDate}"
-                           Foreground="#555555"
+                <TextBlock x:Name="FileDateModified"
+                           Text="{Binding ImportDate}"
+                           Foreground="#2e3e4e"
                            FontSize="14"
                            VerticalAlignment="Center"
                            Grid.Column="2" />
@@ -126,6 +130,7 @@
         </DataTemplate>
 
         <Style x:Key="ItemStyle" TargetType="{x:Type ListViewItem}">
+            <Setter Property="Foreground" Value="Red" />
             <Setter Property="Template" Value="{StaticResource ItemView}" />
             <Setter Property="ContentTemplate" Value="{StaticResource DataView}" />
         </Style>
@@ -158,9 +163,9 @@
                 Padding="20 0 20 0"
                 Grid.Row="0">
                 <TextBlock Text="Home"
+                           Style="{StaticResource LabelDefault}"
                            FontWeight="Bold"
                            FontSize="22"
-                           Foreground="{StaticResource LabelTextColorBrush}"
                            VerticalAlignment="Center" />
             </Border>
         </Grid>
@@ -181,7 +186,7 @@
                     <!-- Import button -->
                     <Button Content="Import excel file"
                             Command="{Binding ImportExcelCommand}"
-                            Style="{StaticResource MainButtonStyle}"
+                            Style="{StaticResource ButtonMain}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="left"/>
                     

@@ -57,6 +57,12 @@ namespace DataProcessing.Views
             }
         }
 
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            TextBox txbThis = sender as TextBox;
+            if (String.IsNullOrWhiteSpace(txbThis.Text)) { txbThis.Text = null; }
+        }
+
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             //this.myDataGrid.SelectionMode = DataGridSelectionMode.Extended;
