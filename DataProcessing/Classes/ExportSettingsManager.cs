@@ -45,7 +45,7 @@ namespace DataProcessing.Classes
             set { _exportSelectedPeriod = value; OnPropertyChanged("ExportSelectedPeriod"); }
         }
         public bool SetNameToClipboard { get; set; }
-
+        public int ClusterSeparationTime { get; set; }
 
         // Commands
         public ICommand ExportCommand { get; set; }
@@ -78,7 +78,8 @@ namespace DataProcessing.Classes
                     new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
                     new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
                 },
-                customFrequencyRanges = customFrequencyRanges
+                customFrequencyRanges = customFrequencyRanges,
+                ClusterSeparationTimeInSeconds = ClusterSeparationTime * 60
             };
 
             List<TimeStamp> markedRecords;
@@ -115,6 +116,7 @@ namespace DataProcessing.Classes
                 dataProcessor.CreateCustomFrequencyTables()).
                 ExportToExcel(
                     markedRecords,
+                    nonMarkedRecords,
                     dataProcessor.getDuplicatedTimes(),
                     dataProcessor.getHourRowIndexes(),
                     dataProcessor.getHourRowIndexesTime());

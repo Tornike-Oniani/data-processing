@@ -19,239 +19,240 @@
         <converters:BoolToThicknessConverter x:Key="BoolToThickness" />
     </UserControl.Resources>
 
-    <TabControl Style="{StaticResource StepTabControl}" 
-                Margin="10"
-                SelectedIndex="{Binding SelectedTabIndex}">
-        <TabItem Header="Select data"
+    <Grid Margin="10">
+        <TabControl Style="{StaticResource StepTabControl}" 
+                    
+                    SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Select data"
                  Tag="1"
                  Style="{StaticResource TabItemFirst}">
-            <DataGrid x:Name="myDataGrid" 
+                <DataGrid x:Name="myDataGrid" 
                       ItemsSource="{Binding DisplayManager.Items}"
                       utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
                       Style="{StaticResource MainDataGrid}"
                       MouseUp="DataGrid_MouseUp"
                       Grid.Column="0">
 
-                <!-- Columns -->
-                <DataGrid.Columns>
-                    <!-- Title column -->
-                    <DataGridTemplateColumn Header="Time" MinWidth="95" SortMemberPath="AT">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border x:Name="wrapper" Background="{Binding IsMarker, Converter={StaticResource MarkerToColor}}">
-                                    <TextBlock Text="{Binding Time}" />
-                                </Border>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
-                </DataGrid.Columns>
-            </DataGrid>
-        </TabItem>
-        <TabItem Header="Set frequencies"
+                    <!-- Columns -->
+                    <DataGrid.Columns>
+                        <!-- Title column -->
+                        <DataGridTemplateColumn Header="Time" MinWidth="95" SortMemberPath="AT">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="wrapper" Background="{Binding IsMarker, Converter={StaticResource MarkerToColor}}">
+                                        <TextBlock Text="{Binding Time}" />
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Set frequencies"
                  Tag="2"
                  Style="{StaticResource TabItemMiddle}">
-            <Grid>
-                <!--Custom frequency ranges-->
-                <Grid.RowDefinitions>
-                    <!--Enable ranges row-->
-                    <RowDefinition Height="Auto" />
-                    <!--Frequencies entry & list row-->
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+                <Grid>
+                    <!--Custom frequency ranges-->
+                    <Grid.RowDefinitions>
+                        <!--Enable ranges row-->
+                        <RowDefinition Height="Auto" />
+                        <!--Frequencies entry & list row-->
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
 
 
-                <Border BorderBrush="{StaticResource ColorBrushGrayBorder}"
+                    <Border BorderBrush="{StaticResource ColorBrushGrayBorder}"
                         BorderThickness="1 1 1 1"
                         Padding="7"
                         Grid.Row="0">
-                    <CheckBox IsChecked="{Binding CustomRangesEnabled}" 
+                        <CheckBox IsChecked="{Binding CustomRangesEnabled}" 
                               Content="Enable custom frequency ranges" />
-                </Border>
-                
+                    </Border>
 
-                <!--Frequencies enty & list-->
-                <Grid IsEnabled="{Binding CustomRangesEnabled}" Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <!--Frequency range entry * display column-->
-                        <ColumnDefinition Width="Auto" />
-                        <!--Template management column-->
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
 
-                    <!--Template management-->
-                    <Border BorderThickness="1 0 1 1"
+                    <!--Frequencies enty & list-->
+                    <Grid IsEnabled="{Binding CustomRangesEnabled}" Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <!--Frequency range entry * display column-->
+                            <ColumnDefinition Width="Auto" />
+                            <!--Template management column-->
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--Template management-->
+                        <Border BorderThickness="1 0 1 1"
                             BorderBrush="{StaticResource ColorBrushGrayBorder}"
                             Padding="7 7 10 7"
                             Grid.Column="0">
-                        <StackPanel Width="200" HorizontalAlignment="Left">
-                            <!--Label-->
-                            <TextBlock Text="Selected template:" Style="{StaticResource LabelDefault}" FontSize="14" />
-                            <!--Frequency range templates list-->
-                            <ComboBox ItemsSource="{Binding FrequencyRangeTemplates}"
+                            <StackPanel Width="200" HorizontalAlignment="Left">
+                                <!--Label-->
+                                <TextBlock Text="Selected template:" Style="{StaticResource LabelDefault}" FontSize="14" />
+                                <!--Frequency range templates list-->
+                                <ComboBox ItemsSource="{Binding FrequencyRangeTemplates}"
                                               SelectedItem="{Binding SelectedFrequencyRangeTemplate}"
                                               DisplayMemberPath="Name"
                                               Margin="0 5 0 0"/>
-                            <!-- Buttons -->
-                            <StackPanel Margin="0 10 0 0" HorizontalAlignment="Stretch">
-                                <!--Save button-->
-                                <Button Command="{Binding SaveTemplateCommand}"
+                                <!-- Buttons -->
+                                <StackPanel Margin="0 10 0 0" HorizontalAlignment="Stretch">
+                                    <!--Save button-->
+                                    <Button Command="{Binding SaveTemplateCommand}"
                                                 Style="{StaticResource ButtonDefaultLeftAlign}"
                                                 HorizontalContentAlignment="Stretch"
                                                 Margin="0 0 0 5">
-                                    <Button.Content>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <iconPacks:PackIconBootstrapIcons Kind="ArrowDownSquare"
+                                        <Button.Content>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <iconPacks:PackIconBootstrapIcons Kind="ArrowDownSquare"
                                                                                       VerticalAlignment="Center"
                                                                                       Grid.Column="0" />
-                                            <TextBlock Text="Save"
+                                                <TextBlock Text="Save"
                                                                VerticalAlignment="Center"
                                                                HorizontalAlignment="Left"
                                                                Margin="7 0 0 0"
                                                                Grid.Column="1"/>
-                                        </Grid>
-                                    </Button.Content>
-                                </Button>
-                                <!--Save as button-->
-                                <Button Command="{Binding SaveTemplateAsCommand}"
+                                            </Grid>
+                                        </Button.Content>
+                                    </Button>
+                                    <!--Save as button-->
+                                    <Button Command="{Binding SaveTemplateAsCommand}"
                                                 Style="{StaticResource ButtonDefaultLeftAlign}"
                                                 Margin="0 0 0 5">
-                                    <Button.Content>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <iconPacks:PackIconBootstrapIcons Kind="BoxArrowDown"
+                                        <Button.Content>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <iconPacks:PackIconBootstrapIcons Kind="BoxArrowDown"
                                                                                       VerticalAlignment="Center"
                                                                                       Grid.Column="0" />
-                                            <TextBlock Text="Save As"
+                                                <TextBlock Text="Save As"
                                                                VerticalAlignment="Center"
                                                                HorizontalAlignment="Left"
                                                                Margin="7 0 0 0"
                                                                Grid.Column="1"/>
-                                        </Grid>
-                                    </Button.Content>
-                                </Button>
-                                <!--New button-->
-                                <Button Command="{Binding NewTemplateCommand}"
+                                            </Grid>
+                                        </Button.Content>
+                                    </Button>
+                                    <!--New button-->
+                                    <Button Command="{Binding NewTemplateCommand}"
                                                 Style="{StaticResource ButtonDefaultLeftAlign}"
                                                 Margin="0 0 0 5">
-                                    <Button.Content>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <iconPacks:PackIconBootstrapIcons Kind="PlusSquare"
+                                        <Button.Content>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <iconPacks:PackIconBootstrapIcons Kind="PlusSquare"
                                                                                       VerticalAlignment="Center"
                                                                                       Grid.Column="0" />
-                                            <TextBlock Text="New"
+                                                <TextBlock Text="New"
                                                                VerticalAlignment="Center"
                                                                HorizontalAlignment="Left"
                                                                Margin="7 0 0 0"
                                                                Grid.Column="1"/>
-                                        </Grid>
-                                    </Button.Content>
-                                </Button>
-                                <!--Delete button-->
-                                <Button Command="{Binding DeleteTemplateCommand}"
+                                            </Grid>
+                                        </Button.Content>
+                                    </Button>
+                                    <!--Delete button-->
+                                    <Button Command="{Binding DeleteTemplateCommand}"
                                                 Style="{StaticResource ButtonDefaultLeftAlign}">
-                                    <Button.Content>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <iconPacks:PackIconBootstrapIcons Kind="DashSquare"
+                                        <Button.Content>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <iconPacks:PackIconBootstrapIcons Kind="DashSquare"
                                                                                       VerticalAlignment="Center"
                                                                                       Grid.Column="0" />
-                                            <TextBlock Text="Delete"
+                                                <TextBlock Text="Delete"
                                                                VerticalAlignment="Center"
                                                                HorizontalAlignment="Left"
                                                                Margin="7 0 0 0"
                                                                Grid.Column="1"/>
-                                        </Grid>
-                                    </Button.Content>
-                                </Button>
+                                            </Grid>
+                                        </Button.Content>
+                                    </Button>
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </Border>
+                        </Border>
 
-                    <!-- Frequency ranges -->
-                    <Border BorderThickness="0 0 1 1"
+                        <!-- Frequency ranges -->
+                        <Border BorderThickness="0 0 1 1"
                             BorderBrush="{StaticResource ColorBrushGrayBorder}"
                             Padding="10 7 7 7"
                             HorizontalAlignment="Left"
                             Grid.Column="1">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <!--Frequency entry row-->
-                                <RowDefinition Height="Auto" />
-                                <!--Frequency list row-->
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <!--Frequency range entry-->
-                            <StackPanel IsEnabled="{Binding IsTemplateSelected}"
-                                        Orientation="Horizontal"
-                                        Grid.Column="1"
-                                        Grid.Row="0">
-                                <!--Entry field-->
-                                <TextBox Text="{Binding FrequencyRange, UpdateSourceTrigger=PropertyChanged}"
-                                         ap:FocusExtension.IsFocused="{Binding IsRangeEntryFocused}"
-                                         Width="85"
-                                         Margin="0 0 5 0">
-                                    <TextBox.InputBindings>
-                                        <KeyBinding Key="Enter" Command="{Binding AddRangeCommand}" />
-                                    </TextBox.InputBindings>
-                                </TextBox>
-                                <!--Time unit selection-->
-                                <ComboBox ItemsSource="{Binding FrequencyTimeUnits}"
-                                          SelectedItem="{Binding SelectedFrequencyTimeUnit}"
-                                          Margin="0 0 5 0" >
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Converter={StaticResource SecondsToUnit}}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                                <!--Add button-->
-                                <Button Command="{Binding AddRangeCommand}"
-                                        Style="{StaticResource ButtonMain}">
-                                    <Button.Content>
-                                        <iconPacks:BootstrapIcons Kind="Plus" />
-                                    </Button.Content>
-                                </Button>
-                            </StackPanel>
-
-                            <!--Frequency range list-->
-                            <Grid IsEnabled="{Binding IsTemplateSelected}" Grid.Column="1" Grid.Row="1">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="133*"/>
-                                    <ColumnDefinition Width="438*"/>
-                                </Grid.ColumnDefinitions>
+                            <Grid>
                                 <Grid.RowDefinitions>
-                                    <!--List label row-->
+                                    <!--Frequency entry row-->
                                     <RowDefinition Height="Auto" />
-                                    <!--List row-->
+                                    <!--Frequency list row-->
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
 
-                                <!--Frequency label-->
-                                <TextBlock Text="Custom frequency ranges:"
+                                <!--Frequency range entry-->
+                                <StackPanel IsEnabled="{Binding IsTemplateSelected}"
+                                        Orientation="Horizontal"
+                                        Grid.Column="1"
+                                        Grid.Row="0">
+                                    <!--Entry field-->
+                                    <TextBox Text="{Binding FrequencyRange, UpdateSourceTrigger=PropertyChanged}"
+                                         ap:FocusExtension.IsFocused="{Binding IsRangeEntryFocused}"
+                                         Width="85"
+                                         Margin="0 0 5 0">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter" Command="{Binding AddRangeCommand}" />
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                    <!--Time unit selection-->
+                                    <ComboBox ItemsSource="{Binding FrequencyTimeUnits}"
+                                          SelectedItem="{Binding SelectedFrequencyTimeUnit}"
+                                          Margin="0 0 5 0" >
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={StaticResource SecondsToUnit}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <!--Add button-->
+                                    <Button Command="{Binding AddRangeCommand}"
+                                        Style="{StaticResource ButtonMain}">
+                                        <Button.Content>
+                                            <iconPacks:BootstrapIcons Kind="Plus" />
+                                        </Button.Content>
+                                    </Button>
+                                </StackPanel>
+
+                                <!--Frequency range list-->
+                                <Grid IsEnabled="{Binding IsTemplateSelected}" Grid.Column="1" Grid.Row="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="133*"/>
+                                        <ColumnDefinition Width="438*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <!--List label row-->
+                                        <RowDefinition Height="Auto" />
+                                        <!--List row-->
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+
+                                    <!--Frequency label-->
+                                    <TextBlock Text="Custom frequency ranges:"
                                    FontSize="14"
                                    Style="{StaticResource LabelDefault}"
                                    Margin="0 10 0 0"
                                    Grid.Row="0" Grid.ColumnSpan="2" />
 
-                                <!--Frequency range list-->
-                                <ListView ItemsSource="{Binding FrequencyRanges}"
+                                    <!--Frequency range list-->
+                                    <ListView ItemsSource="{Binding FrequencyRanges}"
                                           SelectedItem="{Binding SelectedFrequencyRange}"
                                           BorderThickness="{Binding IsTemplateChanged, Converter={StaticResource BoolToThickness}}"
                                           BorderBrush="{Binding IsTemplateChanged, Converter={StaticResource BoolToColor}}"
@@ -262,360 +263,389 @@
                                           Margin="0 10 0 0"
                                           Grid.Row="1" 
                                           Grid.ColumnSpan="2">
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <!--Range column-->
-                                                    <ColumnDefinition Width="*" />
-                                                    <!--Time unit column-->
-                                                    <ColumnDefinition Width="35" />
-                                                </Grid.ColumnDefinitions>
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <!--Range column-->
+                                                        <ColumnDefinition Width="*" />
+                                                        <!--Time unit column-->
+                                                        <ColumnDefinition Width="35" />
+                                                    </Grid.ColumnDefinitions>
 
-                                                <Grid.InputBindings>
-                                                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding DataContext.RemoveRangeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
-                                                </Grid.InputBindings>
+                                                    <Grid.InputBindings>
+                                                        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding DataContext.RemoveRangeCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" />
+                                                    </Grid.InputBindings>
 
-                                                <!--Range-->
-                                                <Border BorderThickness="0 0 1 0"
+                                                    <!--Range-->
+                                                    <Border BorderThickness="0 0 1 0"
                                                         BorderBrush="#000000"
                                                         Grid.Column="0">
-                                                    <TextBlock Text="{Binding Range}" />
-                                                </Border>
+                                                        <TextBlock Text="{Binding Range}" />
+                                                    </Border>
 
-                                                <!--Time unit-->
-                                                <TextBlock Text="{Binding TimeUnit, Converter={StaticResource SecondsToUnit}}" 
+                                                    <!--Time unit-->
+                                                    <TextBlock Text="{Binding TimeUnit, Converter={StaticResource SecondsToUnit}}" 
                                                            Margin="7 0 0 0"
                                                            Grid.Column="1" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="{x:Type ListViewItem}">
-                                            <Setter Property="Padding" Value="5" />
-                                            <Style.Triggers>
-                                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                                                    <Setter Property="Background" Value="#ffffff" />
-                                                </Trigger>
-                                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                                    <Setter Property="Background" Value="#F5f5f5" />
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
-                                </ListView>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="{x:Type ListViewItem}">
+                                                <Setter Property="Padding" Value="5" />
+                                                <Style.Triggers>
+                                                    <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                                        <Setter Property="Background" Value="#ffffff" />
+                                                    </Trigger>
+                                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                                        <Setter Property="Background" Value="#F5f5f5" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                </Grid>
                             </Grid>
-                        </Grid>
-                    </Border>
-                    
+                        </Border>
+
+                    </Grid>
                 </Grid>
-            </Grid>
-        </TabItem>
-        <TabItem Header="Set options"
-                 Tag="3"
-                 Style="{StaticResource TabItemMiddle}">
-            <StackPanel>
-                <!-- Time config -->
-                <Grid Width="500" 
+            </TabItem>
+            <TabItem Header="Set options"
+                     Tag="3"
+                     Style="{StaticResource TabItemMiddle}">
+                <StackPanel>
+                    <!-- Time config -->
+                    <Grid Width="500" 
                       HorizontalAlignment="Left"
                       Margin="0 0 0 20">
-                    <!-- Shadow-->
-                    <Border BorderThickness="1 1 1 1"
+                        <!-- Shadow-->
+                        <Border BorderThickness="1 1 1 1"
                             BorderBrush="{StaticResource ColorBrushWhite}"
                             Background="{StaticResource ColorBrushWhite}">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="5"
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="5"
                                           Color="#5a5a5a"
                                           Opacity=".1"
                                           Direction="0"
                                           ShadowDepth="1" />
-                        </Border.Effect>
-                    </Border>
-                    <!-- Time config panel -->
-                    <StackPanel>
-                        <Border BorderThickness="1 1 1 1"
+                            </Border.Effect>
+                        </Border>
+                        <!-- Time config panel -->
+                        <StackPanel>
+                            <Border BorderThickness="1 1 1 1"
                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                         Background="{StaticResource ColorBrushGrayPanelBackground}"
                         Padding="7">
-                            <TextBlock Text="Time configuration"
+                                <TextBlock Text="Time configuration"
                                        Style="{StaticResource LabelDefault}"
                                        FontSize="14"
                                        FontWeight="Bold" />
-                        </Border>
-                        <!-- Hour mark -->
-                        <Border BorderThickness="1 0 1 1"
+                            </Border>
+                            <!-- Hour mark -->
+                            <Border BorderThickness="1 0 1 1"
                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                         Padding="7">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Hour mark:" 
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Hour mark:" 
                                Style="{StaticResource LabelDefault}"
                                FontWeight="Bold" 
                                Margin="0 0 5 0" />
-                                <ComboBox ItemsSource="{Binding ExportSettingsManager.TimeMarks}"
+                                    <ComboBox ItemsSource="{Binding ExportSettingsManager.TimeMarks}"
                           SelectedValue="{Binding ExportSettingsManager.SelectedTimeMark}"
                           MinWidth="35" />
 
-                            </StackPanel>
-                        </Border>
-                        <!-- Light/Dark span -->
-                        <Border BorderThickness="1 0 1 1"
+                                </StackPanel>
+                            </Border>
+                            <!-- Light/Dark span -->
+                            <Border BorderThickness="1 0 1 1"
                                 BorderBrush="{StaticResource ColorBrushGrayBorder}">
-                            <StackPanel>
-                                <!-- Enable selection export -->
-                                <Border BorderThickness="0 0 0 1"
+                                <StackPanel>
+                                    <!-- Enable selection export -->
+                                    <Border BorderThickness="0 0 0 1"
                                         BorderBrush="{StaticResource ColorBrushGrayPanelBorder}"
                                         Padding="7">
-                                    <CheckBox Content="Export selected period?"
+                                        <CheckBox Content="Export selected period?"
                                              IsChecked="{Binding ExportSettingsManager.ExportSelectedPeriod}"
                                              FontWeight="Bold"/>
-                                </Border>
-                                <!-- Selected timestamps-->
-                                <Grid IsEnabled="{Binding ExportSettingsManager.ExportSelectedPeriod}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <!-- From -->
-                                    <Border BorderThickness="0 0 1 0"
+                                    </Border>
+                                    <!-- Selected timestamps-->
+                                    <Grid IsEnabled="{Binding ExportSettingsManager.ExportSelectedPeriod}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <!-- From -->
+                                        <Border BorderThickness="0 0 1 0"
                                             BorderBrush="{StaticResource ColorBrushGrayPanelBorder}"
                                             Padding="7"
                                             Grid.Column="0">
-                                        <StackPanel>
-                                            <Label Content="From:" />
-                                            <TextBox Text="{Binding ExportSettingsManager.From, Converter={StaticResource TimeSpanToString}}"
+                                            <StackPanel>
+                                                <Label Content="From:" />
+                                                <TextBox Text="{Binding ExportSettingsManager.From, Converter={StaticResource TimeSpanToString}}"
                                                  Width="100"
                                                  HorizontalAlignment="Left" />
-                                        </StackPanel>
-                                    </Border>
-                                    <!-- Until -->
-                                    <Border BorderThickness="0 0 0 0"
+                                            </StackPanel>
+                                        </Border>
+                                        <!-- Until -->
+                                        <Border BorderThickness="0 0 0 0"
                                             BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                             Padding="5"
                                             Grid.Column="1">
-                                        <StackPanel>
-                                            <Label Content="Until:" />
-                                            <TextBox Text="{Binding ExportSettingsManager.Till, Converter={StaticResource TimeSpanToString}}"
+                                            <StackPanel>
+                                                <Label Content="Until:" />
+                                                <TextBox Text="{Binding ExportSettingsManager.Till, Converter={StaticResource TimeSpanToString}}"
                                                  Width="100"
                                                  HorizontalAlignment="Left" />
-                                        </StackPanel>
-                                    </Border>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-                        <!-- State mode -->
-                        <Border BorderThickness="1 0 1 1"
-                        BorderBrush="{StaticResource ColorBrushGrayBorder}"
-                        Padding="7">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Max number of states: " 
-                               Style="{StaticResource LabelDefault}"
-                               FontWeight="Bold" 
-                               VerticalAlignment="Center" />
-                                <TextBox Text="{Binding ExportSettingsManager.MaxStates}"
-                             Style="{StaticResource SmallTextBox}"
-                             IsReadOnly="True"
-                             Width="20" />
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Grid>
-                <!-- Header -->
-
-                <!-- Specific criteria-->
-                <Grid Width="500" HorizontalAlignment="left">
-                    <Grid.RowDefinitions>
-                        <!-- Criteria header row -->
-                        <RowDefinition Height="Auto" />
-                        <!-- Criteria content row -->
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <!-- Shadow -->
-                    <Border Background="{StaticResource ColorBrushWhite}"
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <!-- State number -->
+                            <Border BorderThickness="1 0 1 1"
+                                    BorderBrush="{StaticResource ColorBrushGrayBorder}"
+                                    Padding="7">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Max number of states: " 
+                                               Style="{StaticResource LabelDefault}"
+                                               FontWeight="Bold" 
+                                               VerticalAlignment="Center" />
+                                    <TextBox Text="{Binding ExportSettingsManager.MaxStates}"
+                                             Style="{StaticResource SmallTextBox}"
+                                             IsReadOnly="True"
+                                             Width="20" />
+                                </StackPanel>
+                            </Border>
+                            <!-- Cluster -->
+                            <Border BorderThickness="1 0 1 1"
+                                    BorderBrush="{StaticResource ColorBrushGrayBorder}"
+                                    Padding="7">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Cluster separation time: " 
+                                               Style="{StaticResource LabelDefault}"
+                                               FontWeight="Bold" 
+                                               VerticalAlignment="Center" />
+                                    <TextBox Text="{Binding ExportSettingsManager.ClusterSeparationTime}"
+                                             Style="{StaticResource SmallTextBox}"
+                                             Width="30" />
+                                    <TextBlock Text="min"
+                                               VerticalAlignment="Bottom"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- Specific criteria-->
+                    <Grid Width="500" HorizontalAlignment="left">
+                        <Grid.RowDefinitions>
+                            <!-- Criteria header row -->
+                            <RowDefinition Height="Auto" />
+                            <!-- Criteria content row -->
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!-- Shadow -->
+                        <Border Background="{StaticResource ColorBrushWhite}"
                             BorderThickness="1 1 1 1"
                             BorderBrush="{StaticResource ColorBrushWhite}"
                             Grid.Row="0"
                             Grid.RowSpan="2">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="5"
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="5"
                                           Color="#5a5a5a"
                                           Opacity=".1"
                                           Direction="0"
                                           ShadowDepth="1" />
-                        </Border.Effect>
-                    </Border>
-                    <!-- Criteria header -->
-                    <Border BorderThickness="1 1 1 1" 
+                            </Border.Effect>
+                        </Border>
+                        <!-- Criteria header -->
+                        <Border BorderThickness="1 1 1 1" 
                             BorderBrush="{StaticResource ColorBrushGrayBorder}" 
                             Background="{StaticResource ColorBrushGrayPanelBackground}"
                             Padding="7"
                             Grid.Row="0">
-                        <TextBlock Text="Specific criteria" 
+                            <TextBlock Text="Specific criteria" 
                                Style="{StaticResource LabelDefault}"
                                FontWeight="Bold"
                                Grid.Row="0" />
-                    </Border>
-                    <!-- Criteria content -->
-                    <Border BorderThickness="1 0 1 1" 
+                        </Border>
+                        <!-- Criteria content -->
+                        <Border BorderThickness="1 0 1 1" 
                             BorderBrush="{StaticResource ColorBrushGrayBorder}"
                             Grid.Row="1">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                            <!-- Wakefulness <= -->
-                            <Border BorderThickness="0 0 1 1"
+                                <!-- Wakefulness <= -->
+                                <Border BorderThickness="0 0 1 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="0"
                                     Grid.Row="0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Wakefulness (s) &lt;=" 
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Wakefulness (s) &lt;=" 
                                                        Style="{StaticResource LabelDefault}" 
                                                        VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.WakefulnessBelow}"
+                                        <TextBox Text="{Binding ExportSettingsManager.WakefulnessBelow}"
                                               Style="{StaticResource SmallTextBox}"
                                               MinWidth="35"
                                               HorizontalAlignment="Right"
                                               LostFocus="TextBox_LostFocus"
                                               Grid.Column="1" />
-                                </Grid>
-                            </Border>
+                                    </Grid>
+                                </Border>
 
-                            <!-- Sleep <= -->
-                            <Border BorderThickness="0 0 1 1"
+                                <!-- Sleep <= -->
+                                <Border BorderThickness="0 0 1 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="0"
                                     Grid.Row="1">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Sleep (s) &lt;= " 
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Sleep (s) &lt;= " 
                                                Style="{StaticResource LabelDefault}" 
                                                VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.SleepBelow}"
+                                        <TextBox Text="{Binding ExportSettingsManager.SleepBelow}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1"/>
-                                </Grid>
-                            </Border>
+                                    </Grid>
+                                </Border>
 
-                            <!-- Paradoxical sleep <= -->
-                            <Border BorderThickness="0 0 1 0"
+                                <!-- Paradoxical sleep <= -->
+                                <Border BorderThickness="0 0 1 0"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="0"
                                     Grid.Row="2">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Paradoxical sleep (s) &lt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepBelow}"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Paradoxical sleep (s) &lt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepBelow}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1" />
-                                </Grid>
-                            </Border>
+                                    </Grid>
+                                </Border>
 
-                            <!-- Wakefulness >= -->
-                            <Border BorderThickness="0 0 0 1"
+                                <!-- Wakefulness >= -->
+                                <Border BorderThickness="0 0 0 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="1"
                                     Grid.Row="0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Wakefulness (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.WakefulnessAbove}"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Wakefulness (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding ExportSettingsManager.WakefulnessAbove}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1"/>
-                                </Grid>
-                            </Border>
+                                    </Grid>
+                                </Border>
 
-                            <!-- Sleep >= -->
-                            <Border BorderThickness="0 0 0 1"
+                                <!-- Sleep >= -->
+                                <Border BorderThickness="0 0 0 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="1"
                                     Grid.Row="1">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.SleepAbove}"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding ExportSettingsManager.SleepAbove}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1" />
-                                </Grid>
-                            </Border>
+                                    </Grid>
+                                </Border>
 
-                            <!-- Paradoxical sleep >= -->
-                            <Border BorderThickness="0 0 0 0"
+                                <!-- Paradoxical sleep >= -->
+                                <Border BorderThickness="0 0 0 0"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="1"
                                     Grid.Row="2">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Paradoxical sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepAbove}"
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Paradoxical sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepAbove}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1" />
-                                </Grid>
-                            </Border>
-                        </Grid>
-                    </Border>
-                </Grid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
 
-                <!-- Name to clipboard -->
-                <CheckBox IsChecked="{Binding ExportSettingsManager.SetNameToClipboard}"
+                    <!-- Name to clipboard -->
+                    <CheckBox IsChecked="{Binding ExportSettingsManager.SetNameToClipboard}"
                                       Content="Set file name to clipboard"
                                       Margin="0 20 0 20" />
 
-                <!-- Buttons -->
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="Export"
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Export"
                                     Command="{Binding ExportSettingsManager.ExportCommand}"
                                     Style="{StaticResource ButtonMain}"
                                     Width="200"
                                     Margin="0 0 10 0" />
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
-        </TabItem>
-    </TabControl>
+            </TabItem>
+        </TabControl>
+        <Button Content="Prev"
+                Command="{Binding PrevCommand}"
+                Style="{StaticResource ButtonMain}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0 1 70 0"/>
+        <Button Content="Next"
+                Command="{Binding NextCommand}"
+                Style="{StaticResource ButtonMain}"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="0 1 5 0"/>
+    </Grid>
+    
 </UserControl>

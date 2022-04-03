@@ -167,7 +167,8 @@ namespace DataProcessing.ViewModels
                 dataProcessor.CreateLatencyTable(),
                 dataProcessor.CreateCustomFrequencyTables()).
                 ExportToExcel(
-                    markedRecords, 
+                    markedRecords,
+                    nonMarkedRecords,
                     dataProcessor.getDuplicatedTimes(), 
                     dataProcessor.getHourRowIndexes(), 
                     dataProcessor.getHourRowIndexesTime());

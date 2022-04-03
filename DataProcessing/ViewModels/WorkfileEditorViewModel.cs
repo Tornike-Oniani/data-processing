@@ -107,6 +107,8 @@ namespace DataProcessing.ViewModels
         public ICommand DeleteTemplateCommand { get; set; }
         public ICommand SaveTemplateCommand { get; set; }
         public ICommand SaveTemplateAsCommand { get; set; }
+        public ICommand NextCommand { get; set; }
+        public ICommand PrevCommand { get; set; }
 
         // Constructor
         public WorkfileEditorViewModel()
@@ -136,6 +138,8 @@ namespace DataProcessing.ViewModels
             SaveTemplateAsCommand = new RelayCommand(SaveTemplateAs);
             NewTemplateCommand = new RelayCommand(NewTemplate);
             DeleteTemplateCommand = new RelayCommand(DeleteTemplate);
+            NextCommand = new RelayCommand(Next, CanNext);
+            PrevCommand = new RelayCommand(Prev, CanPrev);
         }
 
         // Command actions
@@ -243,6 +247,22 @@ namespace DataProcessing.ViewModels
                 SelectedFrequencyRangeTemplate = FrequencyRangeTemplates[0];
                 IsTemplateChanged = false;
             }
+        }
+        public void Next(object input = null)
+        {
+            SelectedTabIndex += 1;
+        }
+        public bool CanNext(object input = null)
+        {
+            return SelectedTabIndex < 2;
+        }
+        public void Prev(object input = null)
+        {
+            SelectedTabIndex -= 1;
+        }
+        public bool CanPrev(object input = null)
+        {
+            return SelectedTabIndex > 0;
         }
 
         // Event subscribers

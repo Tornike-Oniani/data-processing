@@ -14,6 +14,7 @@ namespace DataProcessing.Utils
         public TimeSpan Till { get; set; }
         public List<SpecificCriteria> Criterias { get; set; }
         public Dictionary<string, int[]> customFrequencyRanges { get; set; }
+        public int ClusterSeparationTimeInSeconds { get; set; }
 
         public List<SpecificCriteria> GetExistentCriterias()
         {
