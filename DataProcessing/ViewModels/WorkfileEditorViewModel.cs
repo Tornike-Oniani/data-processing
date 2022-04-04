@@ -266,7 +266,7 @@ namespace DataProcessing.ViewModels
         private Dictionary<string, int[]> FrequencyRangesToArray()
         {
             // If adding custom ranges is disabled or not template is selected return blank list
-            if (!CustomRangesEnabled || !IsTemplateSelected) { return new Dictionary<string, int[]>(); }
+            if (!CustomRangesEnabled || !IsTemplateSelected || FrequencyRanges.Count == 0) { return new Dictionary<string, int[]>(); }
 
             Dictionary<string, int[]> result = new Dictionary<string, int[]>();
             List<FrequencyRange> ranges = FrequencyRanges.ToList();

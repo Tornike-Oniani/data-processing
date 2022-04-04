@@ -16,6 +16,7 @@
         <converters:SecondsToUnitConverter x:Key="SecondsToUnit" />
         <converters:BoolToColorConverter x:Key="BoolToColor" />
         <converters:BoolToThicknessConverter x:Key="BoolToThickness" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -72,7 +73,9 @@
 
 
                     <!--Frequencies enty & list-->
-                    <Grid IsEnabled="{Binding CustomRangesEnabled}" Grid.Row="1">
+                    <Grid IsEnabled="{Binding CustomRangesEnabled}"
+                          Visibility="{Binding CustomRangesEnabled, Converter={StaticResource BoolToVisibility}}"
+                          Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <!--Frequency range entry * display column-->
                             <ColumnDefinition Width="Auto" />
@@ -205,6 +208,8 @@
                                     <!--Entry field-->
                                     <TextBox Text="{Binding FrequencyRange, UpdateSourceTrigger=PropertyChanged}"
                                              ap:FocusExtension.IsFocused="{Binding IsRangeEntryFocused}"
+                                             Style="{StaticResource WatermarkTextBox}"
+                                             Tag="e. g. 20-25"
                                              Width="85"
                                              Margin="0 0 5 0">
                                         <TextBox.InputBindings>
