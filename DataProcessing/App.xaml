@@ -28,11 +28,6 @@
                         <views:WorkfileEditor />
                     </DataTemplate>
 
-                    <!-- Export settings -->
-                    <DataTemplate DataType="{x:Type viewModels:ExportSettingsViewModel}">
-                        <views:ExportSettings />
-                    </DataTemplate>
-
                     <!-- OpenWorkfile -->
                     <DataTemplate DataType="{x:Type viewModels:OpenWorkfileViewModel}">
                         <views:OpenWorkfile />

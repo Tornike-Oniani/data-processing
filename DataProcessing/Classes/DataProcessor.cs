@@ -20,9 +20,11 @@ namespace DataProcessing.Classes
         // Private attributes
         private ExportOptions options;
         private List<TimeStamp> timeStamps;
+        private List<TimeStamp> nonMarkedTimeStamps;
         private Dictionary<int, string> stateAndPhases = new Dictionary<int, string>();
         private Stats totalStats;
         private Dictionary<int, Stats> hourAndStats = new Dictionary<int, Stats>();
+        private Dictionary<int, Stats> clusterAndStats = new Dictionary<int, Stats>();
         // State frequencies total + each hour
         private List<Dictionary<int, SortedList<int, int>>> hourStateFrequencies = new List<Dictionary<int, SortedList<int, int>>>();
         private List<Dictionary<int, Dictionary<string, int>>> hourStateCustomFrequencies = new List<Dictionary<int, Dictionary<string, int>>>();
@@ -30,6 +32,7 @@ namespace DataProcessing.Classes
         private List<Tuple<int, string>> hourRowIndexesTime = new List<Tuple<int, string>>();
         private List<DataTableInfo> statTableCollection = new List<DataTableInfo>();
         private List<DataTableInfo> graphTableCollection = new List<DataTableInfo>();
+        private List<DataTableInfo> graphTableCollectionForClusters = new List<DataTableInfo>();
         private List<Tuple<int, int>> duplicatedTimes = new List<Tuple<int, int>>();
         private List<DataTableInfo> frequenciesCollection = new List<DataTableInfo>();
         private List<DataTableInfo> customFrequenciesCollection = new List<DataTableInfo>();
@@ -37,9 +40,10 @@ namespace DataProcessing.Classes
         private int timeBeforeFirstParadoxicalSleep = 0;
 
         // Constructor
-        public DataProcessor(List<TimeStamp> timeStamps, ExportOptions options)
+        public DataProcessor(List<TimeStamp> timeStamps, List<TimeStamp> nonMarkedTimeStamps, ExportOptions options)
         {
             this.timeStamps = timeStamps;
+            this.nonMarkedTimeStamps = nonMarkedTimeStamps;
             this.options = options;
             List<int> states = timeStamps.Where(sample => sample.State != 0).Select(sample => sample.State).Distinct().ToList();
             states.Sort();
@@ -190,7 +194,7 @@ namespace DataProcessing.Classes
                         hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
                     }
 
-                    // Reset hour csutom frequency collection
+                    // Reset hour custom frequency collection
                     hourCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
                     foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
                     {
@@ -207,13 +211,21 @@ namespace DataProcessing.Classes
             }
 
             // Do last part (might be less than marked time)
-            if (hourRegion.Count == 0) { return; }
-            currentHour++;
-            hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
-            hourStateFrequencies.Add(hourFrequencies);
-            hourStateCustomFrequencies.Add(hourCustomFrequencies);
-            hourRowIndexes.Add(lastHourIndex);
-            hourRowIndexesTime.Add(new Tuple<int, string>(lastHourIndex, getTimeForStats(hourAndStats.Last().Value.TotalTime)));
+            if (hourRegion.Count != 0) 
+            {
+                currentHour++;
+                hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
+                hourStateFrequencies.Add(hourFrequencies);
+                hourStateCustomFrequencies.Add(hourCustomFrequencies);
+                hourRowIndexes.Add(lastHourIndex);
+                hourRowIndexesTime.Add(new Tuple<int, string>(lastHourIndex, getTimeForStats(hourAndStats.Last().Value.TotalTime)));
+            }
+
+            // Calculate stats for clusters
+            if (options.ClusterSeparationTimeInSeconds > 0)
+            {
+                CreateStatsForClusters();
+            }
         }
         public List<DataTableInfo> CreateStatTables()
         {
@@ -240,6 +252,14 @@ namespace DataProcessing.Classes
             CreateGraphTable("Seconds", GraphTableDataType.Seconds);
             CreateGraphTable("Numbers", GraphTableDataType.Numbers);
             return graphTableCollection;
+        }
+        public List<DataTableInfo> CreateGraphTablesForClusters()
+        {
+            CreateGraphTableForCluster("Percentages %", GraphTableDataType.Percentages);
+            CreateGraphTableForCluster("Minutes", GraphTableDataType.Minutes);
+            CreateGraphTableForCluster("Seconds", GraphTableDataType.Seconds);
+            CreateGraphTableForCluster("Numbers", GraphTableDataType.Numbers);
+            return graphTableCollectionForClusters;
         }
         public List<Tuple<int, int>> getDuplicatedTimes() { return duplicatedTimes; }
         public List<int> getHourRowIndexes() { return hourRowIndexes; }
@@ -305,6 +325,38 @@ namespace DataProcessing.Classes
         }
 
         // Private helpers
+        private void CreateStatsForClusters()
+        {
+            List<TimeStamp> clusterRegion = new List<TimeStamp>();
+            TimeStamp curTimeStamp;
+            int curClusterNumber = 1;
+            for (int i = 1; i < nonMarkedTimeStamps.Count; i++)
+            {
+                curTimeStamp = nonMarkedTimeStamps[i];
+
+                // If we found end of the cluster calculate its stats and add it to dictionary
+                if (curTimeStamp.TimeDifferenceInSeconds >= options.ClusterSeparationTimeInSeconds && curTimeStamp.State == 3)
+                {
+                    // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it
+                    // This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end
+                    // We don't want to include blank clusters like this
+                    if (clusterRegion.Count == 0) { continue; }
+                    clusterAndStats.Add(curClusterNumber, CalculateStats(clusterRegion, false));
+                    curClusterNumber++;
+                    // After the stats of current cluster was calculated we reset it for the next one
+                    clusterRegion = new List<TimeStamp>();
+                    continue;
+                }
+
+                clusterRegion.Add(curTimeStamp);
+            }
+
+            // If we have remainder in the last cluster calculate its stats too (The list won't always end with wakefulness that is more than cluster separation time)
+            if (clusterRegion.Count > 0)
+            {
+                clusterAndStats.Add(clusterRegion.Count + 1, CalculateStats(clusterRegion, false));
+            }
+        }
         private void CreateStatTable(string name, Stats stats, bool isTotal)
         {
             DataTableInfo tableInfo = new DataTableInfo();
@@ -420,6 +472,69 @@ namespace DataProcessing.Classes
                         foreach (KeyValuePair<int, Stats> hourAndStat in hourAndStats)
                         {
                             row[hourAndStat.Key] = hourAndStat.Value.StateNumber[stateAndPhase.Key];
+                        }
+                        break;
+                }
+                table.Rows.Add(row);
+            }
+            tableInfo.PhasesIndexes = new Tuple<int, int>(1, stateAndPhases.Count);
+        }
+        private void CreateGraphTableForCluster(string name, GraphTableDataType dataType)
+        {
+            DataTableInfo tableInfo = new DataTableInfo();
+            DataTable table = new DataTable(name);
+            tableInfo.Table = table;
+            graphTableCollectionForClusters.Add(tableInfo);
+            DataRow row;
+
+            table.Columns.Add(new DataColumn("Phases", typeof(string)));
+            Type columnType = typeof(string);
+            switch (dataType)
+            {
+                case GraphTableDataType.Seconds: columnType = typeof(int); break;
+                case GraphTableDataType.Minutes: columnType = typeof(double); break;
+                case GraphTableDataType.Percentages: columnType = typeof(double); break;
+                case GraphTableDataType.Numbers: columnType = typeof(int); break;
+            }
+
+            // Columns
+            int counter = 1;
+            foreach (KeyValuePair<int, Stats> curClusterAndStat in clusterAndStats)
+            {
+                table.Columns.Add(new DataColumn($"{curClusterAndStat.Key}cl", columnType));
+                counter++;
+            }
+            // +1 for title
+            tableInfo.HeaderIndexes = new Tuple<int, int>(0, clusterAndStats.Count + 1);
+
+            foreach (KeyValuePair<int, string> stateAndPhase in stateAndPhases)
+            {
+                row = table.NewRow();
+                row["Phases"] = stateAndPhase.Value;
+                switch (dataType)
+                {
+                    case GraphTableDataType.Seconds:
+                        foreach (KeyValuePair<int, Stats> curClusterAndStat in clusterAndStats)
+                        {
+                            row[curClusterAndStat.Key] = curClusterAndStat.Value.StateTimes[stateAndPhase.Key];
+                        }
+                        break;
+                    case GraphTableDataType.Minutes:
+                        foreach (KeyValuePair<int, Stats> curClusterAndStat in clusterAndStats)
+                        {
+                            row[curClusterAndStat.Key] = Math.Round((double)curClusterAndStat.Value.StateTimes[stateAndPhase.Key] / 60, 2);
+                        }
+                        break;
+                    case GraphTableDataType.Percentages:
+                        foreach (KeyValuePair<int, Stats> curClusterAndStat in clusterAndStats)
+                        {
+                            row[curClusterAndStat.Key] = curClusterAndStat.Value.StatePercentages[stateAndPhase.Key];
+                        }
+                        break;
+                    case GraphTableDataType.Numbers:
+                        foreach (KeyValuePair<int, Stats> curClusterAndStat in clusterAndStats)
+                        {
+                            row[curClusterAndStat.Key] = curClusterAndStat.Value.StateNumber[stateAndPhase.Key];
                         }
                         break;
                 }

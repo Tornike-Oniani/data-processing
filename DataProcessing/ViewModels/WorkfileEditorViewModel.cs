@@ -100,7 +100,6 @@ namespace DataProcessing.ViewModels
         public ICommand OpenWorkfileDialogCommand { get; set; }
         public ICommand NewWorkfileDialogCommand { get; set; }
         public ICommand EditCommand { get; set; }
-        public ICommand ExportCommand { get; set; }
         public ICommand AddRangeCommand { get; set; }
         public ICommand RemoveRangeCommand { get; set; }
         public ICommand NewTemplateCommand { get; set; }
@@ -131,7 +130,6 @@ namespace DataProcessing.ViewModels
             OpenWorkfileDialogCommand = new RelayCommand(OpenWorkfileDialog);
             NewWorkfileDialogCommand = new RelayCommand(NewWorkfileDialog);
             EditCommand = new RelayCommand(Edit);
-            ExportCommand = new RelayCommand(Export);
             AddRangeCommand = new RelayCommand(AddRange);
             RemoveRangeCommand = new RelayCommand(RemoveRange);
             SaveTemplateCommand = new RelayCommand(SaveTemplate);
@@ -163,23 +161,6 @@ namespace DataProcessing.ViewModels
             DisplayManager.SelectedRow.Time = span;
             DisplayManager.SelectedRow.Update();
             DisplayManager.PopulateCommand.Execute(null);
-        }
-        public void Export(object input = null)
-        {
-            List<TimeStamp> samples = DisplayManager.Items.ToList();
-            TimeSpan from = samples[0].Time;
-            TimeSpan till = samples[samples.Count - 1].Time;
-            if (DisplayManager.SelectedRows.Count > 1)
-            {
-                from = DisplayManager.SelectedRows[0].Time;
-                till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].Time;
-            }
-            Services.GetInstance().WindowService.OpenWindow(
-                new ExportSettingsViewModel(
-                    DisplayManager.Items.ToList(), 
-                    from, 
-                    till, 
-                    FrequencyRangesToArray()));
         }
         public void AddRange(object input = null)
         {

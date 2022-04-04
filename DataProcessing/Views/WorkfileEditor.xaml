@@ -8,8 +8,7 @@
              xmlns:utils="clr-namespace:DataProcessing.Utils"
              xmlns:converters="clr-namespace:DataProcessing.Converters"
              xmlns:ap="clr-namespace:DataProcessing.Utils.AttachedProperties"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:TimeSpanToStringConverter x:Key="TimeSpanToString" />
@@ -205,9 +204,9 @@
                                         Grid.Row="0">
                                     <!--Entry field-->
                                     <TextBox Text="{Binding FrequencyRange, UpdateSourceTrigger=PropertyChanged}"
-                                         ap:FocusExtension.IsFocused="{Binding IsRangeEntryFocused}"
-                                         Width="85"
-                                         Margin="0 0 5 0">
+                                             ap:FocusExtension.IsFocused="{Binding IsRangeEntryFocused}"
+                                             Width="85"
+                                             Margin="0 0 5 0">
                                         <TextBox.InputBindings>
                                             <KeyBinding Key="Enter" Command="{Binding AddRangeCommand}" />
                                         </TextBox.InputBindings>
@@ -315,323 +314,325 @@
             <TabItem Header="Set options"
                      Tag="3"
                      Style="{StaticResource TabItemMiddle}">
-                <StackPanel>
-                    <!-- Time config -->
-                    <Grid Width="500" 
+                <ScrollViewer>
+                    <StackPanel>
+                        <!-- Time config -->
+                        <Grid Width="500" 
                       HorizontalAlignment="Left"
                       Margin="0 0 0 20">
-                        <!-- Shadow-->
-                        <Border BorderThickness="1 1 1 1"
+                            <!-- Shadow-->
+                            <Border BorderThickness="1 1 1 1"
                             BorderBrush="{StaticResource ColorBrushWhite}"
                             Background="{StaticResource ColorBrushWhite}">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="5"
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="5"
                                           Color="#5a5a5a"
                                           Opacity=".1"
                                           Direction="0"
                                           ShadowDepth="1" />
-                            </Border.Effect>
-                        </Border>
-                        <!-- Time config panel -->
-                        <StackPanel>
-                            <Border BorderThickness="1 1 1 1"
+                                </Border.Effect>
+                            </Border>
+                            <!-- Time config panel -->
+                            <StackPanel>
+                                <Border BorderThickness="1 1 1 1"
                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                         Background="{StaticResource ColorBrushGrayPanelBackground}"
                         Padding="7">
-                                <TextBlock Text="Time configuration"
+                                    <TextBlock Text="Time configuration"
                                        Style="{StaticResource LabelDefault}"
                                        FontSize="14"
                                        FontWeight="Bold" />
-                            </Border>
-                            <!-- Hour mark -->
-                            <Border BorderThickness="1 0 1 1"
+                                </Border>
+                                <!-- Hour mark -->
+                                <Border BorderThickness="1 0 1 1"
                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                         Padding="7">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Hour mark:" 
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Hour mark:" 
                                Style="{StaticResource LabelDefault}"
                                FontWeight="Bold" 
                                Margin="0 0 5 0" />
-                                    <ComboBox ItemsSource="{Binding ExportSettingsManager.TimeMarks}"
+                                        <ComboBox ItemsSource="{Binding ExportSettingsManager.TimeMarks}"
                           SelectedValue="{Binding ExportSettingsManager.SelectedTimeMark}"
                           MinWidth="35" />
 
-                                </StackPanel>
-                            </Border>
-                            <!-- Light/Dark span -->
-                            <Border BorderThickness="1 0 1 1"
+                                    </StackPanel>
+                                </Border>
+                                <!-- Light/Dark span -->
+                                <Border BorderThickness="1 0 1 1"
                                 BorderBrush="{StaticResource ColorBrushGrayBorder}">
-                                <StackPanel>
-                                    <!-- Enable selection export -->
-                                    <Border BorderThickness="0 0 0 1"
+                                    <StackPanel>
+                                        <!-- Enable selection export -->
+                                        <Border BorderThickness="0 0 0 1"
                                         BorderBrush="{StaticResource ColorBrushGrayPanelBorder}"
                                         Padding="7">
-                                        <CheckBox Content="Export selected period?"
+                                            <CheckBox Content="Export selected period?"
                                              IsChecked="{Binding ExportSettingsManager.ExportSelectedPeriod}"
                                              FontWeight="Bold"/>
-                                    </Border>
-                                    <!-- Selected timestamps-->
-                                    <Grid IsEnabled="{Binding ExportSettingsManager.ExportSelectedPeriod}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <!-- From -->
-                                        <Border BorderThickness="0 0 1 0"
+                                        </Border>
+                                        <!-- Selected timestamps-->
+                                        <Grid IsEnabled="{Binding ExportSettingsManager.ExportSelectedPeriod}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <!-- From -->
+                                            <Border BorderThickness="0 0 1 0"
                                             BorderBrush="{StaticResource ColorBrushGrayPanelBorder}"
                                             Padding="7"
                                             Grid.Column="0">
-                                            <StackPanel>
-                                                <Label Content="From:" />
-                                                <TextBox Text="{Binding ExportSettingsManager.From, Converter={StaticResource TimeSpanToString}}"
+                                                <StackPanel>
+                                                    <Label Content="From:" />
+                                                    <TextBox Text="{Binding ExportSettingsManager.From, Converter={StaticResource TimeSpanToString}}"
                                                  Width="100"
                                                  HorizontalAlignment="Left" />
-                                            </StackPanel>
-                                        </Border>
-                                        <!-- Until -->
-                                        <Border BorderThickness="0 0 0 0"
+                                                </StackPanel>
+                                            </Border>
+                                            <!-- Until -->
+                                            <Border BorderThickness="0 0 0 0"
                                             BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                             Padding="5"
                                             Grid.Column="1">
-                                            <StackPanel>
-                                                <Label Content="Until:" />
-                                                <TextBox Text="{Binding ExportSettingsManager.Till, Converter={StaticResource TimeSpanToString}}"
+                                                <StackPanel>
+                                                    <Label Content="Until:" />
+                                                    <TextBox Text="{Binding ExportSettingsManager.Till, Converter={StaticResource TimeSpanToString}}"
                                                  Width="100"
                                                  HorizontalAlignment="Left" />
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                            <!-- State number -->
-                            <Border BorderThickness="1 0 1 1"
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                                <!-- State number -->
+                                <Border BorderThickness="1 0 1 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Max number of states: " 
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Max number of states: " 
                                                Style="{StaticResource LabelDefault}"
                                                FontWeight="Bold" 
                                                VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.MaxStates}"
+                                        <TextBox Text="{Binding ExportSettingsManager.MaxStates}"
                                              Style="{StaticResource SmallTextBox}"
                                              IsReadOnly="True"
                                              Width="20" />
-                                </StackPanel>
-                            </Border>
-                            <!-- Cluster -->
-                            <Border BorderThickness="1 0 1 1"
+                                    </StackPanel>
+                                </Border>
+                                <!-- Cluster -->
+                                <Border BorderThickness="1 0 1 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Cluster separation time: " 
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Cluster separation time: " 
                                                Style="{StaticResource LabelDefault}"
                                                FontWeight="Bold" 
                                                VerticalAlignment="Center" />
-                                    <TextBox Text="{Binding ExportSettingsManager.ClusterSeparationTime}"
+                                        <TextBox Text="{Binding ExportSettingsManager.ClusterSeparationTime}"
                                              Style="{StaticResource SmallTextBox}"
                                              Width="30" />
-                                    <TextBlock Text="min"
+                                        <TextBlock Text="min"
                                                VerticalAlignment="Bottom"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-                    </Grid>
-                    
-                    <!-- Specific criteria-->
-                    <Grid Width="500" HorizontalAlignment="left">
-                        <Grid.RowDefinitions>
-                            <!-- Criteria header row -->
-                            <RowDefinition Height="Auto" />
-                            <!-- Criteria content row -->
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <!-- Shadow -->
-                        <Border Background="{StaticResource ColorBrushWhite}"
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Specific criteria-->
+                        <Grid Width="500" HorizontalAlignment="left">
+                            <Grid.RowDefinitions>
+                                <!-- Criteria header row -->
+                                <RowDefinition Height="Auto" />
+                                <!-- Criteria content row -->
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <!-- Shadow -->
+                            <Border Background="{StaticResource ColorBrushWhite}"
                             BorderThickness="1 1 1 1"
                             BorderBrush="{StaticResource ColorBrushWhite}"
                             Grid.Row="0"
                             Grid.RowSpan="2">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="5"
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="5"
                                           Color="#5a5a5a"
                                           Opacity=".1"
                                           Direction="0"
                                           ShadowDepth="1" />
-                            </Border.Effect>
-                        </Border>
-                        <!-- Criteria header -->
-                        <Border BorderThickness="1 1 1 1" 
+                                </Border.Effect>
+                            </Border>
+                            <!-- Criteria header -->
+                            <Border BorderThickness="1 1 1 1" 
                             BorderBrush="{StaticResource ColorBrushGrayBorder}" 
                             Background="{StaticResource ColorBrushGrayPanelBackground}"
                             Padding="7"
                             Grid.Row="0">
-                            <TextBlock Text="Specific criteria" 
+                                <TextBlock Text="Specific criteria" 
                                Style="{StaticResource LabelDefault}"
                                FontWeight="Bold"
                                Grid.Row="0" />
-                        </Border>
-                        <!-- Criteria content -->
-                        <Border BorderThickness="1 0 1 1" 
+                            </Border>
+                            <!-- Criteria content -->
+                            <Border BorderThickness="1 0 1 1" 
                             BorderBrush="{StaticResource ColorBrushGrayBorder}"
                             Grid.Row="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                                <!-- Wakefulness <= -->
-                                <Border BorderThickness="0 0 1 1"
+                                    <!-- Wakefulness <= -->
+                                    <Border BorderThickness="0 0 1 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="0"
                                     Grid.Row="0">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Wakefulness (s) &lt;=" 
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Wakefulness (s) &lt;=" 
                                                        Style="{StaticResource LabelDefault}" 
                                                        VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.WakefulnessBelow}"
+                                            <TextBox Text="{Binding ExportSettingsManager.WakefulnessBelow}"
                                               Style="{StaticResource SmallTextBox}"
                                               MinWidth="35"
                                               HorizontalAlignment="Right"
                                               LostFocus="TextBox_LostFocus"
                                               Grid.Column="1" />
-                                    </Grid>
-                                </Border>
+                                        </Grid>
+                                    </Border>
 
-                                <!-- Sleep <= -->
-                                <Border BorderThickness="0 0 1 1"
+                                    <!-- Sleep <= -->
+                                    <Border BorderThickness="0 0 1 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="0"
                                     Grid.Row="1">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Sleep (s) &lt;= " 
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Sleep (s) &lt;= " 
                                                Style="{StaticResource LabelDefault}" 
                                                VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.SleepBelow}"
+                                            <TextBox Text="{Binding ExportSettingsManager.SleepBelow}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1"/>
-                                    </Grid>
-                                </Border>
+                                        </Grid>
+                                    </Border>
 
-                                <!-- Paradoxical sleep <= -->
-                                <Border BorderThickness="0 0 1 0"
+                                    <!-- Paradoxical sleep <= -->
+                                    <Border BorderThickness="0 0 1 0"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="0"
                                     Grid.Row="2">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Paradoxical sleep (s) &lt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepBelow}"
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Paradoxical sleep (s) &lt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                            <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepBelow}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1" />
-                                    </Grid>
-                                </Border>
+                                        </Grid>
+                                    </Border>
 
-                                <!-- Wakefulness >= -->
-                                <Border BorderThickness="0 0 0 1"
+                                    <!-- Wakefulness >= -->
+                                    <Border BorderThickness="0 0 0 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="1"
                                     Grid.Row="0">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Wakefulness (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.WakefulnessAbove}"
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Wakefulness (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                            <TextBox Text="{Binding ExportSettingsManager.WakefulnessAbove}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1"/>
-                                    </Grid>
-                                </Border>
+                                        </Grid>
+                                    </Border>
 
-                                <!-- Sleep >= -->
-                                <Border BorderThickness="0 0 0 1"
+                                    <!-- Sleep >= -->
+                                    <Border BorderThickness="0 0 0 1"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="1"
                                     Grid.Row="1">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.SleepAbove}"
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                            <TextBox Text="{Binding ExportSettingsManager.SleepAbove}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1" />
-                                    </Grid>
-                                </Border>
+                                        </Grid>
+                                    </Border>
 
-                                <!-- Paradoxical sleep >= -->
-                                <Border BorderThickness="0 0 0 0"
+                                    <!-- Paradoxical sleep >= -->
+                                    <Border BorderThickness="0 0 0 0"
                                     BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                     Padding="7"
                                     Grid.Column="1"
                                     Grid.Row="2">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Text="Paradoxical sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepAbove}"
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Paradoxical sleep (s) &gt;= " Style="{StaticResource LabelDefault}" VerticalAlignment="Center" />
+                                            <TextBox Text="{Binding ExportSettingsManager.ParadoxicalSleepAbove}"
                                              Style="{StaticResource SmallTextBox}"
                                              MinWidth="35"
                                              HorizontalAlignment="Right"
                                              LostFocus="TextBox_LostFocus"
                                              Grid.Column="1" />
-                                    </Grid>
-                                </Border>
-                            </Grid>
-                        </Border>
-                    </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
 
-                    <!-- Name to clipboard -->
-                    <CheckBox IsChecked="{Binding ExportSettingsManager.SetNameToClipboard}"
+                        <!-- Name to clipboard -->
+                        <CheckBox IsChecked="{Binding ExportSettingsManager.SetNameToClipboard}"
                                       Content="Set file name to clipboard"
                                       Margin="0 20 0 20" />
 
-                    <!-- Buttons -->
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="Export"
+                        <!-- Buttons -->
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Export"
                                     Command="{Binding ExportSettingsManager.ExportCommand}"
                                     Style="{StaticResource ButtonMain}"
                                     Width="200"
                                     Margin="0 0 10 0" />
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
         <Button Content="Prev"
@@ -647,5 +648,5 @@
                 VerticalAlignment="Top"
                 Margin="0 1 5 0"/>
     </Grid>
-    
+
 </UserControl>

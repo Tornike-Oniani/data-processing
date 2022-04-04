@@ -42,7 +42,7 @@ namespace DataProcessing.Classes
         private Color criteriaDark = Color.FromArgb(250, 92, 75);
         private Color grayLight = Color.FromArgb(242, 242, 242);
         private Color clusterColor = Color.FromArgb(222, 83, 49);
-        // Colors for state coloring in each cluster Indexes - 0 - PS, 1 - sleep, 2 - wakefulness 
+        // Colors for state coloring in each cluster Indexes: 0 - PS, 1 - sleep, 2 - wakefulness 
         private Color[] clusterColorsForEachState = new Color[3] 
         {
             Color.FromArgb(188, 255, 130), 
@@ -54,6 +54,7 @@ namespace DataProcessing.Classes
         private ExportOptions options;
         private List<DataTableInfo> statTableCollection;
         private List<DataTableInfo> graphTableCollection;
+        private List<DataTableInfo> graphTableCollectionForClusters;
         private List<DataTableInfo> frequenciesCollection;
         private DataTableInfo latencyTable;
         List<DataTableInfo> customFrequenciesCollection;
@@ -74,6 +75,7 @@ namespace DataProcessing.Classes
             ExportOptions options, 
             List<DataTableInfo> statTableCollection, 
             List<DataTableInfo> graphTableCollection,
+            List<DataTableInfo> graphTableCollectionForClusters,
             List<DataTableInfo> frequenciesCollection,
             DataTableInfo latencyTable,
             List<DataTableInfo> customFrequenciesCollection
@@ -82,6 +84,7 @@ namespace DataProcessing.Classes
             this.options = options;
             this.statTableCollection = statTableCollection;
             this.graphTableCollection = graphTableCollection;
+            this.graphTableCollectionForClusters = graphTableCollectionForClusters;
             this.frequenciesCollection = frequenciesCollection;
             this.latencyTable = latencyTable;
             this.customFrequenciesCollection = customFrequenciesCollection;
@@ -154,6 +157,7 @@ namespace DataProcessing.Classes
                         timeData.Add(tuple);
                     }
                 }
+                // If parsing data from importing file failed (for example corrupted time entry) then we want to throw arrow on which row the parse failed
                 catch (Exception e)
                 {
                     Exception myException = new Exception(e.Message);
@@ -180,6 +184,7 @@ namespace DataProcessing.Classes
                 excel.Quit();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
+                // Kill process from task manager
                 GetExcelProcess(excel).Kill();
             });
 
@@ -563,26 +568,52 @@ namespace DataProcessing.Classes
                     }
                 }
 
-                services.UpdateWorkStatus("Exporting clusters");
-                _Worksheet clusterSheet = CreateNewSheet(wb, "Clusters", 5);
-                frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
-
-                // Write clusters
-                WriteClusterData(clusterSheet, nonMarkedTimeStamps, 1);
-
-                // Mark cluster ends with red color
-                for (int i = 0; i < clusterLocation.Count; i++)
+                // If cluster separation time was set other than 0 we want to generate cluster data
+                if (options.ClusterSeparationTimeInSeconds != 0) 
                 {
-                    formatRange = clusterSheet.Range[$"A{clusterLocation[i]}:B{clusterLocation[i]}"];
-                    formatRange.Interior.Color = clusterColor;
-                }
+                    // Clusters
+                    services.UpdateWorkStatus("Exporting clusters");
+                    _Worksheet clusterSheet = CreateNewSheet(wb, "Clusters", 5);
+                    frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
 
-                // Color each phase in cluster with appropriate color
-                for (int i = 0; i < clusterColorIndexState.Count; i++)
-                {
-                    formatRange = clusterSheet.Range[$"A{clusterColorIndexState[i].Item1}:B{clusterColorIndexState[i].Item1}"];
-                    // We have array that corresponds each state to color, but since indexes in array start from 0 we have to substract 1 from state for mapping
-                    formatRange.Interior.Color = clusterColorsForEachState[clusterColorIndexState[i].Item2 - 1];
+                    // Write cluster raw data
+                    WriteClusterData(clusterSheet, nonMarkedTimeStamps, 1);
+
+                    // Mark cluster ends with red color
+                    for (int i = 0; i < clusterLocation.Count; i++)
+                    {
+                        formatRange = clusterSheet.Range[$"A{clusterLocation[i]}:B{clusterLocation[i]}"];
+                        formatRange.Interior.Color = clusterColor;
+                    }
+
+                    // Color each phase in cluster with appropriate color
+                    for (int i = 0; i < clusterColorIndexState.Count; i++)
+                    {
+                        formatRange = clusterSheet.Range[$"A{clusterColorIndexState[i].Item1}:B{clusterColorIndexState[i].Item1}"];
+                        // We have array that corresponds each state to color, but since indexes in array start from 0 we have to substract 1 from state for mapping
+                        formatRange.Interior.Color = clusterColorsForEachState[clusterColorIndexState[i].Item2 - 1];
+                    }
+
+                    // Create graph charts
+                    position = 1;
+                    index = 1;
+                    max = graphTableCollectionForClusters.Count;
+                    foreach (DataTableInfo tableInfo in graphTableCollectionForClusters)
+                    {
+                        updateStatus("Graph tables for clusters", index, max);
+                        position = WriteDataTable(clusterSheet, tableInfo, position, 5);
+                        lastHour = graphSheet.Cells[position, tableInfo.HeaderIndexes.Item2];
+                        lastHour.EntireColumn.AutoFit();
+                        position += distanceBetweenTables;
+                        index++;
+                    }
+
+                    clusterSheet.Range["E1"].EntireColumn.AutoFit();
+
+                    range = graphSheet.Range["A1:K1"];
+                    graphLeft = range.Width;
+                    // Width is calculated by columns for now (parameter 10 doesn't do anything)
+                    WriteGraphChartForCluster(clusterSheet, graphTableCollectionForClusters[0], 15, 1);
                 }
 
                 wb.Sheets[1].Select(Type.Missing);
@@ -592,26 +623,26 @@ namespace DataProcessing.Classes
             services.SetWorkStatus(false);
         }
 
-        private int WriteDataTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
+        private int WriteDataTable(_Worksheet sheet, DataTableInfo tableInfo, int position, int horizontalPosition = 1)
         {
             int curPosition = position;
             System.Data.DataTable table = tableInfo.Table;
 
             object[,] values = DataTableTo2DArray(table);
-            Range start = sheet.Cells[curPosition, 1];
-            Range end = sheet.Cells[curPosition + table.Rows.Count, table.Columns.Count];
+            Range start = sheet.Cells[curPosition, horizontalPosition];
+            Range end = sheet.Cells[curPosition + table.Rows.Count, horizontalPosition + table.Columns.Count - 1];
             Range tableRange = sheet.Range[start, end];
             tableRange.Value = values;
 
             // Color header
-            start = sheet.Cells[position, 1];
-            end = sheet.Cells[position, tableInfo.HeaderIndexes.Item2];
+            start = sheet.Cells[position, horizontalPosition];
+            end = sheet.Cells[position, horizontalPosition + tableInfo.HeaderIndexes.Item2 - 1];
             tableRange = sheet.Range[start, end];
             tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
 
             // Color phases
-            start = sheet.Cells[position + tableInfo.PhasesIndexes.Item1, 1];
-            end = sheet.Cells[position + tableInfo.PhasesIndexes.Item2, 1];
+            start = sheet.Cells[position + tableInfo.PhasesIndexes.Item1, horizontalPosition];
+            end = sheet.Cells[position + tableInfo.PhasesIndexes.Item2, horizontalPosition];
             tableRange = sheet.Range[start, end];
             tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
 
@@ -620,16 +651,16 @@ namespace DataProcessing.Classes
             {
                 if (tableInfo.CriteriaPhases.Item2 > 0)
                 {
-                    start = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + 1, 1];
-                    end = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + tableInfo.CriteriaPhases.Item2, 1];
+                    start = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + 1, horizontalPosition];
+                    end = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + tableInfo.CriteriaPhases.Item2, horizontalPosition];
                     tableRange = sheet.Range[start, end];
                     tableRange.Interior.Color = tableInfo.IsTotal ? criteriaDark : criteriaLight;
                 }
             }
 
             // Set alignments
-            start = sheet.Cells[position, 2];
-            end = sheet.Cells[position, tableInfo.HeaderIndexes.Item2];
+            start = sheet.Cells[position, horizontalPosition + 1];
+            end = sheet.Cells[position, horizontalPosition + tableInfo.HeaderIndexes.Item2 - 1];
             tableRange = sheet.Range[start, end];
             tableRange.HorizontalAlignment = XlHAlign.xlHAlignRight;
 
@@ -696,6 +727,7 @@ namespace DataProcessing.Classes
         }
         private void WriteGraphChart(_Worksheet sheet, DataTableInfo tableInfo, int width, int height, int tablePos)
         {
+            // Get range to determine width of chart
             Range range = GetRange(sheet, 1, 1, 1, tableInfo.Table.Columns.Count);
             ChartObjects charts = sheet.ChartObjects();
             ChartObject chartObject = charts.Add(0, graphTableCollection.Count * 6 * cellHeight, range.Width, height * cellHeight);
@@ -712,6 +744,29 @@ namespace DataProcessing.Classes
             chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
             Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
             range = GetRange(sheet, tablePos, 2, tablePos, tableInfo.Table.Columns.Count);
+            xAxis.CategoryNames = range;
+        }
+        private void WriteGraphChartForCluster(_Worksheet sheet, DataTableInfo tableInfo, int height, int tablePos)
+        {
+            // Get range to determine width of chart
+            Range range = GetRange(sheet, 1, 5, 1, 5 + tableInfo.Table.Columns.Count);
+            Range leftPos = GetRange(sheet, 1, 1, 1, 4);
+            ChartObjects charts = sheet.ChartObjects();
+            ChartObject chartObject = charts.Add(leftPos.Width, graphTableCollectionForClusters.Count * 6 * cellHeight, range.Width, height * cellHeight);
+            Chart chart = chartObject.Chart;
+
+            // Get range of data table to map it to chart
+            range = GetRange(sheet, tablePos + 1, 5, tablePos + options.MaxStates, 5 + tableInfo.Table.Columns.Count);
+            chart.ChartWizard(
+                range,
+                XlChartType.xlColumnClustered,
+                PlotBy: XlRowCol.xlRows,
+                Title: tableInfo.Table.TableName,
+                ValueTitle: "Percents");
+            chart.HasLegend = true;
+            chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
+            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
+            range = GetRange(sheet, tablePos, 6, tablePos, 5 + tableInfo.Table.Columns.Count);
             xAxis.CategoryNames = range;
         }
         private void WriteDuplicatesChart(_Worksheet sheet, int duplicateCount, int width, int height)

@@ -105,12 +105,13 @@ namespace DataProcessing.Classes
             CalculateSamples(nonMarkedRecords);
 
             // 4. Export to excel
-            DataProcessor dataProcessor = new DataProcessor(markedRecords, exportOptions);
+            DataProcessor dataProcessor = new DataProcessor(markedRecords, nonMarkedRecords, exportOptions);
             // We are also passing non marked records for total frequencies
             dataProcessor.Calculate(nonMarkedRecords);
             await new ExcelManager(exportOptions,
                 dataProcessor.CreateStatTables(),
                 dataProcessor.CreateGraphTables(),
+                dataProcessor.CreateGraphTablesForClusters(),
                 dataProcessor.CreateFrequencyTables(),
                 dataProcessor.CreateLatencyTable(),
                 dataProcessor.CreateCustomFrequencyTables()).
