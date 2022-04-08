@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:DataProcessing"
              xmlns:viewModels="clr-namespace:DataProcessing.ViewModels"
              xmlns:views="clr-namespace:DataProcessing.Views"
+             xmlns:popupViewModel="clr-namespace:PopupServiceBack.ViewModels;assembly=PopupServiceBack"
+             xmlns:popupView="clr-namespace:PopupServiceFront.Views;assembly=PopupServiceFront"
              StartupUri="Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -29,8 +31,8 @@
                     </DataTemplate>
 
                     <!-- TextDialog -->
-                    <DataTemplate DataType="{x:Type viewModels:TextDialogViewModel}">
-                        <views:TextDialog />
+                    <DataTemplate DataType="{x:Type popupViewModel:TextDialogViewModel}">
+                        <popupView:TextDialog />
                     </DataTemplate>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>

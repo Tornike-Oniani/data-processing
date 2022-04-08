@@ -1,5 +1,4 @@
-﻿using DataProcessing.Utils.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,23 +10,19 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace DataProcessing.Utils.Services
+namespace PopupServiceFront.Views
 {
     /// <summary>
-    /// Interaction logic for GenericWindow.xaml
+    /// Interaction logic for DialogYesNo.xaml
     /// </summary>
-    public partial class GenericWindow : Window, IWindow
+    public partial class DialogYesNo : UserControl
     {
-        public GenericWindow()
+        public DialogYesNo()
         {
             InitializeComponent();
-
-            this.Loaded += (s, e) =>
-            {
-                this.MinHeight = this.ActualHeight;
-            };
         }
     }
 }

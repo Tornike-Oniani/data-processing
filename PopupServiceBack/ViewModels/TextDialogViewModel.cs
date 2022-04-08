@@ -1,5 +1,5 @@
-﻿using DataProcessing.Utils;
-using DataProcessing.Utils.Interfaces;
+﻿using PopupServiceBack.Base;
+using PopupServiceBack.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,13 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DataProcessing.ViewModels
+namespace PopupServiceBack.ViewModels
 {
-    class TextDialogViewModel : BaseViewModel
+    public class TextDialogViewModel : WindowViewModel
     {
-        // Private attributes
-        private IWindow window;
-
         // Public properties
         public string Label { get; set; }
         public string Input { get; set; }
@@ -27,8 +24,9 @@ namespace DataProcessing.ViewModels
         public TextDialogViewModel(string label, string input, IWindow window)
         {
             // Init
+            this.Title = label;
             this.Label = label;
-            this.window = window;
+            this.Window = window;
             this.Input = input;
 
             // Initialize commands
@@ -40,12 +38,12 @@ namespace DataProcessing.ViewModels
         public void Ok(object input = null)
         {
             DialogResult = Input;
-            window.Close();
+            Window.Close();
         }
         public void Cancel(object input = null)
         {
             DialogResult = null;
-            window.Close();
+            Window.Close();
         }
     }
 }

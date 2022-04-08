@@ -107,45 +107,14 @@
     <Compile Include="Utils\Converters\SecondsToUnitConverter.cs" />
     <Compile Include="Utils\DataTableInfo.cs" />
     <Compile Include="Utils\ExportOptions.cs" />
-    <Compile Include="Utils\Interfaces\IDialogService.cs" />
-    <Compile Include="Utils\Interfaces\IWindow.cs" />
-    <Compile Include="Utils\Interfaces\IWindowService.cs" />
-    <Compile Include="Utils\Services\BrowserService.cs" />
-    <Compile Include="Utils\Services\DialogService.cs" />
-    <Compile Include="Utils\Services\GenericWindow.xaml.cs">
-      <DependentUpon>GenericWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Utils\Interfaces\IBrowserService.cs" />
-    <Compile Include="Utils\Services\WindowService.cs" />
     <Compile Include="Utils\SpecificCriteria.cs" />
     <Compile Include="Utils\SpecificCriteriaComparer.cs" />
     <Compile Include="Utils\UpdateViewCommand.cs" />
     <Compile Include="Utils\ViewType.cs" />
-    <Compile Include="ViewModels\Base\BaseDialogViewModel.cs" />
     <Compile Include="ViewModels\HomeViewModel.cs" />
-    <Compile Include="ViewModels\Popups\DialogYesNoViewModel.cs" />
-    <Compile Include="ViewModels\Popups\TextDialogViewModel.cs" />
     <Compile Include="ViewModels\WorkfileEditorViewModel.cs" />
-    <Compile Include="Views\Popups\ExportSettings.xaml.cs">
-      <DependentUpon>ExportSettings.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Home.xaml.cs">
       <DependentUpon>Home.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Popups\DialogYesNo.xaml.cs">
-      <DependentUpon>DialogYesNo.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Popups\NewWorkfile.xaml.cs">
-      <DependentUpon>NewWorkfile.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Popups\OpenWorkfile.xaml.cs">
-      <DependentUpon>OpenWorkfile.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Popups\RadioDialog.xaml.cs">
-      <DependentUpon>RadioDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Popups\TextDialog.xaml.cs">
-      <DependentUpon>TextDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WorkfileEditor.xaml.cs">
       <DependentUpon>WorkfileEditor.xaml</DependentUpon>
@@ -186,14 +155,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Utils\Services\GenericWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Popups\ExportSettings.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\Home.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -219,32 +180,11 @@
     <Compile Include="Utils\FocusExtension.cs" />
     <Compile Include="Utils\RelayCommand.cs" />
     <Compile Include="ViewModels\Base\BaseViewModel.cs" />
-    <Compile Include="ViewModels\Base\BaseWindowViewModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\Popups\DialogYesNo.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Popups\NewWorkfile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Popups\OpenWorkfile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Popups\RadioDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Popups\TextDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\WorkfileEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -304,7 +244,16 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\PopupServiceBack\PopupServiceBack.csproj">
+      <Project>{94dc1fe2-2ba5-4799-b4cd-60c9942d7d1f}</Project>
+      <Name>PopupServiceBack</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PopupServiceFront\PopupServiceFront.csproj">
+      <Project>{5cc3ae93-e7d0-486b-8652-2a519b111122}</Project>
+      <Name>PopupServiceFront</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

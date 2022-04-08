@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PopupServiceBack.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,17 +11,16 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace DataProcessing.Views
+namespace PopupServiceFront
 {
     /// <summary>
-    /// Interaction logic for RadioDialog.xaml
+    /// Interaction logic for GenericWindow.xaml
     /// </summary>
-    public partial class RadioDialog : UserControl
+    public partial class GenericWindow : Window, IWindow
     {
-        public RadioDialog()
+        public GenericWindow()
         {
             InitializeComponent();
         }

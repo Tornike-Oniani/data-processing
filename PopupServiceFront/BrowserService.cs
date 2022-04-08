@@ -1,13 +1,13 @@
-﻿using DataProcessing.Utils.Interfaces;
+﻿using PopupServiceBack.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataProcessing.Utils.Services
+namespace PopupServiceFront
 {
-    class BrowserService : IBrowserService
+    public class BrowserService : IBrowserService
     {
         public string OpenFileDialog(string defaultEx, string filter)
         {
@@ -42,7 +42,6 @@ namespace DataProcessing.Utils.Services
                 {
                     // Set the destination to dialog box's result
                     destination = fbd.SelectedPath;
-                    Classes.Services.GetInstance().DialogFolder = fbd.SelectedPath;
                 }
             }
 

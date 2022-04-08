@@ -1,5 +1,5 @@
-﻿using DataProcessing.Utils.Interfaces;
-using DataProcessing.ViewModels;
+﻿using PopupServiceBack.Base;
+using PopupServiceBack.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace DataProcessing.Utils.Services
+namespace PopupServiceFront
 {
-    class WindowService : IWindowService
+    public class WindowService : IWindowService
     {
-        public void OpenWindow(BaseWindowViewModel viewModel)
+        public void OpenWindow(WindowViewModel viewModel)
         {
             Window window = new GenericWindow();
             viewModel.Window = (IWindow)window;

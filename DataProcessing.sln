@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessing", "DataProcessing\DataProcessing.csproj", "{36E22523-207A-4C44-BD71-50EA6662B572}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopupServiceBack", "PopupServiceBack\PopupServiceBack.csproj", "{94DC1FE2-2BA5-4799-B4CD-60C9942D7D1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PopupServiceFront", "PopupServiceFront\PopupServiceFront.csproj", "{5CC3AE93-E7D0-486B-8652-2A519B111122}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{36E22523-207A-4C44-BD71-50EA6662B572}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36E22523-207A-4C44-BD71-50EA6662B572}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36E22523-207A-4C44-BD71-50EA6662B572}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94DC1FE2-2BA5-4799-B4CD-60C9942D7D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94DC1FE2-2BA5-4799-B4CD-60C9942D7D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94DC1FE2-2BA5-4799-B4CD-60C9942D7D1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94DC1FE2-2BA5-4799-B4CD-60C9942D7D1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CC3AE93-E7D0-486B-8652-2A519B111122}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC3AE93-E7D0-486B-8652-2A519B111122}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CC3AE93-E7D0-486B-8652-2A519B111122}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CC3AE93-E7D0-486B-8652-2A519B111122}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

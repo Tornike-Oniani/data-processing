@@ -13,16 +13,22 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace DataProcessing.Views.Popups
+namespace PopupServiceFront.Views
 {
     /// <summary>
-    /// Interaction logic for DialogYesNo.xaml
+    /// Interaction logic for TextDialog.xaml
     /// </summary>
-    public partial class DialogYesNo : UserControl
+    public partial class TextDialog : UserControl
     {
-        public DialogYesNo()
+        public TextDialog()
         {
             InitializeComponent();
+
+            this.Loaded += (s, e) =>
+            {
+                Keyboard.Focus(this);
+                txbInput.Focus();
+            };
         }
     }
 }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataProcessing.Utils.Interfaces
+namespace PopupServiceBack.Interfaces
 {
-    interface IBrowserService
+    public interface IBrowserService
     {
         string OpenFileDialog(string defaultEx, string filter);
         string OpenFolderDialog();

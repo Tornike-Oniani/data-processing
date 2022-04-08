@@ -1,5 +1,4 @@
-﻿using DataProcessing.Utils.Interfaces;
-using DataProcessing.ViewModels;
+﻿using DataProcessing.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

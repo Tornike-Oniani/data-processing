@@ -1,4 +1,4 @@
-﻿using DataProcessing.Utils.Interfaces;
+﻿using PopupServiceBack.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataProcessing.ViewModels.Base
+namespace PopupServiceBack.Base
 {
-    class BaseDialogViewModel : INotifyPropertyChanged
+    public class DialogViewModel : INotifyPropertyChanged
     {
         protected IWindow window;
 
@@ -16,7 +16,7 @@ namespace DataProcessing.ViewModels.Base
         public string Text { get; set; }
         public bool UserDialogResult { get; set; }
 
-        public BaseDialogViewModel(string text, string title, IWindow window)
+        public DialogViewModel(string text, string title, IWindow window)
         {
             this.Title = title;
             this.Text = text;

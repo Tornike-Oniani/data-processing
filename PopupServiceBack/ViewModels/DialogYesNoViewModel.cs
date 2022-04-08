@@ -1,6 +1,5 @@
-﻿using DataProcessing.Utils;
-using DataProcessing.Utils.Interfaces;
-using DataProcessing.ViewModels.Base;
+﻿using PopupServiceBack.Base;
+using PopupServiceBack.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DataProcessing.ViewModels.Popups
+namespace PopupServiceBack.ViewModels
 {
-    class DialogYesNoViewModel : BaseDialogViewModel
+    public class DialogYesNoViewModel : DialogViewModel
     {
         public ICommand YesCommand { get; set; }
         public ICommand NoCommand { get; set; }

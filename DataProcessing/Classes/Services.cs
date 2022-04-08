@@ -1,4 +1,4 @@
-﻿using DataProcessing.Utils.Interfaces;
+﻿using PopupServiceBack.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,11 +21,11 @@ namespace DataProcessing.Classes
             return _instance;
         }
 
+        // Services
         public IDialogService DialogService { get; set; }
         public IBrowserService BrowserService { get; set; }
         public IWindowService WindowService { get; set; }
         public Action<bool> SetWorkStatus { get; set; }
         public Action<string> UpdateWorkStatus { get; set; }
-        public string DialogFolder { get; set; }
     }
 }

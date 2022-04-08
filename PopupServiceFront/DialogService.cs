@@ -1,5 +1,6 @@
-﻿using DataProcessing.Utils.Interfaces;
-using DataProcessing.ViewModels;
+﻿using PopupServiceBack;
+using PopupServiceBack.Interfaces;
+using PopupServiceBack.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace DataProcessing.Utils.Services
+namespace PopupServiceFront
 {
-    class DialogService : IDialogService
+    public class DialogService : IDialogService
     {
         public string OpenTextDialog(string label, string name = null)
         {

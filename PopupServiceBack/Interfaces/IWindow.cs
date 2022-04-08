@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataProcessing.Utils.Interfaces
+namespace PopupServiceBack.Interfaces
 {
-    interface IWindow
+    public interface IWindow
     {
         void Close();
     }

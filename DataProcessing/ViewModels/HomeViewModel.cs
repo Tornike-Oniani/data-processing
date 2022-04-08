@@ -2,7 +2,6 @@
 using DataProcessing.Models;
 using DataProcessing.Repositories;
 using DataProcessing.Utils;
-using DataProcessing.Utils.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -153,9 +152,9 @@ namespace DataProcessing.ViewModels
         }
         public void RenameWorkfile(object input = null)
         {
-            string name = Services.GetInstance().DialogService.OpenTextDialog("Name:");
-            if (String.IsNullOrEmpty(name)) { return; }
             string oldName = SelectedWorkfile.Name;
+            string name = Services.GetInstance().DialogService.OpenTextDialog("Name:", oldName);
+            if (String.IsNullOrEmpty(name) || oldName == name) { return; }
             SelectedWorkfile.Name = name;
             new WorkfileRepo().Update(SelectedWorkfile, oldName);
             PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
