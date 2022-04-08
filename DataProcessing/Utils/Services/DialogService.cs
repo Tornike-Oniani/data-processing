@@ -19,14 +19,5 @@ namespace DataProcessing.Utils.Services
             window.ShowDialog();
             return (window.DataContext as TextDialogViewModel).DialogResult;
         }
-
-        public int OpenRadioDialog()
-        {
-            Window window = new GenericWindow();
-            window.Owner = Application.Current.MainWindow;
-            window.DataContext = new RadioDialogViewModel((IWindow)window);
-            window.ShowDialog();
-            return (window.DataContext as RadioDialogViewModel).DialogResult;
-        }
     }
 }

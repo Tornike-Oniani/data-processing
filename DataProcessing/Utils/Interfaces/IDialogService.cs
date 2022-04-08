@@ -9,6 +9,5 @@ namespace DataProcessing.Utils.Interfaces
     interface IDialogService
     {
         string OpenTextDialog(string label, string name = null);
-        int OpenRadioDialog();
     }
 }

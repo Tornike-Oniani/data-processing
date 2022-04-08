@@ -92,11 +92,9 @@
     <Compile Include="Classes\ExportSettingsManager.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
-    <Compile Include="Classes\Testing.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />
     <Compile Include="Models\Stats.cs" />
-    <Compile Include="Repositories\IRepo.cs" />
     <Compile Include="UserControls\LoadingControl.xaml.cs">
       <DependentUpon>LoadingControl.xaml</DependentUpon>
     </Compile>
@@ -126,9 +124,6 @@
     <Compile Include="ViewModels\Base\BaseDialogViewModel.cs" />
     <Compile Include="ViewModels\HomeViewModel.cs" />
     <Compile Include="ViewModels\Popups\DialogYesNoViewModel.cs" />
-    <Compile Include="ViewModels\Popups\NewWorkfileViewModel.cs" />
-    <Compile Include="ViewModels\Popups\OpenWorkfileViewModel.cs" />
-    <Compile Include="ViewModels\Popups\RadioDialogViewModel.cs" />
     <Compile Include="ViewModels\Popups\TextDialogViewModel.cs" />
     <Compile Include="ViewModels\WorkfileEditorViewModel.cs" />
     <Compile Include="Views\Popups\ExportSettings.xaml.cs">
@@ -212,7 +207,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Classes\DisplayManager.cs" />
-    <Compile Include="Classes\EntryManager.cs" />
     <Compile Include="Classes\ExcelManager.cs" />
     <Compile Include="Classes\ObservableObject.cs" />
     <Compile Include="Classes\WorkfileManager.cs" />

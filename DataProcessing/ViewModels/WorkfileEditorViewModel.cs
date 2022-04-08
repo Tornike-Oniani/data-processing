@@ -29,7 +29,6 @@ namespace DataProcessing.ViewModels
 
         // Properties
         public DisplayManager DisplayManager { get; set; }
-        public EntryManager EntryManager { get; set; }
         public ExportSettingsManager ExportSettingsManager { get; set; }
         public bool CustomRangesEnabled
         {
@@ -97,9 +96,6 @@ namespace DataProcessing.ViewModels
 
 
         // Commands
-        public ICommand OpenWorkfileDialogCommand { get; set; }
-        public ICommand NewWorkfileDialogCommand { get; set; }
-        public ICommand EditCommand { get; set; }
         public ICommand AddRangeCommand { get; set; }
         public ICommand RemoveRangeCommand { get; set; }
         public ICommand NewTemplateCommand { get; set; }
@@ -114,7 +110,6 @@ namespace DataProcessing.ViewModels
         {
             // Init
             DisplayManager = new DisplayManager();
-            EntryManager = new EntryManager(DisplayManager.PopulateCommand);
             WorkfileManager.GetInstance().OnWorkfileChanged += SetupDisplayAndEntry;
             ExportSettingsManager = new ExportSettingsManager();
             // These values gets converted into 'sec', 'min' and 'hr' with converter
@@ -127,9 +122,6 @@ namespace DataProcessing.ViewModels
             LoadFrequencyRangeTempaltes();
 
             // Init commands
-            OpenWorkfileDialogCommand = new RelayCommand(OpenWorkfileDialog);
-            NewWorkfileDialogCommand = new RelayCommand(NewWorkfileDialog);
-            EditCommand = new RelayCommand(Edit);
             AddRangeCommand = new RelayCommand(AddRange);
             RemoveRangeCommand = new RelayCommand(RemoveRange);
             SaveTemplateCommand = new RelayCommand(SaveTemplate);
@@ -141,27 +133,6 @@ namespace DataProcessing.ViewModels
         }
 
         // Command actions
-        public void OpenWorkfileDialog(object input = null)
-        {
-            Services.GetInstance().WindowService.OpenWindow(new OpenWorkfileViewModel());
-        }
-        public void NewWorkfileDialog(object input = null)
-        {
-            Services.GetInstance().WindowService.OpenWindow(new NewWorkfileViewModel());
-        }
-        public void Edit(object input = null)
-        {
-            if (input == null) return;
-            string timeSpan = input as string;
-            int[] times;
-
-            if (!IsTimeSpanStringCorrect(timeSpan, out times)) { throw new Exception("Incorrect value. Correct format is hh:mm:ss"); }
-
-            TimeSpan span = new TimeSpan(times[0], times[1], times[2]);
-            DisplayManager.SelectedRow.Time = span;
-            DisplayManager.SelectedRow.Update();
-            DisplayManager.PopulateCommand.Execute(null);
-        }
         public void AddRange(object input = null)
         {
             string[] rangeSplit = FrequencyRange.Split('-');

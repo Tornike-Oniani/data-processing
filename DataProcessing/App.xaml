@@ -28,24 +28,9 @@
                         <views:WorkfileEditor />
                     </DataTemplate>
 
-                    <!-- OpenWorkfile -->
-                    <DataTemplate DataType="{x:Type viewModels:OpenWorkfileViewModel}">
-                        <views:OpenWorkfile />
-                    </DataTemplate>
-
-                    <!-- NewWorkfile -->
-                    <DataTemplate DataType="{x:Type viewModels:NewWorkfileViewModel}">
-                        <views:NewWorkfile />
-                    </DataTemplate>
-
                     <!-- TextDialog -->
                     <DataTemplate DataType="{x:Type viewModels:TextDialogViewModel}">
                         <views:TextDialog />
-                    </DataTemplate>
-
-                    <!-- RadioDialog -->
-                    <DataTemplate DataType="{x:Type viewModels:RadioDialogViewModel}">
-                        <views:RadioDialog />
                     </DataTemplate>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>

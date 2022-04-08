@@ -19,7 +19,6 @@ namespace DataProcessing.Classes
 
         // Commands
         public ICommand PopulateCommand { get; set; }
-        public ICommand TestCommand { get; set; }
 
         // Constructor
         public DisplayManager()
@@ -30,7 +29,6 @@ namespace DataProcessing.Classes
 
             // Command initialization
             PopulateCommand = new RelayCommand(Populate);
-            TestCommand = new RelayCommand(Test);
         }
 
         // Command actions
@@ -46,13 +44,6 @@ namespace DataProcessing.Classes
             Services.GetInstance().SetWorkStatus(false);
 
             PopulateCollection(items);
-        }
-        public void Test(object input = null)
-        {
-            foreach (var item in SelectedRows)
-            {
-                Console.WriteLine(item.Time);
-            }
         }
 
         // Private helpers
