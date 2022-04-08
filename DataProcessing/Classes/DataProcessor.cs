@@ -354,7 +354,7 @@ namespace DataProcessing.Classes
             // If we have remainder in the last cluster calculate its stats too (The list won't always end with wakefulness that is more than cluster separation time)
             if (clusterRegion.Count > 0)
             {
-                clusterAndStats.Add(clusterRegion.Count + 1, CalculateStats(clusterRegion, false));
+                clusterAndStats.Add(curClusterNumber, CalculateStats(clusterRegion, false));
             }
         }
         private void CreateStatTable(string name, Stats stats, bool isTotal)
