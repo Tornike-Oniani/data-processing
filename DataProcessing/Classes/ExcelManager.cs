@@ -17,14 +17,6 @@ using Microsoft.Office.Interop.Excel;
 
 namespace DataProcessing.Classes
 {
-    enum DataType
-    {
-        Second,
-        Minute,
-        Percentage,
-        Number
-    }
-
     class ExcelManager
     {
         [DllImport("user32.dll")]

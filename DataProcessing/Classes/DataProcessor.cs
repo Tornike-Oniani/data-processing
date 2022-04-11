@@ -21,21 +21,22 @@ namespace DataProcessing.Classes
         private ExportOptions options;
         private List<TimeStamp> timeStamps;
         private List<TimeStamp> nonMarkedTimeStamps;
+        // Mapping of 3 - Wakefulness, 2 - Sleep, 1 - PS or alternatively 4 - Wakefulness, 3 - Sleep, 2 - Deep sleep, 1 - PS (Depends on max number of states)
         private Dictionary<int, string> stateAndPhases = new Dictionary<int, string>();
+        // Stats for whole region
         private Stats totalStats;
+        // Stats for each region divided by hour (this can be 0.5hr, 1hr or 2hr) selected from timeMark on UI
         private Dictionary<int, Stats> hourAndStats = new Dictionary<int, Stats>();
+        // Stats for each cluster region
         private Dictionary<int, Stats> clusterAndStats = new Dictionary<int, Stats>();
-        // State frequencies total + each hour
+        // State frequencies total + each hour. For both frequencies and custom frequencies the first item in list is total stats and then comes each hour
         private List<Dictionary<int, SortedList<int, int>>> hourStateFrequencies = new List<Dictionary<int, SortedList<int, int>>>();
         private List<Dictionary<int, Dictionary<string, int>>> hourStateCustomFrequencies = new List<Dictionary<int, Dictionary<string, int>>>();
+        // The row index of excel where each hour ends (We use this to mark hour 1, hour 2 etc. in raw data sheet)
         private List<int> hourRowIndexes = new List<int>();
         private List<Tuple<int, string>> hourRowIndexesTime = new List<Tuple<int, string>>();
-        private List<DataTableInfo> statTableCollection = new List<DataTableInfo>();
-        private List<DataTableInfo> graphTableCollection = new List<DataTableInfo>();
-        private List<DataTableInfo> graphTableCollectionForClusters = new List<DataTableInfo>();
-        private List<Tuple<int, int>> duplicatedTimes = new List<Tuple<int, int>>();
-        private List<DataTableInfo> frequenciesCollection = new List<DataTableInfo>();
-        private List<DataTableInfo> customFrequenciesCollection = new List<DataTableInfo>();
+        // Collection of every table (pretty much everything that needs to be exported to excel)
+        private List<TableCollection> tableCollections = new List<TableCollection>();
         private int timeBeforeFirstSleep = 0;
         private int timeBeforeFirstParadoxicalSleep = 0;
 
@@ -54,27 +55,10 @@ namespace DataProcessing.Classes
         }
 
         // Public methods
-        public void Calculate(List<TimeStamp> nonMarkedRecords)
+        public void Calculate()
         {
-            // Create duplicated timestamps for graph
-            int previous = timeStamps[0].TimeDifferenceInSeconds;
-            duplicatedTimes.Add(new Tuple<int, int>(previous, timeStamps[1].State));
-            for (int i = 1; i < timeStamps.Count; i++)
-            {
-                duplicatedTimes.Add(new Tuple<int, int>(timeStamps[i].TimeDifferenceInSeconds + previous, timeStamps[i].State));
-                if (i < timeStamps.Count - 1)
-                {
-                    duplicatedTimes.Add(new Tuple<int, int>(timeStamps[i].TimeDifferenceInSeconds + previous, timeStamps[i + 1].State));
-                }
-                previous = previous + timeStamps[i].TimeDifferenceInSeconds;
-            }
-
             // Calculate total
             totalStats = CalculateStats(timeStamps, true);
-
-            // Calculate per hour
-            int time = 0;
-            int currentHour = 0;
 
             // Hourly frequencies
             Dictionary<int, SortedList<int, int>> totalFrequencies = new Dictionary<int, SortedList<int, int>>();
@@ -116,9 +100,9 @@ namespace DataProcessing.Classes
             hourStateCustomFrequencies.Add(totalCustomFrequencies);
 
             // Calculate total frequencies with non marked original timestamps
-            for (int i = 1; i < nonMarkedRecords.Count; i++)
+            for (int i = 1; i < nonMarkedTimeStamps.Count; i++)
             {
-                TimeStamp currentTimeStamp = nonMarkedRecords[i];
+                TimeStamp currentTimeStamp = nonMarkedTimeStamps[i];
 
                 // We don't want program added timestamps (marker and hour marks) to be added to total
                 if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
@@ -136,6 +120,10 @@ namespace DataProcessing.Classes
                 }
             }
 
+            // Calculate per hour
+            int time = 0;
+            int currentHour = 0;
+
             List<TimeStamp> hourRegion = new List<TimeStamp>();
             // Latency
             bool foundFirstSleep = false;
@@ -145,6 +133,8 @@ namespace DataProcessing.Classes
             {
                 TimeStamp currentTimeStamp = timeStamps[i];
                 time += currentTimeStamp.TimeDifferenceInSeconds;
+
+                if (time > options.TimeMark * 3600) { throw new Exception("Invalid hour marks"); }
 
                 // Calculate time before first sleep and paradoxical sleep (Latency)
                 if (!foundFirstSleep)
@@ -161,8 +151,6 @@ namespace DataProcessing.Classes
                     else
                         timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
                 }
-
-                if (time > options.TimeMark * 3600) { throw new Exception("Invalid hour marks"); }
 
                 hourRegion.Add(currentTimeStamp);
                 lastHourIndex = i + 1;
@@ -325,6 +313,36 @@ namespace DataProcessing.Classes
         }
 
         // Private helpers
+        private void CreateDuplicatesTable()
+        {
+            DataTableInfo duplicated = new DataTableInfo();
+            DataTable table = new DataTable("Duplicated");
+            duplicated.Table = table;
+
+            table.Columns.Add(new DataColumn("Time difference", typeof(int)));
+            table.Columns.Add(new DataColumn("State", typeof(int)));
+
+            int previous = timeStamps[0].TimeDifferenceInSeconds;
+            DataRow row = table.NewRow();
+            row["Time difference"] = previous;
+            // We don't want to start with state 0, so we take the state of the second entry
+            row["State"] = timeStamps[1].State;
+            table.Rows.Add(row);
+            for (int i = 1; i < timeStamps.Count; i++)
+            {
+                row["Time difference"] = timeStamps[i].TimeDifferenceInSeconds + previous;
+                row["State"] = timeStamps[i].State;
+                table.Rows.Add(row);
+                // Except for the last record duplicate it with the next one's state
+                if (i < timeStamps.Count - 1)
+                {
+                    row["State"] = timeStamps[i + 1].State;
+                    table.Rows.Add(row);
+                }
+                previous = previous + timeStamps[i].TimeDifferenceInSeconds;
+            }
+        }
+
         private void CreateStatsForClusters()
         {
             List<TimeStamp> clusterRegion = new List<TimeStamp>();

@@ -89,9 +89,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\DataProcessor.cs" />
+    <Compile Include="Classes\DataTableInfo.cs" />
     <Compile Include="Classes\ExportSettingsManager.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
+    <Compile Include="Classes\TableCollection.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />
     <Compile Include="Models\Stats.cs" />
@@ -105,7 +107,6 @@
     <Compile Include="Utils\Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Utils\Converters\MarkerToColorConverter.cs" />
     <Compile Include="Utils\Converters\SecondsToUnitConverter.cs" />
-    <Compile Include="Utils\DataTableInfo.cs" />
     <Compile Include="Utils\ExportOptions.cs" />
     <Compile Include="Utils\SpecificCriteria.cs" />
     <Compile Include="Utils\SpecificCriteriaComparer.cs" />
