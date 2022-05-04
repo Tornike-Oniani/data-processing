@@ -88,10 +88,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\CalculatedData.cs" />
+    <Compile Include="Classes\ColorRange.cs" />
     <Compile Include="Classes\DataProcessor.cs" />
     <Compile Include="Classes\ExportSettingsManager.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
+    <Compile Include="Classes\TableCollection.cs" />
+    <Compile Include="Classes\TableCreator.cs" />
+    <Compile Include="Classes\TableDecorator.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />
     <Compile Include="Models\Stats.cs" />
