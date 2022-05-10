@@ -347,7 +347,7 @@ namespace DataProcessing.Classes
                 _Worksheet rawDataSheet = wb.ActiveSheet;
                 rawDataSheet.Name = "Raw Data";
 
-                // Raw Data
+                // Raw data
                 services.UpdateWorkStatus("Exporting raw data");
                 ExportTableCollection(rawDataSheet, RawData, 1);
 
@@ -355,6 +355,15 @@ namespace DataProcessing.Classes
                 formatRange.NumberFormat = "[h]:mm:ss";
                 formatRange = rawDataSheet.Range["C:C"];
                 formatRange.NumberFormat = "General";
+
+                // Latency table
+                services.UpdateWorkStatus("Exporting latency");
+                ExportTableCollection(rawDataSheet, Latency, 8);
+
+                // Stat tables
+                _Worksheet statSheet = CreateNewSheet(wb, "Stats", 1);
+                services.UpdateWorkStatus("Exporting stat tables");
+                ExportTableCollection(statSheet, Stats, 1);
 
                 wb.Sheets[1].Select(Type.Missing);
                 excel.Visible = true;
@@ -378,17 +387,8 @@ namespace DataProcessing.Classes
                 // Convert table to 2d array
                 tableArray = DataTableTo2DArray(table, collection.HasHeader, collection.HasTiteOnTop);
                 // Get appropriate range in excel and set its value to 2d array
-                range = GetRange(sheet, rowPos, 1, tableArray.GetLength(0), tableArray.GetLength(1));
-                object[,] mockArray = new object[2,5];
-                mockArray[0, 0] = "Test";
-                mockArray[0, 1] = "Test1";
-                mockArray[0, 2] = 5;
-                //mockArray[1, 0] = tableArray[10, 0];
-                //mockArray[1, 1] = tableArray[10, 1];
-                mockArray[1, 2] = tableArray[10, 2];
-                mockArray[1, 3] = tableArray[10, 3];
-                mockArray[1, 4] = tableArray[10, 4];
-                range.Value = mockArray;
+                range = GetRange(sheet, rowPos, horizontalPosition, tableArray.GetLength(0), horizontalPosition - 1 + tableArray.GetLength(1));
+                range.Value = tableArray;
 
                 // Decorate table
                 decorateTable(sheet, collection.ColorRanges, horizontalPosition, rowPos, counter == 0 && collection.HasTotal);
@@ -417,9 +417,13 @@ namespace DataProcessing.Classes
             if (titleOnTop) { index++; }
 
             // Column names
-            for (int i = 1; i < table.Columns.Count; i++)
+            if (includeColumnNames)
             {
-                table2D[index, i] = table.Columns[i].ColumnName;
+                for (int i = index; i < table.Columns.Count; i++)
+                {
+                    table2D[index, i] = table.Columns[i].ColumnName;
+                }
+                index++;
             }
 
             // Table contents

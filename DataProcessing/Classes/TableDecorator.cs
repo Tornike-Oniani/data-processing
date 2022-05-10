@@ -26,7 +26,7 @@ namespace DataProcessing.Classes
             int[] markerIndexes = Enumerable.Range(0, timeStamps.Count).Where(i => timeStamps[i].IsMarker).ToArray();
             for (int i = 0; i < timeMarkedindexes.Length; i++)
             {
-                rowIndexes.Add(new ColorRange(0, timeMarkedindexes[i], 0, timeMarkedindexes[i]));
+                rowIndexes.Add(new ColorRange(0, timeMarkedindexes[i], 4, timeMarkedindexes[i]));
             }
             collection.ColorRanges.Add("Green", rowIndexes.ToArray());
 
@@ -49,7 +49,8 @@ namespace DataProcessing.Classes
             collection.HasTiteOnTop = true;
 
             // Header
-            collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 0, 1, 0) });
+            collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, 0, 0) });
+            collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 1, 1, 1) });
 
             return collection;
 

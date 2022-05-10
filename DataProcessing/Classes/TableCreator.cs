@@ -43,8 +43,8 @@ namespace DataProcessing.Classes
             DataRow row;
 
             // Add columns
-            table.Columns.Add("Time", typeof(TimeSpan));
-            table.Columns.Add("Time difference", typeof(TimeSpan));
+            table.Columns.Add("Time", typeof(string));
+            table.Columns.Add("Time difference", typeof(string));
             table.Columns.Add("Time difference in double", typeof(double));
             table.Columns.Add("Time difference in seconds", typeof(int));
             table.Columns.Add("State", typeof(int));
@@ -53,8 +53,9 @@ namespace DataProcessing.Classes
             foreach (TimeStamp timeStamp in timeStamps)
             {
                 row = table.NewRow();
-                row["Time"] = timeStamp.Time;
-                row["Time difference"] = timeStamp.TimeDifference;
+                // We convert time into string other wise setting range value in excel won't work
+                row["Time"] = timeStamp.Time.ToString();
+                row["Time difference"] = timeStamp.TimeDifference.ToString();
                 row["Time difference in double"] = timeStamp.TimeDifferenceInDouble;
                 row["Time difference in seconds"] = timeStamp.TimeDifferenceInSeconds;
                 row["State"] = timeStamp.State;
