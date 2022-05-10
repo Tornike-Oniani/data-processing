@@ -20,9 +20,12 @@ namespace DataProcessing.Classes
         private TimeSpan _till;
 
         // Public properties
+        // All available timemarks for user to choose from combobox (0.5hr, 1hr, 2hr & 4hr)
         public List<float> TimeMarks { get; set; }
         public float SelectedTimeMark { get; set; }
+        // Max number of states (can be 3 or 4, right now processing for only 3 is implemented)
         public int MaxStates { get; set; }
+        // Selected period from data to process
         public TimeSpan From
         {
             get { return _from; }
@@ -33,31 +36,35 @@ namespace DataProcessing.Classes
             get { return _till; }
             set { _till = value; OnPropertyChanged("Till"); }
         }
+        // Specific crieterias for stat calculations
         public int? WakefulnessBelow { get; set; }
         public int? SleepBelow { get; set; }
         public int? ParadoxicalSleepBelow { get; set; }
         public int? WakefulnessAbove { get; set; }
         public int? SleepAbove { get; set; }
         public int? ParadoxicalSleepAbove { get; set; }
+        // Check if user wishes to process and export whole data or a selected period
         public bool ExportSelectedPeriod
         {
             get { return _exportSelectedPeriod; }
             set { _exportSelectedPeriod = value; OnPropertyChanged("ExportSelectedPeriod"); }
         }
+        // Check if user wishes to set filename on clipboard (We need this becasue file name can't be set on opened excel file by interop)
         public bool SetNameToClipboard { get; set; }
+        // By what time margin should we define clusters (For example every time wakefulness is more than 10min)
         public int ClusterSeparationTime { get; set; }
 
         // Commands
         public ICommand ExportCommand { get; set; }
 
-        public ExportSettingsManager(
-
-            )
+        public ExportSettingsManager()
         {
+            // Init
             this.TimeMarks = new List<float>() { 0.5f, 1, 2, 4 };
             this.SelectedTimeMark = TimeMarks[1];
             this.MaxStates = 3;
 
+            // Set up commands
             ExportCommand = new RelayCommand(Export);
         }
 
@@ -65,10 +72,12 @@ namespace DataProcessing.Classes
         {
             ExportOptions exportOptions = new ExportOptions()
             {
+                // Init
                 TimeMark = SelectedTimeMark,
                 MaxStates = MaxStates,
                 From = From,
                 Till = Till,
+                // Set up criterias for processing
                 Criterias = new List<SpecificCriteria>()
                 {
                     new SpecificCriteria() { State = MaxStates, Operand = "Below", Value = WakefulnessBelow },
@@ -106,21 +115,21 @@ namespace DataProcessing.Classes
 
             // 4. Export to excel
             DataProcessor dataProcessor = new DataProcessor(markedRecords, nonMarkedRecords, exportOptions);
-            // We are also passing non marked records for total frequencies
-            dataProcessor.Calculate(nonMarkedRecords);
-            await new ExcelManager(exportOptions,
-                dataProcessor.CreateStatTables(),
-                dataProcessor.CreateGraphTables(),
-                dataProcessor.CreateGraphTablesForClusters(),
-                dataProcessor.CreateFrequencyTables(),
-                dataProcessor.CreateLatencyTable(),
-                dataProcessor.CreateCustomFrequencyTables()).
-                ExportToExcel(
-                    markedRecords,
-                    nonMarkedRecords,
-                    dataProcessor.getDuplicatedTimes(),
-                    dataProcessor.getHourRowIndexes(),
-                    dataProcessor.getHourRowIndexesTime());
+            TableCreator tableCreator = new TableCreator(dataProcessor.Calculate(), exportOptions, markedRecords, nonMarkedRecords);
+            await new ExcelManager
+                (
+                exportOptions,
+                tableCreator.CreateRawDataTable(),
+                tableCreator.CreateLatencyTable(),
+                tableCreator.CreateStatTables(),
+                tableCreator.CreateGraphTables(),
+                tableCreator.CreateDuplicatesTable(),
+                tableCreator.CreateFrequencyTables(),
+                tableCreator.CreateCustomFrequencyTables(),
+                tableCreator.CreateClusterDataTable(),
+                tableCreator.CreateGraphTablesForClusters()
+                ).ExportToExcelC();
+
             if (SetNameToClipboard)
                 Clipboard.SetText("Calc - " + WorkfileManager.GetInstance().SelectedWorkFile.Name);
         }

@@ -13,8 +13,13 @@ namespace DataProcessing.Classes
         public List<DataTable> Tables { get; set; }
         // Does Tables list contain total stat on top
         public bool HasTotal { get; set; }
-        // If the tables title should be displayed in excel (We have some tables where we put hour marks on top as title in excel file, for example in frequencies)
-        public bool HasTitle { get; set; }
+        /// <summary>
+        /// If the tables title and column names should be displayed in excel
+        /// Some tabels don't need title or column in excel file (for example raw data or cluster data)
+        /// </summary>
+        public bool HasHeader { get; set; }
+        // Some tables have title on top of column names instead of the same row
+        public bool HasTiteOnTop { get; set; }
         /// <summary>
         /// Which rows should be colored (string will be a name of a color e. g. "blue" and then we will have string color names mapped to actual Color class)
         /// Class ColorRange contains start and end of columns and rows which should be colored by the key

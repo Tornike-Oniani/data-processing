@@ -40,7 +40,7 @@ namespace DataProcessing.Classes
             List<DataTable> tables = new List<DataTable>();
 
             DataTable table = new DataTable("Raw data");
-            DataRow row = table.NewRow();
+            DataRow row;
 
             // Add columns
             table.Columns.Add("Time", typeof(TimeSpan));
@@ -52,11 +52,13 @@ namespace DataProcessing.Classes
             // Fill in data
             foreach (TimeStamp timeStamp in timeStamps)
             {
+                row = table.NewRow();
                 row["Time"] = timeStamp.Time;
                 row["Time difference"] = timeStamp.TimeDifference;
                 row["Time difference in double"] = timeStamp.TimeDifferenceInDouble;
                 row["Time difference in seconds"] = timeStamp.TimeDifferenceInSeconds;
                 row["State"] = timeStamp.State;
+                table.Rows.Add(row);
             }
 
             tables.Add(table);
@@ -141,6 +143,7 @@ namespace DataProcessing.Classes
                 row["Time"] = item.Item1;
                 row["State"] = item.Item2;
                 table.Rows.Add(row);
+                row = table.NewRow();
             }
 
             // Decorate collection and return it
@@ -207,6 +210,7 @@ namespace DataProcessing.Classes
                 row["Time"] = timeStamp.TimeDifferenceInSeconds;
                 row["State"] = timeStamp.State;
                 table.Rows.Add(row);
+                row = table.NewRow();
             }
 
             // Decorate collection and return it

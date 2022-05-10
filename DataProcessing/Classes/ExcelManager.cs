@@ -19,6 +19,8 @@ namespace DataProcessing.Classes
 {
     internal class ExcelManager
     {
+        private const int DISTANCE_BETWEEN_TABLES = 2;
+
         [DllImport("user32.dll")]
         static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
 
@@ -32,29 +34,8 @@ namespace DataProcessing.Classes
             {"Green", Color.FromArgb(202, 255, 138) },
             {"Yellow", Color.FromArgb(250, 228, 102) },
             {"Gray", Color.FromArgb(230, 229, 225) },
-            {"Red", Color.FromArgb(255, 157, 148) },
-            {"DarkOrange", Color.FromArgb(250, 148, 75) },
-            {"DarkOrange", Color.FromArgb(250, 148, 75) },
-
+            {"Red", Color.FromArgb(255, 157, 148) }
         };
-        private Color primaryDark = Color.FromArgb(75, 177, 250);
-        private Color secondaryDark = Color.FromArgb(250, 148, 75);
-        private Color primaryLight = Color.FromArgb(148, 216, 255);
-        private Color secondaryLight = Color.FromArgb(255, 187, 148);
-        private Color timeMarkColor = Color.FromArgb(202, 255, 138);
-        private Color darkLightMarkColor = Color.FromArgb(250, 228, 102);
-        private Color alternateColor = Color.FromArgb(230, 229, 225);
-        private Color errorColor = Color.FromArgb(232, 128, 128);
-        private Color criteriaLight = Color.FromArgb(255, 157, 148);
-        private Color criteriaDark = Color.FromArgb(250, 92, 75);
-        private Color grayLight = Color.FromArgb(242, 242, 242);
-        private Color clusterColor = Color.FromArgb(222, 83, 49);
-        // Colors for state coloring in each cluster Indexes: 0 - PS, 1 - sleep, 2 - wakefulness 
-        private Color[] clusterColorsForEachState = new Color[3] 
-        {
-            Color.FromArgb(188, 255, 130), 
-            Color.FromArgb(255, 236, 115),             
-            Color.FromArgb(255, 182, 163)};
 
         private TableCollection RawData;
         private TableCollection Latency;
@@ -66,22 +47,9 @@ namespace DataProcessing.Classes
         private TableCollection ClusterData;
         private TableCollection ClusterGraphs;
 
-        private List<Tuple<int, int>> clusterColorIndexState = new List<Tuple<int, int>>();
-        private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
-        private int distanceBetweenTables = 2;
         private ExportOptions options;
+        private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
         private Services services = Services.GetInstance();
-        private List<int> markerLocations = new List<int>();
-        private List<int> darkLightMarkerLocations = new List<int>();
-        private List<int> clusterLocation = new List<int>();
-        private double cellWidth;
-        private double cellHeight;
-        private double chartLeft;
-        private double chartLeftAlt;
-        private double chartVerticalDistance;
-        private double graphLeft;
-        private double duplicatedChartLeft;
-        List<int> statTablePositions = new List<int>();
 
         public ExcelManager(
             ExportOptions options,
@@ -228,7 +196,7 @@ namespace DataProcessing.Classes
                 {
                     errorRange = worksheet.Range[$"A{errorRow}:B{errorRow}"];
                     interior = errorRange.Interior;
-                    interior.Color = errorColor;
+                    interior.Color = colors["DarkRed"];
                 }
 
                 excel.Visible = true;
@@ -366,6 +334,179 @@ namespace DataProcessing.Classes
 
             services.SetWorkStatus(false);
         }
+
+        public async Task ExportToExcelC()
+        {
+            services.SetWorkStatus(true);
+            await Task.Run(() =>
+            {
+                // 1. Open excel
+                Application excel = new Application();
+                excel.Caption = WorkfileManager.GetInstance().SelectedWorkFile.Name;
+                _Workbook wb = excel.Workbooks.Add(Missing.Value);
+                _Worksheet rawDataSheet = wb.ActiveSheet;
+                rawDataSheet.Name = "Raw Data";
+
+                // Raw Data
+                services.UpdateWorkStatus("Exporting raw data");
+                ExportTableCollection(rawDataSheet, RawData, 1);
+
+                Range formatRange = rawDataSheet.Range["A:B"];
+                formatRange.NumberFormat = "[h]:mm:ss";
+                formatRange = rawDataSheet.Range["C:C"];
+                formatRange.NumberFormat = "General";
+
+                wb.Sheets[1].Select(Type.Missing);
+                excel.Visible = true;
+                excel.UserControl = true;
+            });
+            services.SetWorkStatus(false);
+        }
+
+        // Export whole table collection on excel sheet
+        private void ExportTableCollection(_Worksheet sheet, TableCollection collection, int horizontalPosition)
+        {
+            object[,] tableArray;
+            int rowPos = 1;
+            Range range;
+            // Keep track of number of iteration in foreach loop
+            int counter = 0;
+
+            // Write each table in collection into sheet
+            foreach (System.Data.DataTable table in collection.Tables)
+            {
+                // Convert table to 2d array
+                tableArray = DataTableTo2DArray(table, collection.HasHeader, collection.HasTiteOnTop);
+                // Get appropriate range in excel and set its value to 2d array
+                range = GetRange(sheet, rowPos, 1, tableArray.GetLength(0), tableArray.GetLength(1));
+                object[,] mockArray = new object[2,5];
+                mockArray[0, 0] = "Test";
+                mockArray[0, 1] = "Test1";
+                mockArray[0, 2] = 5;
+                //mockArray[1, 0] = tableArray[10, 0];
+                //mockArray[1, 1] = tableArray[10, 1];
+                mockArray[1, 2] = tableArray[10, 2];
+                mockArray[1, 3] = tableArray[10, 3];
+                mockArray[1, 4] = tableArray[10, 4];
+                range.Value = mockArray;
+
+                // Decorate table
+                decorateTable(sheet, collection.ColorRanges, horizontalPosition, rowPos, counter == 0 && collection.HasTotal);
+
+                // Prepare row position for the next table
+                rowPos += tableArray.GetLength(0) + DISTANCE_BETWEEN_TABLES;
+            }
+        }
+
+        // We want to convert data table to object array because excel works fastest when you select a range and set it's value to 2d array
+        private object[,] DataTableTo2DArray(System.Data.DataTable table, bool includeColumnNames, bool titleOnTop)
+        {
+            int index = 0;
+            int rowNumber = table.Rows.Count;
+
+            if (includeColumnNames) { rowNumber++; }
+            if (titleOnTop) { rowNumber++; }
+
+            // Rows + 1 because we also have to add column names and title
+            object[,] table2D = new object[rowNumber, table.Columns.Count];
+
+            // Title
+            table2D[0, 0] = table.TableName;
+
+            // If we want title on top we have to incement index so all other values come below it
+            if (titleOnTop) { index++; }
+
+            // Column names
+            for (int i = 1; i < table.Columns.Count; i++)
+            {
+                table2D[index, i] = table.Columns[i].ColumnName;
+            }
+
+            // Table contents
+            DataRow curRow;
+            DataColumn curColumn;
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                curRow = table.Rows[i];
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    curColumn = table.Columns[j];
+                    table2D[i + index, j] = curRow[curColumn.ColumnName];
+                }
+            }
+
+            return table2D;
+        }
+        private void decorateTable(_Worksheet sheet, Dictionary<string, ColorRange[]> colorRanges, int horizontalPosition, int verticalPosition, bool useDarkColors)
+        {
+            string colorName;
+            ColorRange[] ranges;
+            Color color;
+            Range excRange;
+            int startRow;
+            int startColumn;
+            int endRow;
+            int endColumn;
+
+            foreach (KeyValuePair<string, ColorRange[]> entry in colorRanges)
+            {
+                colorName = entry.Key;
+                ranges = entry.Value;
+                // Get appropriate color from dictionary (if we are decorating total table we will use dark version of the color
+                color = colors[(useDarkColors ? "Dark" : "") + colorName];
+
+                foreach (ColorRange range in ranges)
+                {
+                    // Set relative positions (ColorRange keeps track of ranges relative to table disregarding current position on excel)
+                    startRow = range.StartRow + verticalPosition;
+                    startColumn = range.StartColumn + horizontalPosition;
+                    endRow = range.EndRow + verticalPosition;
+                    endColumn = range.EndColumn + horizontalPosition;
+
+                    // Get range and set its color
+                    excRange = GetRange(sheet, startRow, startColumn, endRow, endColumn);
+                    excRange.Interior.Color = color;
+                }
+            }
+        }
+
+        private _Worksheet CreateNewSheet(_Workbook workbook, string name, int position)
+        {
+            Sheets sheets = workbook.Sheets;
+            Worksheet sheet = sheets.Add(Type.Missing, sheets[position], Type.Missing, Type.Missing);
+            sheet.Name = name;
+            return sheet;
+        }
+        private void updateStatus(string label, int index, int count)
+        {
+            if (index % 10 == 0 || index == count) { services.UpdateWorkStatus($"{label} {index}/{count}"); }
+        }
+        private bool isBetweenTimeInterval(TimeSpan from, TimeSpan till, TimeSpan time)
+        {
+            if (from < till)
+            {
+                return from <= time && time <= till;
+            }
+            else
+            {
+                return from <= time || time <= till;
+            }
+        }
+        private Range GetRange(_Worksheet sheet, int startRow, int startColumn, int endRow, int endColumn)
+        {
+            Range start = sheet.Cells[startRow, startColumn];
+            Range end = sheet.Cells[endRow, endColumn];
+            return sheet.Range[start, end];
+        }
+        private Process GetExcelProcess(Application excelApp)
+        {
+            int id;
+            GetWindowThreadProcessId(excelApp.Hwnd, out id);
+            return Process.GetProcessById(id);
+        }
+
+
+        /*
         public async Task ExportToExcel()
         {
             services.SetWorkStatus(true);
@@ -635,533 +776,6 @@ namespace DataProcessing.Classes
             });
             services.SetWorkStatus(false);
         }
-
-        private int WriteDataTable(_Worksheet sheet, DataTableInfo tableInfo, int position, int horizontalPosition = 1)
-        {
-            int curPosition = position;
-            System.Data.DataTable table = tableInfo.Table;
-
-            object[,] values = DataTableTo2DArray(table);
-            Range start = sheet.Cells[curPosition, horizontalPosition];
-            Range end = sheet.Cells[curPosition + table.Rows.Count, horizontalPosition + table.Columns.Count - 1];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-
-            // Color header
-            start = sheet.Cells[position, horizontalPosition];
-            end = sheet.Cells[position, horizontalPosition + tableInfo.HeaderIndexes.Item2 - 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
-
-            // Color phases
-            start = sheet.Cells[position + tableInfo.PhasesIndexes.Item1, horizontalPosition];
-            end = sheet.Cells[position + tableInfo.PhasesIndexes.Item2, horizontalPosition];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
-
-            // Color criteria
-            if (tableInfo.CriteriaPhases != null)
-            {
-                if (tableInfo.CriteriaPhases.Item2 > 0)
-                {
-                    start = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + 1, horizontalPosition];
-                    end = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + tableInfo.CriteriaPhases.Item2, horizontalPosition];
-                    tableRange = sheet.Range[start, end];
-                    tableRange.Interior.Color = tableInfo.IsTotal ? criteriaDark : criteriaLight;
-                }
-            }
-
-            // Set alignments
-            start = sheet.Cells[position, horizontalPosition + 1];
-            end = sheet.Cells[position, horizontalPosition + tableInfo.HeaderIndexes.Item2 - 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.HorizontalAlignment = XlHAlign.xlHAlignRight;
-
-            return curPosition + table.Rows.Count + 1;
-        }
-        private void WriteRawDataList(_Worksheet sheet, List<TimeStamp> timeStamps, int position)
-        {
-            object[,] values = ListTo2DArray(timeStamps);
-            Range start = sheet.Cells[position, 1];
-            Range end = sheet.Cells[position + timeStamps.Count - 1, 5];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-        }
-        private void WriteClusterData(_Worksheet sheet, List<TimeStamp> timeStamps, int position)
-        {
-            object[,] values = ListTo2DArrayNonFull(timeStamps);
-            Range start = sheet.Cells[position, 1];
-            Range end = sheet.Cells[position + timeStamps.Count - 1, 2];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-        }
-        private void WriteDuplicatesList(_Worksheet sheet, List<Tuple<int, int>> duplicates, int position)
-        {
-            object[,] values = ListTo2DArray(duplicates);
-            Range start = sheet.Cells[position, 1];
-            Range end = sheet.Cells[position + duplicates.Count - 1, 2];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-        }
-        private double WriteStatChart(_Worksheet sheet, DataTableInfo tableInfo, int width, int height, int tableCount, double chartTop)
-        {
-            // Create chart
-            double leftPos = chartLeft;
-            if (tableCount > 1)
-            {
-                leftPos = tableCount % 2 == 0 ? chartLeftAlt : chartLeft;
-            }
-            double topPos = chartTop;
-            if (tableCount > 2)
-            {
-                topPos = (tableCount - 1) % 2 == 0 ? topPos + height * cellHeight + chartVerticalDistance : topPos;
-            }
-
-            ChartObjects charts = sheet.ChartObjects();
-            ChartObject chartObject = charts.Add(leftPos, topPos, width * cellWidth, height * cellHeight);
-            Chart chart = chartObject.Chart;
-
-            int tablePos = statTablePositions[tableCount - 1];
-
-            Range range = GetRange(sheet, tablePos + 1, 4, tablePos + options.MaxStates, 4);
-            chart.ChartWizard(
-                range,
-                XlChartType.xlColumnClustered,
-                Title: tableInfo.Table.TableName,
-                ValueTitle: "Percents");
-            Series series = chart.SeriesCollection(1) as Series;
-            series.HasDataLabels = true;
-            chart.HasLegend = false;
-            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
-            range = GetRange(sheet, tablePos + 1, 1, tablePos + 3, 1);
-            xAxis.CategoryNames = range;
-
-            return topPos;
-        }
-        private void WriteGraphChart(_Worksheet sheet, DataTableInfo tableInfo, int width, int height, int tablePos)
-        {
-            // Get range to determine width of chart
-            Range range = GetRange(sheet, 1, 1, 1, tableInfo.Table.Columns.Count);
-            ChartObjects charts = sheet.ChartObjects();
-            ChartObject chartObject = charts.Add(0, graphTableCollection.Count * 6 * cellHeight, range.Width, height * cellHeight);
-            Chart chart = chartObject.Chart;
-
-            range = GetRange(sheet, tablePos + 1, 1, tablePos + options.MaxStates, tableInfo.Table.Columns.Count);
-            chart.ChartWizard(
-                range,
-                XlChartType.xlColumnClustered,
-                PlotBy: XlRowCol.xlRows,
-                Title: tableInfo.Table.TableName,
-                ValueTitle: "Percents");
-            chart.HasLegend = true;
-            chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
-            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
-            range = GetRange(sheet, tablePos, 2, tablePos, tableInfo.Table.Columns.Count);
-            xAxis.CategoryNames = range;
-        }
-        private void WriteGraphChartForCluster(_Worksheet sheet, DataTableInfo tableInfo, int height, int tablePos)
-        {
-            // Get range to determine width of chart
-            Range range = GetRange(sheet, 1, 5, 1, 5 + tableInfo.Table.Columns.Count);
-            Range leftPos = GetRange(sheet, 1, 1, 1, 4);
-            ChartObjects charts = sheet.ChartObjects();
-            ChartObject chartObject = charts.Add(leftPos.Width, graphTableCollectionForClusters.Count * 6 * cellHeight, range.Width, height * cellHeight);
-            Chart chart = chartObject.Chart;
-
-            // Get range of data table to map it to chart
-            range = GetRange(sheet, tablePos + 1, 5, tablePos + options.MaxStates, 5 + tableInfo.Table.Columns.Count);
-            chart.ChartWizard(
-                range,
-                XlChartType.xlColumnClustered,
-                PlotBy: XlRowCol.xlRows,
-                Title: tableInfo.Table.TableName,
-                ValueTitle: "Percents");
-            chart.HasLegend = true;
-            chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
-            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
-            range = GetRange(sheet, tablePos, 6, tablePos, 5 + tableInfo.Table.Columns.Count);
-            xAxis.CategoryNames = range;
-        }
-        private void WriteDuplicatesChart(_Worksheet sheet, int duplicateCount, int width, int height)
-        {
-            ChartObjects charts = sheet.ChartObjects();
-            ChartObject chartObject = charts.Add(duplicatedChartLeft, 1, width * cellWidth, height * cellHeight);
-            Chart chart = chartObject.Chart;
-
-            Range range = sheet.Range[$"A1:A{duplicateCount}"];
-            chart.ChartWizard(range, Gallery: XlChartType.xlXYScatterLinesNoMarkers);
-            chart.PlotBy = XlRowCol.xlColumns;
-            chart.HasTitle = false;
-            chart.HasLegend = false;
-            chart.SeriesCollection(1).XValues = sheet.Range[$"A1:A{duplicateCount}"];
-            chart.SeriesCollection(1).Values = sheet.Range[$"B1:B{duplicateCount}"];
-            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
-            Axis yAxis = chart.Axes(XlAxisType.xlValue, XlAxisGroup.xlPrimary);
-            xAxis.MaximumScale = 30000;
-            yAxis.MajorUnit = 1;
-        }
-        private int WriteFrequencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
-        {
-            object[,] values = FrequencyDataTableTo2DArray(tableInfo.Table);
-            Range start = sheet.Cells[position, 1];
-            Range end = sheet.Cells[position + tableInfo.Table.Rows.Count + 1, tableInfo.Table.Columns.Count];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-
-            // Color header
-            start = sheet.Cells[position, 1];
-            end = sheet.Cells[position, 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
-
-            // Color phases
-            start = sheet.Cells[position + 1, 1];
-            end = sheet.Cells[position + 1, tableInfo.Table.Columns.Count];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
-
-            return position + tableInfo.Table.Rows.Count + 3;
-        }
-        private int WriteCustomFrequencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
-        {
-            object[,] values = CustomFrequencyDataTableTo2DArray(tableInfo.Table);
-            Range start = sheet.Cells[position, 1];
-            Range end = sheet.Cells[position + tableInfo.Table.Rows.Count + 1, tableInfo.Table.Columns.Count - 2];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.NumberFormat = "@";
-            tableRange.Value = values;
-
-            // Color header
-            start = sheet.Cells[position, 1];
-            end = sheet.Cells[position, 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
-
-            // Color phases
-            start = sheet.Cells[position + 1, 1];
-            end = sheet.Cells[position + 1, tableInfo.Table.Columns.Count - 2];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
-
-            // Color times
-            //for (int i = 1; i <= tableInfo.Table.Columns.Count; i++)
-            //{
-            //    if (i % 2 != 0)
-            //    {
-            //        start = sheet.Cells[position + 2, i];
-            //        end = sheet.Cells[position + 1 + tableInfo.Table.Rows.Count, i];
-            //        tableRange = sheet.Range[start, end];
-            //        tableRange.Interior.Color = grayLight;
-            //    }
-            //}
-            start = sheet.Cells[position + 2, 1];
-            end = sheet.Cells[position + 1 + tableInfo.Table.Rows.Count, 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = grayLight;
-
-            return position + tableInfo.Table.Rows.Count + 3;
-        }
-        private void WriteLatencyTable(_Worksheet sheet, DataTableInfo tableInfo, int position)
-        {
-            object[,] values = FrequencyDataTableTo2DArray(tableInfo.Table);
-            Range start = sheet.Cells[1, position];
-            Range end = sheet.Cells[tableInfo.Table.Rows.Count + 2, position + tableInfo.Table.Columns.Count - 1];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-
-            // Color header
-            start = sheet.Cells[1, position];
-            end = sheet.Cells[1, position];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
-
-            // Color phases
-            start = sheet.Cells[2, position];
-            end = sheet.Cells[2, position + tableInfo.Table.Columns.Count - 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
-
-            // Autofit
-            start.EntireColumn.AutoFit();
-            end.EntireColumn.AutoFit();
-        }
-
-        private object[,] FrequencyDataTableTo2DArray(System.Data.DataTable table)
-        {
-            // Rows + 1 because we also have to add column names and title
-            object[,] table2D = new object[table.Rows.Count + 2, table.Columns.Count];
-
-            // Title
-            table2D[0, 0] = table.TableName;
-
-            // Column names
-            for (int i = 0; i < table.Columns.Count; i++)
-            {
-                table2D[1, i] = table.Columns[i].ColumnName;
-            }
-
-            // Table contents
-            DataRow curRow;
-            DataColumn curColumn;
-            for (int i = 0; i < table.Rows.Count; i++)
-            {
-                curRow = table.Rows[i];
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    curColumn = table.Columns[j];
-                    if ((int)curRow[curColumn.ColumnName] == 0)
-                        table2D[i + 2, j] = null;
-                    else
-                        table2D[i + 2, j] = curRow[curColumn.ColumnName];
-                }
-            }
-
-            return table2D;
-        }
-        private object[,] CustomFrequencyDataTableTo2DArray(System.Data.DataTable table)
-        {
-            // Rows + 1 because we also have to add column names and title
-            object[,] table2D = new object[table.Rows.Count + 2, table.Columns.Count];
-
-            // Title
-            table2D[0, 0] = table.TableName;
-
-            int tempIndex = 0;
-            // Column names
-            for (int i = 0; i < table.Columns.Count; i++)
-            {
-                // First column are frequency ranges
-                if (i == 0)
-                {
-                    table2D[1, tempIndex] = "Ranges";
-                    tempIndex++;
-                }
-                if (i % 2 != 0)
-                {
-                    table2D[1, tempIndex] = table.Columns[i].ColumnName;
-                    tempIndex++;
-                }
-            }
-
-            // Table contents
-            DataRow curRow;
-            DataColumn curColumn;
-            for (int i = 0; i < table.Rows.Count; i++)
-            {
-                tempIndex = 0;
-                curRow = table.Rows[i];
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    if (j == 0 || j % 2 != 0)
-                    {
-                        curColumn = table.Columns[j];
-                        table2D[i + 2, tempIndex] = curRow[curColumn.ColumnName];
-                        tempIndex++;
-                    }
-                }
-            }
-
-            return table2D;
-        }
-        private object[,] ListTo2DArray(List<TimeStamp> timeStamps)
-        {
-            object[,] list2D = new object[timeStamps.Count, 5];
-
-            TimeStamp curTimeStamp;
-            for (int i = 0; i < timeStamps.Count; i++)
-            {
-                curTimeStamp = timeStamps[i];
-                if (curTimeStamp.IsMarker) { darkLightMarkerLocations.Add(i + 1); }
-                if (curTimeStamp.IsTimeMarked) { markerLocations.Add(i + 1); }
-                list2D[i, 0] = curTimeStamp.Time.ToString();
-                list2D[i, 1] = curTimeStamp.TimeDifference.ToString();
-                list2D[i, 2] = curTimeStamp.TimeDifferenceInDouble;
-                list2D[i, 3] = curTimeStamp.TimeDifferenceInSeconds;
-                list2D[i, 4] = curTimeStamp.State;
-
-            }
-
-            return list2D;
-        }
-        private object[,] ListTo2DArray(List<Tuple<int, int>> duplicatedTimeAndStates)
-        {
-            object[,] list2D = new object[duplicatedTimeAndStates.Count, 2];
-
-            Tuple<int, int> curDuplicatedTimeAndState;
-            for (int i = 0; i < duplicatedTimeAndStates.Count; i++)
-            {
-                curDuplicatedTimeAndState = duplicatedTimeAndStates[i];
-                list2D[i, 0] = curDuplicatedTimeAndState.Item1;
-                list2D[i, 1] = curDuplicatedTimeAndState.Item2;
-            }
-
-            return list2D;
-        }
-        // We use this for cluster data, because in cluster data all we need is seconds and states not the other properties of timestamp
-        private object[,] ListTo2DArrayNonFull(List<TimeStamp> timeStamps)
-        {
-            object[,] list2D = new object[timeStamps.Count, 5];
-
-            TimeStamp curTimeStamp;
-            for (int i = 0; i < timeStamps.Count; i++)
-            {
-                curTimeStamp = timeStamps[i];
-                // If we encounter wakefulness that is more than our cluster specified time then mark its index for coloring
-                if (curTimeStamp.TimeDifferenceInSeconds > options.ClusterSeparationTimeInSeconds && curTimeStamp.State == 3) 
-                { clusterLocation.Add(i + 1); }
-                // Otherwise add to regular state-based coloring list for cluster
-                else if (curTimeStamp.State != 0) 
-                { clusterColorIndexState.Add(new Tuple<int, int>(i + 1, curTimeStamp.State)); }
-                list2D[i, 0] = curTimeStamp.TimeDifferenceInSeconds;
-                list2D[i, 1] = curTimeStamp.State;
-            }
-
-            return list2D;
-        }
-
-        /// <summary>
-        /// We want to convert data table to object array because excel works fastest when you select a range and set it's value to 2d array
-        /// </summary>
-        private object[,] DataTableTo2DArray(System.Data.DataTable table)
-        {
-            // Rows + 1 because we also have to add column names
-            object[,] table2D = new object[table.Rows.Count + 1, table.Columns.Count];
-
-            // Title
-            table2D[0, 0] = table.TableName;
-
-            // Column names
-            for (int i = 1; i < table.Columns.Count; i++)
-            {
-                table2D[0, i] = table.Columns[i].ColumnName;
-            }
-
-            // Table contents
-            DataRow curRow;
-            DataColumn curColumn;
-            for (int i = 0; i < table.Rows.Count; i++)
-            {
-                curRow = table.Rows[i];
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    curColumn = table.Columns[j];
-                    table2D[i + 1, j] = curRow[curColumn.ColumnName];
-                }
-            }
-
-            return table2D;
-        }
-        /// <summary>
-        /// The same as DataTableTo2DArray but we put title on top row alone (Used in frequeny tables for example)
-        /// </summary>
-        private object[,] DataTableTo2DArrayTitleOnTop(System.Data.DataTable table)
-        {
-            // Rows + 1 because we also have to add column names
-            object[,] table2D = new object[table.Rows.Count + 1, table.Columns.Count];
-
-            // Title
-            table2D[0, 0] = table.TableName;
-
-            // Column names
-            for (int i = 1; i < table.Columns.Count; i++)
-            {
-                table2D[1, i] = table.Columns[i].ColumnName;
-            }
-
-            // Table contents
-            DataRow curRow;
-            DataColumn curColumn;
-            for (int i = 0; i < table.Rows.Count; i++)
-            {
-                curRow = table.Rows[i];
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    curColumn = table.Columns[j];
-                    table2D[i + 2, j] = curRow[curColumn.ColumnName];
-                }
-            }
-
-            return table2D;
-        }
-        private void WriteCollection(Worksheet sheet, TableCollection collection)
-        {
-
-            object[,] values = DataTableTo2DArray(table);
-            Range start = sheet.Cells[curPosition, horizontalPosition];
-            Range end = sheet.Cells[curPosition + table.Rows.Count, horizontalPosition + table.Columns.Count - 1];
-            Range tableRange = sheet.Range[start, end];
-            tableRange.Value = values;
-
-            // Color header
-            start = sheet.Cells[position, horizontalPosition];
-            end = sheet.Cells[position, horizontalPosition + tableInfo.HeaderIndexes.Item2 - 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? secondaryDark : secondaryLight;
-
-            // Color phases
-            start = sheet.Cells[position + tableInfo.PhasesIndexes.Item1, horizontalPosition];
-            end = sheet.Cells[position + tableInfo.PhasesIndexes.Item2, horizontalPosition];
-            tableRange = sheet.Range[start, end];
-            tableRange.Interior.Color = tableInfo.IsTotal ? primaryDark : primaryLight;
-
-            // Color criteria
-            if (tableInfo.CriteriaPhases != null)
-            {
-                if (tableInfo.CriteriaPhases.Item2 > 0)
-                {
-                    start = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + 1, horizontalPosition];
-                    end = sheet.Cells[position + tableInfo.CriteriaPhases.Item1 + tableInfo.CriteriaPhases.Item2, horizontalPosition];
-                    tableRange = sheet.Range[start, end];
-                    tableRange.Interior.Color = tableInfo.IsTotal ? criteriaDark : criteriaLight;
-                }
-            }
-
-            // Set alignments
-            start = sheet.Cells[position, horizontalPosition + 1];
-            end = sheet.Cells[position, horizontalPosition + tableInfo.HeaderIndexes.Item2 - 1];
-            tableRange = sheet.Range[start, end];
-            tableRange.HorizontalAlignment = XlHAlign.xlHAlignRight;
-
-            return curPosition + table.Rows.Count + 1;
-        }
-
-        private _Worksheet CreateNewSheet(_Workbook workbook, string name, int position)
-        {
-            Sheets sheets = workbook.Sheets;
-            Worksheet sheet = sheets.Add(Type.Missing, sheets[position], Type.Missing, Type.Missing);
-            sheet.Name = name;
-            return sheet;
-        }
-        private void ColorRange(_Worksheet sheet, Range start, Range end, Color color)
-        {
-            sheet.Range[start, end].Interior.Color = color;
-        }
-        private void updateStatus(string label, int index, int count)
-        {
-            if (index % 10 == 0 || index == count) { services.UpdateWorkStatus($"{label} {index}/{count}"); }
-        }
-        private bool isBetweenTimeInterval(TimeSpan from, TimeSpan till, TimeSpan time)
-        {
-            if (from < till)
-            {
-                return from <= time && time <= till;
-            }
-            else
-            {
-                return from <= time || time <= till;
-            }
-        }
-        private Range GetRange(_Worksheet sheet, int startRow, int startColumn, int endRow, int endColumn)
-        {
-            Range start = sheet.Cells[startRow, startColumn];
-            Range end = sheet.Cells[endRow, endColumn];
-            return sheet.Range[start, end];
-        }
-        private Process GetExcelProcess(Application excelApp)
-        {
-            int id;
-            GetWindowThreadProcessId(excelApp.Hwnd, out id);
-            return Process.GetProcessById(id);
-        }
+         */
     }
 }

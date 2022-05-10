@@ -15,7 +15,8 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = false;
-            collection.HasTitle = false;
+            collection.HasHeader = false;
+            collection.HasTiteOnTop = false;
 
             // Get marked record indexes for coloring
             List<ColorRange> rowIndexes = new List<ColorRange>();
@@ -44,7 +45,9 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = false;
-            collection.HasTitle = true;
+            collection.HasHeader = true;
+            collection.HasTiteOnTop = true;
+
             // Header
             collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 0, 1, 0) });
 
@@ -56,7 +59,9 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = true;
-            collection.HasTitle = false;
+            collection.HasHeader = true;
+            collection.HasTiteOnTop = false;
+
             // Header
             collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, 4, 0) });
             // Phases
@@ -71,7 +76,9 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = false;
-            collection.HasTitle = false;
+            collection.HasHeader = true;
+            collection.HasTiteOnTop = false;
+
             int columnCount = tables[0].Columns.Count;
             // Header
             collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, columnCount, 0) });
@@ -85,7 +92,8 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = false;
-            collection.HasTitle = false;
+            collection.HasHeader = false;
+            collection.HasTiteOnTop = false;
 
             return collection;
         }
@@ -94,7 +102,9 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = true;
-            collection.HasTitle = true;
+            collection.HasHeader = true;
+            collection.HasTiteOnTop = true;
+
             // Header
             // For scalability it would be better to make this dynamic and select range based on max states
             collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 0, 5, 0) });
@@ -106,7 +116,9 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = true;
-            collection.HasTitle = true;
+            collection.HasHeader = true;
+            collection.HasTiteOnTop = true;
+
             // Header
             // For scalability it would be better to make this dynamic and select range based on max states
             collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 0, 3, 0) });
@@ -120,7 +132,8 @@ namespace DataProcessing.Classes
             TableCollection collection = new TableCollection();
             collection.Tables = tables;
             collection.HasTotal = false;
-            collection.HasTitle = false;
+            collection.HasHeader = false;
+            collection.HasTiteOnTop = false;
 
             List<ColorRange> darkReds = new List<ColorRange>();
             List<ColorRange> reds = new List<ColorRange>();

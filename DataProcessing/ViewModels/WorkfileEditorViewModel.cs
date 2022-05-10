@@ -223,16 +223,6 @@ namespace DataProcessing.ViewModels
         }
 
         // Private helpers
-        private bool IsTimeSpanStringCorrect(string timeSpan, out int[] times)
-        {
-            if (timeSpan.Length != 8) { times = null; return false; }
-            string[] timeVals = timeSpan.Split(':');
-            if (timeVals.Length != 3) { times = null; return false; }
-
-            int[] numTimes = new int[3] { int.Parse(timeVals[0]), int.Parse(timeVals[1]), int.Parse(timeVals[2]) };
-            times = numTimes;
-            return true;
-        }
         private Dictionary<string, int[]> FrequencyRangesToArray()
         {
             // If adding custom ranges is disabled or not template is selected return blank list

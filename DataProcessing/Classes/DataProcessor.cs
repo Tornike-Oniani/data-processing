@@ -18,7 +18,7 @@ namespace DataProcessing.Classes
     /// <summary>
     /// Takes initial data and calculates necessary stats for exporting
     /// </summary>
-    class DataProcessor
+    internal class DataProcessor
     {
         // Private attributes
         private ExportOptions options;
@@ -48,7 +48,7 @@ namespace DataProcessing.Classes
         }
 
         // Public methods
-        public void Calculate(List<TimeStamp> nonMarkedRecords)
+        public CalculatedData Calculate()
         {
             // Create duplicated timestamps for graph
             int previous = timeStamps[0].TimeDifferenceInSeconds;
@@ -110,9 +110,9 @@ namespace DataProcessing.Classes
             calculatedData.hourStateCustomFrequencies.Add(totalCustomFrequencies);
 
             // Calculate total frequencies with non marked original timestamps
-            for (int i = 1; i < nonMarkedRecords.Count; i++)
+            for (int i = 1; i < nonMarkedTimeStamps.Count; i++)
             {
-                TimeStamp currentTimeStamp = nonMarkedRecords[i];
+                TimeStamp currentTimeStamp = nonMarkedTimeStamps[i];
 
                 // We don't want program added timestamps (marker and hour marks) to be added to total
                 if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
@@ -220,6 +220,8 @@ namespace DataProcessing.Classes
             {
                 CreateStatsForClusters();
             }
+
+            return calculatedData;
         }
 
 
