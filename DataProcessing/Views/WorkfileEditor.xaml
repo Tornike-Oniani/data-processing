@@ -471,8 +471,9 @@
                             Padding="7"
                             Grid.Row="0">
                                 <TextBlock Text="Specific criteria" 
-                               Style="{StaticResource LabelDefault}"
-                               FontWeight="Bold"
+                                       Style="{StaticResource LabelDefault}"
+                                       FontSize="14"
+                                       FontWeight="Bold"
                                Grid.Row="0" />
                             </Border>
                             <!-- Criteria content -->

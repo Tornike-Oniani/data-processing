@@ -344,26 +344,58 @@ namespace DataProcessing.Classes
                 Application excel = new Application();
                 excel.Caption = WorkfileManager.GetInstance().SelectedWorkFile.Name;
                 _Workbook wb = excel.Workbooks.Add(Missing.Value);
-                _Worksheet rawDataSheet = wb.ActiveSheet;
-                rawDataSheet.Name = "Raw Data";
+                _Worksheet sheet = wb.ActiveSheet;
+                sheet.Name = "Raw Data";
 
                 // Raw data
                 services.UpdateWorkStatus("Exporting raw data");
-                ExportTableCollection(rawDataSheet, RawData, 1);
+                ExportTableCollection(sheet, RawData, 1);
 
-                Range formatRange = rawDataSheet.Range["A:B"];
+                Range formatRange = sheet.Range["A:B"];
                 formatRange.NumberFormat = "[h]:mm:ss";
-                formatRange = rawDataSheet.Range["C:C"];
+                formatRange = sheet.Range["C:C"];
                 formatRange.NumberFormat = "General";
 
                 // Latency table
                 services.UpdateWorkStatus("Exporting latency");
-                ExportTableCollection(rawDataSheet, Latency, 8);
+                ExportTableCollection(sheet, Latency, 8);
 
                 // Stat tables
-                _Worksheet statSheet = CreateNewSheet(wb, "Stats", 1);
                 services.UpdateWorkStatus("Exporting stat tables");
-                ExportTableCollection(statSheet, Stats, 1);
+                sheet = CreateNewSheet(wb, "Stats", 1);
+                ExportTableCollection(sheet, Stats, 1);
+
+                // Graph tables
+                services.UpdateWorkStatus("Exporting graph tables");
+                sheet = CreateNewSheet(wb, "Graph Stats", 2);
+                ExportTableCollection(sheet, Graphs, 1);
+
+                // Duplicates
+                services.UpdateWorkStatus("Exporting duplicates");
+                sheet = CreateNewSheet(wb, "Duplicated Graph Stats", 3);
+                ExportTableCollection(sheet, Duplicates, 1);
+
+                // Frequencies
+                services.UpdateWorkStatus("Exporting frequencies");
+                sheet = CreateNewSheet(wb, "Frequencies", 4);
+                ExportTableCollection(sheet, Frequencies, 1);
+
+                // Custom frequency ranges
+                if (options.customFrequencyRanges.Count > 0)
+                {
+                    services.UpdateWorkStatus("Exporting custom frequency ranges");
+                    sheet = CreateNewSheet(wb, "Frequency ranges", 5);
+                    ExportTableCollection(sheet, FrequencyRanges, 1);
+                }
+
+                // Clusters
+                if (options.ClusterSeparationTimeInSeconds > 0)
+                {
+                    services.UpdateWorkStatus("Exporting cluster data");
+                    sheet = CreateNewSheet(wb, "Clusters", 6);
+                    ExportTableCollection(sheet, ClusterData, 1);
+                    ExportTableCollection(sheet, ClusterGraphs, 5);
+                }
 
                 wb.Sheets[1].Select(Type.Missing);
                 excel.Visible = true;
@@ -387,43 +419,46 @@ namespace DataProcessing.Classes
                 // Convert table to 2d array
                 tableArray = DataTableTo2DArray(table, collection.HasHeader, collection.HasTiteOnTop);
                 // Get appropriate range in excel and set its value to 2d array
-                range = GetRange(sheet, rowPos, horizontalPosition, tableArray.GetLength(0), horizontalPosition - 1 + tableArray.GetLength(1));
+                range = GetRange(sheet, rowPos, horizontalPosition, rowPos - 1 + tableArray.GetLength(0), horizontalPosition - 1 + tableArray.GetLength(1));
                 range.Value = tableArray;
 
                 // Decorate table
                 decorateTable(sheet, collection.ColorRanges, horizontalPosition, rowPos, counter == 0 && collection.HasTotal);
 
                 // Prepare row position for the next table
-                rowPos += tableArray.GetLength(0) + DISTANCE_BETWEEN_TABLES;
+                rowPos += tableArray.GetLength(0) + DISTANCE_BETWEEN_TABLES + 1;
+                // Keep track of iteration number
+                counter++;
             }
         }
 
         // We want to convert data table to object array because excel works fastest when you select a range and set it's value to 2d array
         private object[,] DataTableTo2DArray(System.Data.DataTable table, bool includeColumnNames, bool titleOnTop)
         {
-            int index = 0;
+            int rowIndex = 0;
+            // Array row and column size (detemined by different factors, such as if table includes colum names, if it has title on top etc.)
             int rowNumber = table.Rows.Count;
+            int columnNumber = table.Columns.Count;
 
+            // If table should also show column names then we increase row by 1 (for the header)
             if (includeColumnNames) { rowNumber++; }
+            // If title is on top of header we increase it by one again
             if (titleOnTop) { rowNumber++; }
 
             // Rows + 1 because we also have to add column names and title
-            object[,] table2D = new object[rowNumber, table.Columns.Count];
-
-            // Title
-            table2D[0, 0] = table.TableName;
+            object[,] table2D = new object[rowNumber, columnNumber];
 
             // If we want title on top we have to incement index so all other values come below it
-            if (titleOnTop) { index++; }
+            if (titleOnTop) { rowIndex++; }
 
             // Column names
             if (includeColumnNames)
             {
-                for (int i = index; i < table.Columns.Count; i++)
+                for (int i = 0; i < table.Columns.Count; i++)
                 {
-                    table2D[index, i] = table.Columns[i].ColumnName;
+                    table2D[rowIndex, i] = table.Columns[i].ColumnName;
                 }
-                index++;
+                rowIndex++;
             }
 
             // Table contents
@@ -435,8 +470,15 @@ namespace DataProcessing.Classes
                 for (int j = 0; j < table.Columns.Count; j++)
                 {
                     curColumn = table.Columns[j];
-                    table2D[i + index, j] = curRow[curColumn.ColumnName];
+                    table2D[i + rowIndex, j] = curRow[curColumn.ColumnName];
                 }
+            }
+
+            // If we want to display header then switch first element with title
+            // We want to do this both when title is on top and also when it is the first column name
+            if (includeColumnNames)
+            {
+                table2D[0, 0] = table.TableName;
             }
 
             return table2D;

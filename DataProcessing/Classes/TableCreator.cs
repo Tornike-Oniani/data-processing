@@ -132,7 +132,7 @@ namespace DataProcessing.Classes
         {
             List<DataTable> tables = new List<DataTable>();
             DataTable table = new DataTable();
-            DataRow row = table.NewRow();
+            DataRow row;
 
             // Add columns
             table.Columns.Add(new DataColumn("Time", typeof(int)));
@@ -141,11 +141,13 @@ namespace DataProcessing.Classes
             // Fill in data
             foreach (Tuple<int, int> item in calculatedData.duplicatedTimes)
             {
+                row = table.NewRow();
                 row["Time"] = item.Item1;
                 row["State"] = item.Item2;
                 table.Rows.Add(row);
-                row = table.NewRow();
             }
+
+            tables.Add(table);
 
             // Decorate collection and return it
             return decorator.DecorateDuplicatesTable(tables);
@@ -213,6 +215,8 @@ namespace DataProcessing.Classes
                 table.Rows.Add(row);
                 row = table.NewRow();
             }
+
+            tables.Add(table);
 
             // Decorate collection and return it
             return decorator.DecorateClusterDataTable(tables, timeStamps, options.ClusterSeparationTimeInSeconds);

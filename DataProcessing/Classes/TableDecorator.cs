@@ -68,7 +68,10 @@ namespace DataProcessing.Classes
             // Phases
             collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 1, 0, 3) });
             // Specific criterias
-            collection.ColorRanges.Add("Red", new ColorRange[] { new ColorRange(0, 4, 0, 4 + criteriaNumber) });
+            if (criteriaNumber != 0)
+            {
+                collection.ColorRanges.Add("Red", new ColorRange[] { new ColorRange(0, 4, 0, 4 + criteriaNumber) });
+            }
 
             return collection;
         }
@@ -82,7 +85,7 @@ namespace DataProcessing.Classes
 
             int columnCount = tables[0].Columns.Count;
             // Header
-            collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, columnCount, 0) });
+            collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, columnCount - 1, 0) });
             // Phases
             collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 1, 0, 3) });
 
@@ -107,8 +110,9 @@ namespace DataProcessing.Classes
             collection.HasTiteOnTop = true;
 
             // Header
+            collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, 0, 0) });
             // For scalability it would be better to make this dynamic and select range based on max states
-            collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 0, 5, 0) });
+            collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 1, 5, 1) });
 
             return collection;
         }
