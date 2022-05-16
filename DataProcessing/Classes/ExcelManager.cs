@@ -60,6 +60,12 @@ namespace DataProcessing.Classes
         private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
         private Services services = Services.GetInstance();
 
+        // Reusable excel component references
+        private _Workbook wb;
+        private _Worksheet sheet;
+        private int sheetNumber;
+        private Range formatRange;
+
         // Constructor
         public ExcelManager(
             ExportOptions options,
@@ -353,71 +359,100 @@ namespace DataProcessing.Classes
                 // 1. Open excel
                 Application excel = new Application();
                 excel.Caption = WorkfileManager.GetInstance().SelectedWorkFile.Name;
-                _Workbook wb = excel.Workbooks.Add(Missing.Value);
-                _Worksheet sheet = wb.ActiveSheet;
-                sheet.Name = "Raw Data";
+                wb = excel.Workbooks.Add(Missing.Value);
 
-                // Raw data
-                services.UpdateWorkStatus("Exporting raw data");
-                ExportTableCollection(sheet, RawData, 1);
-
-                Range formatRange = sheet.Range["A:B"];
-                formatRange.NumberFormat = "[h]:mm:ss";
-                formatRange = sheet.Range["C:C"];
-                formatRange.NumberFormat = "General";
-
-                // Latency table
-                services.UpdateWorkStatus("Exporting latency");
-                ExportTableCollection(sheet, Latency, 8);
-
-                // Stat tables
-                services.UpdateWorkStatus("Exporting stat tables");
-                sheet = CreateNewSheet(wb, "Stats", 1);
-                ExportTableCollection(sheet, Stats, 1);
-
-                // Graph tables
-                services.UpdateWorkStatus("Exporting graph tables");
-                sheet = CreateNewSheet(wb, "Graph Stats", 2);
-                ExportTableCollection(sheet, Graphs, 1);
-
-                // Duplicates
-                services.UpdateWorkStatus("Exporting duplicates");
-                sheet = CreateNewSheet(wb, "Duplicated Graph Stats", 3);
-                ExportTableCollection(sheet, Duplicates, 1);
-
-                // Frequencies
-                services.UpdateWorkStatus("Exporting frequencies");
-                sheet = CreateNewSheet(wb, "Frequencies", 4);
-                ExportTableCollection(sheet, Frequencies, 1);
-
+                // Create mandatory sheets
+                CreateRawDataSheet();
+                CreateStatsSheet();
+                CreateGraphSheet();
+                CreateDuplicatesSheet();
+                CreateFrequenciesSheet();
                 // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
-                int nextSheetNumber = 5;
-                // Custom frequency ranges
-                if (options.customFrequencyRanges.Count > 0)
-                {
-                    services.UpdateWorkStatus("Exporting custom frequency ranges");
-                    sheet = CreateNewSheet(wb, "Frequency ranges", nextSheetNumber);
-                    formatRange = sheet.Range["A:A"];
-                    formatRange.NumberFormat = "@";
-                    ExportTableCollection(sheet, FrequencyRanges, 1);
-                    nextSheetNumber++;
-                }
+                if (options.customFrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet();}
+                if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet();}
 
-                // Clusters
-                if (options.ClusterSeparationTimeInSeconds > 0)
-                {
-                    services.UpdateWorkStatus("Exporting cluster data");
-                    sheet = CreateNewSheet(wb, "Clusters", nextSheetNumber);
-                    ExportTableCollection(sheet, ClusterData, 1);
-                    ExportTableCollection(sheet, ClusterGraphs, 5);
-                    nextSheetNumber++;
-                }
-
+                // Release excel to accesible state for user
                 wb.Sheets[1].Select(Type.Missing);
                 excel.Visible = true;
                 excel.UserControl = true;
             });
             services.SetWorkStatus(false);
+        }
+
+        // Methods for creating each sheet (may include additional formatting and chart creating)
+        private void CreateRawDataSheet()
+        {
+            _Worksheet sheet = wb.ActiveSheet;
+            sheet.Name = "Raw Data";
+
+            // Raw data
+            services.UpdateWorkStatus("Exporting raw data");
+            ExportTableCollection(sheet, RawData, 1);
+
+            formatRange = sheet.Range["A:B"];
+            formatRange.NumberFormat = "[h]:mm:ss";
+            formatRange = sheet.Range["C:C"];
+            formatRange.NumberFormat = "General";
+
+            // Latency table
+            services.UpdateWorkStatus("Exporting latency");
+            ExportTableCollection(sheet, Latency, 8);
+
+            sheetNumber = 1;
+        }
+        private void CreateStatsSheet()
+        {
+            // Stat tables
+            services.UpdateWorkStatus("Exporting stat tables");
+            sheet = CreateNewSheet(wb, "Stats", sheetNumber);
+            ExportTableCollection(sheet, Stats, 1);
+
+            sheetNumber++;
+        }
+        private void CreateGraphSheet()
+        {
+            // Graph tables
+            services.UpdateWorkStatus("Exporting graph tables");
+            sheet = CreateNewSheet(wb, "Graph Stats", sheetNumber);
+            ExportTableCollection(sheet, Graphs, 1);
+
+            sheetNumber++;
+        }
+        private void CreateDuplicatesSheet()
+        {
+            // Duplicates
+            services.UpdateWorkStatus("Exporting duplicates");
+            sheet = CreateNewSheet(wb, "Duplicated Graph Stats", sheetNumber);
+            ExportTableCollection(sheet, Duplicates, 1);
+
+            sheetNumber++;
+        }
+        private void CreateFrequenciesSheet()
+        {
+            // Frequencies
+            services.UpdateWorkStatus("Exporting frequencies");
+            sheet = CreateNewSheet(wb, "Frequencies", sheetNumber);
+            ExportTableCollection(sheet, Frequencies, 1);
+
+            sheetNumber++;
+        }
+        private void CreateCustomFrequenciesSheet()
+        {
+            services.UpdateWorkStatus("Exporting custom frequency ranges");
+            sheet = CreateNewSheet(wb, "Frequency ranges", sheetNumber);
+            formatRange = sheet.Range["A:A"];
+            formatRange.NumberFormat = "@";
+            ExportTableCollection(sheet, FrequencyRanges, 1);
+
+            sheetNumber++;
+        }
+        private void CreateClusterSheet()
+        {
+            services.UpdateWorkStatus("Exporting cluster data");
+            sheet = CreateNewSheet(wb, "Clusters", sheetNumber);
+            ExportTableCollection(sheet, ClusterData, 1);
+            ExportTableCollection(sheet, ClusterGraphs, 5);
+            sheetNumber++;
         }
 
         // Export whole table collection on excel sheet
@@ -543,6 +578,7 @@ namespace DataProcessing.Classes
             }
         }
 
+        // Creates new sheet in excel file
         private _Worksheet CreateNewSheet(_Workbook workbook, string name, int position)
         {
             Sheets sheets = workbook.Sheets;
@@ -550,10 +586,12 @@ namespace DataProcessing.Classes
             sheet.Name = name;
             return sheet;
         }
+        // Used in import, we update working status only once every 10 iteration so it won't be overloaded
         private void updateStatus(string label, int index, int count)
         {
             if (index % 10 == 0 || index == count) { services.UpdateWorkStatus($"{label} {index}/{count}"); }
         }
+        // Checks if timespan is in given interval
         private bool isBetweenTimeInterval(TimeSpan from, TimeSpan till, TimeSpan time)
         {
             if (from < till)
@@ -565,12 +603,14 @@ namespace DataProcessing.Classes
                 return from <= time || time <= till;
             }
         }
+        // Shortcut to get range in excel sheet
         private Range GetRange(_Worksheet sheet, int startRow, int startColumn, int endRow, int endColumn)
         {
             Range start = sheet.Cells[startRow, startColumn];
             Range end = sheet.Cells[endRow, endColumn];
             return sheet.Range[start, end];
         }
+        // Gets excel process to later kill (otherwise it gets hung up as a background process)
         private Process GetExcelProcess(Application excelApp)
         {
             int id;
