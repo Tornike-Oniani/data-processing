@@ -25,6 +25,7 @@ namespace DataProcessing.Classes
         // Table decorator for coloring
         private TableDecorator decorator;
 
+        // Constructor
         public TableCreator(CalculatedData data, ExportOptions options, List<TimeStamp> timeStamps, List<TimeStamp> nonMarkedTimeStamps)
         {
             // Init
@@ -35,6 +36,7 @@ namespace DataProcessing.Classes
             decorator = new TableDecorator();
         }
 
+        // Public table collection creators
         public TableCollection CreateRawDataTable()
         {
             List<DataTable> tables = new List<DataTable>();
@@ -219,7 +221,7 @@ namespace DataProcessing.Classes
             tables.Add(table);
 
             // Decorate collection and return it
-            return decorator.DecorateClusterDataTable(tables, timeStamps, options.ClusterSeparationTimeInSeconds);
+            return decorator.DecorateClusterDataTable(tables, nonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
         }
         public TableCollection CreateGraphTablesForClusters()
         {
@@ -235,6 +237,7 @@ namespace DataProcessing.Classes
             return decorator.DecorateGraphTables(tables);
         }
 
+        // Single table helper creators
         private DataTable CreateStatTable(string name, Stats stats, bool isTotal)
         {
             DataTable table = new DataTable(name);
@@ -419,10 +422,11 @@ namespace DataProcessing.Classes
             DataRow row;
 
             // Add columns based on states
+            DataColumn dc;
             foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
             {
-                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} time", typeof(int)));
-                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} frequency", typeof(int)));
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} time", typeof(int)) { AllowDBNull = true });
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} freq", typeof(int)) { AllowDBNull = true });
             }
 
             // Add data from dictionary to table
@@ -433,8 +437,8 @@ namespace DataProcessing.Classes
                 if (stateTimeFrequency.Value.Count > max) { max = stateTimeFrequency.Value.Count; }
             }
 
-            int time;
-            int frequency;
+            int? time;
+            int? frequency;
             SortedList<int, int> current;
             // Iterate with largest dictionary (let's say Wakefulness has more variety than others, its dictionary will be larger)
             for (int i = 0; i < max; i++)
@@ -445,19 +449,21 @@ namespace DataProcessing.Classes
                 {
                     current = stateFrequencies[stateAndPhase.Key];
                     // Since we are going with largest dictionary there will be cases that index is out of range for smaller ones
-                    // in that case we just set time and frequency to 0, which we will convert into blank/null during excel export
+                    // DEPRECATED: in that case we just set time and frequency to 0, which we will convert into blank/null during excel export
+                    // Since we divided responsibilites we have to assign null values right here
                     if (i < current.Count)
                     {
                         time = current.ElementAt(i).Key;
                         frequency = current.ElementAt(i).Value;
+                        row[$"{stateAndPhase.Value.Substring(0, 1)} time"] = time;
+                        row[$"{stateAndPhase.Value.Substring(0, 1)} freq"] = frequency;
                     }
                     else
                     {
-                        time = 0;
-                        frequency = 0;
+                        // Since we can't pass null to datatable column we have to use DBNull.Value instead
+                        row[$"{stateAndPhase.Value.Substring(0, 1)} time"] = DBNull.Value;
+                        row[$"{stateAndPhase.Value.Substring(0, 1)} freq"] = DBNull.Value;
                     }
-                    row[$"{stateAndPhase.Value.Substring(0, 1)} time"] = time;
-                    row[$"{stateAndPhase.Value.Substring(0, 1)} frequency"] = frequency;
                 }
 
                 table.Rows.Add(row);
@@ -466,6 +472,46 @@ namespace DataProcessing.Classes
             return table;
         }
         private DataTable CreateCustomFrequencyTable(string name, Dictionary<int, Dictionary<string, int>> stateCustomFrequencies, bool isTotal = false)
+        {
+            DataTable table = new DataTable(name);
+            DataRow row;
+
+            // Add columns based on states
+            table.Columns.Add(new DataColumn("Ranges", typeof(string)));
+
+            foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
+            {
+                table.Columns.Add(new DataColumn($"{stateAndPhase.Value.Substring(0, 1)} freq", typeof(int)));
+            }
+
+            int max = 0;
+            foreach (KeyValuePair<int, Dictionary<string, int>> stateTimeFrequency in stateCustomFrequencies)
+            {
+                if (stateTimeFrequency.Value.Count > max) { max = stateTimeFrequency.Value.Count; }
+            }
+            
+            string range;
+            int frequency;
+            Dictionary<string, int> current;
+            for (int i = 0; i < max; i++)
+            {
+                row = table.NewRow();
+
+                foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
+                {
+                    current = stateCustomFrequencies[stateAndPhase.Key];
+                    range = current.ElementAt(i).Key;
+                    frequency = current.ElementAt(i).Value;
+                    row["Ranges"] = range;
+                    row[$"{stateAndPhase.Value.Substring(0, 1)} freq"] = frequency;
+                }
+
+                table.Rows.Add(row);
+            }
+
+            return table;
+        }
+        private DataTable CreateCustomFrequencyTableBackup(string name, Dictionary<int, Dictionary<string, int>> stateCustomFrequencies, bool isTotal = false)
         {
             DataTable table = new DataTable(name);
             DataRow row;
@@ -505,6 +551,7 @@ namespace DataProcessing.Classes
             return table;
         }
 
+        // Small helper functions
         private string getCriteriaLabel(SpecificCriteria criteria)
         {
             return $"{calculatedData.stateAndPhases[criteria.State]} {criteria.GetOperandValue()} {criteria.Value}";

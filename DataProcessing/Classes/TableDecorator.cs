@@ -20,6 +20,18 @@ namespace DataProcessing.Classes
 
             // Get marked record indexes for coloring
             List<ColorRange> rowIndexes = new List<ColorRange>();
+            // Default hour distinction colors
+            int time = 0;
+            TimeStamp cur;
+            for (int i = 0; i < timeStamps.Count; i++)
+            {
+                cur = timeStamps[i];
+                time += cur.TimeDifferenceInSeconds;
+                if (time == 3600) { rowIndexes.Add(new ColorRange(0, i, 4, i)); time = 0; }
+                if (time > 3600) { throw new Exception("Incorrect time mark division."); }
+            }
+            collection.ColorRanges.Add("Green", rowIndexes.ToArray());
+            rowIndexes.Clear();
             // Indexes where we inserted hour break
             int[] timeMarkedindexes = Enumerable.Range(0, timeStamps.Count).Where(i => timeStamps[i].IsTimeMarked).ToArray();
             // Indexes if file doesn't contain 10 am (and another one) and we had to insert it (colored yellow)
@@ -28,7 +40,7 @@ namespace DataProcessing.Classes
             {
                 rowIndexes.Add(new ColorRange(0, timeMarkedindexes[i], 4, timeMarkedindexes[i]));
             }
-            collection.ColorRanges.Add("Green", rowIndexes.ToArray());
+            collection.ColorRanges.Add("DarkGreen", rowIndexes.ToArray());
 
             // Create and add ColorRange array for yellow (Markers)
             rowIndexes.Clear();
@@ -62,6 +74,11 @@ namespace DataProcessing.Classes
             collection.HasTotal = true;
             collection.HasHeader = true;
             collection.HasTiteOnTop = false;
+            collection.AutofitFirstColumn = true;
+            // If we don't have any table we set column number to 0 (because in that case we don't want to format anything)
+            // otherwise set the column number (Also we subtract 1 because correct range selection in excel relative to position)
+            int columnNumber = (tables == null || tables.Count == 0) ? 0 : tables[0].Columns.Count - 1;
+            collection.RightAlignmentRange = new ColorRange(1, 0, columnNumber, 0);
 
             // Header
             collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, 4, 0) });
@@ -82,6 +99,11 @@ namespace DataProcessing.Classes
             collection.HasTotal = false;
             collection.HasHeader = true;
             collection.HasTiteOnTop = false;
+            collection.AutofitFirstColumn = true;
+            // If we don't have any table we set column number to 0 (because in that case we don't want to format anything)
+            // otherwise set the column number (Also we subtract 1 because correct range selection in excel relative to position)
+            int columnNumber = (tables == null || tables.Count == 0) ? 0 : tables[0].Columns.Count - 1;
+            collection.RightAlignmentRange = new ColorRange(1, 0, columnNumber, 0);
 
             int columnCount = tables[0].Columns.Count;
             // Header
@@ -125,10 +147,12 @@ namespace DataProcessing.Classes
             collection.HasTiteOnTop = true;
 
             // Header
+            collection.ColorRanges.Add("Orange", new ColorRange[] { new ColorRange(0, 0, 0, 0) });
             // For scalability it would be better to make this dynamic and select range based on max states
-            collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 0, 3, 0) });
-            // Ranges
-            collection.ColorRanges.Add("Gray", new ColorRange[] { new ColorRange(0, 1, 0, numberOfFrequencyRanges) });
+            collection.ColorRanges.Add("Blue", new ColorRange[] { new ColorRange(0, 1, 3, 1) });
+            // Ranges (We add +1 to range number because (>) range gets added automatically) 
+            // for example if last range is 20-30, >30 will be added and we have to account for that
+            collection.ColorRanges.Add("Gray", new ColorRange[] { new ColorRange(0, 2, 0, numberOfFrequencyRanges + 1 ) });
 
             return collection;
         }
@@ -150,7 +174,7 @@ namespace DataProcessing.Classes
             // Go through timestamps and add appropriate coloring
             for (int i = 0; i < timeStamps.Count; i++)
             {
-                cRange = new ColorRange(0, i, 0, i);
+                cRange = new ColorRange(0, i, 1, i);
                 cur = timeStamps[i];
                 // Cluster time and wakefulness - dark red
                 if (cur.TimeDifferenceInSeconds >= clusterTime && cur.State == 3)
@@ -166,7 +190,7 @@ namespace DataProcessing.Classes
                     greens.Add(cRange);
             }
 
-            collection.ColorRanges.Add("Dark red", darkReds.ToArray());
+            collection.ColorRanges.Add("DarkRed", darkReds.ToArray());
             collection.ColorRanges.Add("Red", reds.ToArray());
             collection.ColorRanges.Add("Yellow", yellows.ToArray());
             collection.ColorRanges.Add("Green", greens.ToArray());

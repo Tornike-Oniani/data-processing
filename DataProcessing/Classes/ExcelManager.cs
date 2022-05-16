@@ -19,16 +19,21 @@ namespace DataProcessing.Classes
 {
     internal class ExcelManager
     {
+        // Vertical distance between tables in each collection
         private const int DISTANCE_BETWEEN_TABLES = 2;
 
+        // Method to kill excel process (Otherwise excel process gets hung up in background)
         [DllImport("user32.dll")]
         static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
 
+        // Color dictionary for table decorations
         private Dictionary<string, Color> colors = new Dictionary<string, Color>()
         {
             {"DarkBlue", Color.FromArgb(75, 177, 250) },
             {"DarkOrange", Color.FromArgb(250, 148, 75) },
             {"DarkRed", Color.FromArgb(250, 92, 75) },
+            {"DarkGray", Color.FromArgb(230, 229, 225) },
+            {"DarkGreen", Color.FromArgb(181, 250, 97) },
             {"Blue", Color.FromArgb(148, 216, 255) },
             {"Orange", Color.FromArgb(255, 187, 148) },
             {"Green", Color.FromArgb(202, 255, 138) },
@@ -37,6 +42,7 @@ namespace DataProcessing.Classes
             {"Red", Color.FromArgb(255, 157, 148) }
         };
 
+        // Table collections for each to be exported data
         private TableCollection RawData;
         private TableCollection Latency;
         private TableCollection Stats;
@@ -47,10 +53,14 @@ namespace DataProcessing.Classes
         private TableCollection ClusterData;
         private TableCollection ClusterGraphs;
 
+        // User selected export options
         private ExportOptions options;
+
+        // Global services
         private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
         private Services services = Services.GetInstance();
 
+        // Constructor
         public ExcelManager(
             ExportOptions options,
             TableCollection RawData,
@@ -380,21 +390,27 @@ namespace DataProcessing.Classes
                 sheet = CreateNewSheet(wb, "Frequencies", 4);
                 ExportTableCollection(sheet, Frequencies, 1);
 
+                // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
+                int nextSheetNumber = 5;
                 // Custom frequency ranges
                 if (options.customFrequencyRanges.Count > 0)
                 {
                     services.UpdateWorkStatus("Exporting custom frequency ranges");
-                    sheet = CreateNewSheet(wb, "Frequency ranges", 5);
+                    sheet = CreateNewSheet(wb, "Frequency ranges", nextSheetNumber);
+                    formatRange = sheet.Range["A:A"];
+                    formatRange.NumberFormat = "@";
                     ExportTableCollection(sheet, FrequencyRanges, 1);
+                    nextSheetNumber++;
                 }
 
                 // Clusters
                 if (options.ClusterSeparationTimeInSeconds > 0)
                 {
                     services.UpdateWorkStatus("Exporting cluster data");
-                    sheet = CreateNewSheet(wb, "Clusters", 6);
+                    sheet = CreateNewSheet(wb, "Clusters", nextSheetNumber);
                     ExportTableCollection(sheet, ClusterData, 1);
                     ExportTableCollection(sheet, ClusterGraphs, 5);
+                    nextSheetNumber++;
                 }
 
                 wb.Sheets[1].Select(Type.Missing);
@@ -410,6 +426,7 @@ namespace DataProcessing.Classes
             object[,] tableArray;
             int rowPos = 1;
             Range range;
+            Range formatRange;
             // Keep track of number of iteration in foreach loop
             int counter = 0;
 
@@ -425,11 +442,21 @@ namespace DataProcessing.Classes
                 // Decorate table
                 decorateTable(sheet, collection.ColorRanges, horizontalPosition, rowPos, counter == 0 && collection.HasTotal);
 
+                // Adjust horizontal alignment
+                if (collection.RightAlignmentRange != null)
+                {
+                    formatRange = GetRange(sheet, rowPos + collection.RightAlignmentRange.StartRow, horizontalPosition + collection.RightAlignmentRange.StartColumn, rowPos + collection.RightAlignmentRange.EndRow, horizontalPosition + collection.RightAlignmentRange.EndColumn);
+                    formatRange.HorizontalAlignment = XlHAlign.xlHAlignRight;
+                }
+
                 // Prepare row position for the next table
-                rowPos += tableArray.GetLength(0) + DISTANCE_BETWEEN_TABLES + 1;
+                rowPos += tableArray.GetLength(0) + DISTANCE_BETWEEN_TABLES;
                 // Keep track of iteration number
                 counter++;
             }
+
+            // Autofit first column of the table
+            if (collection.AutofitFirstColumn) { formatRange = sheet.Cells[1, horizontalPosition]; formatRange.EntireColumn.AutoFit(); }
         }
 
         // We want to convert data table to object array because excel works fastest when you select a range and set it's value to 2d array
