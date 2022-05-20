@@ -752,10 +752,6 @@ namespace DataProcessing.Classes
             TimeSpan span = TimeSpan.FromSeconds(seconds);
             if (span.TotalHours < 1) { return $"Last {Math.Round(span.TotalMinutes)} minutes"; }
             return $"Last {span.Hours}hr {span.Minutes} min";
-            // This is weird it gives minutes as float hours
-            double result = Math.Round((double)seconds / 3600, 2);
-            if (result < 1) { return $"Last {result % 1}hr"; }
-            return $"Last {Math.Truncate(result)}hr {result % 1}min";
         }
         private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
         {
