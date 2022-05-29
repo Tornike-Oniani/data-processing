@@ -545,10 +545,10 @@ namespace DataProcessing.Classes
 
             return table2D;
         }
-        private void decorateTable(_Worksheet sheet, Dictionary<string, ColorRange[]> colorRanges, int horizontalPosition, int verticalPosition, bool useDarkColors)
+        private void decorateTable(_Worksheet sheet, Dictionary<string, ExcelRange[]> colorRanges, int horizontalPosition, int verticalPosition, bool useDarkColors)
         {
             string colorName;
-            ColorRange[] ranges;
+            ExcelRange[] ranges;
             Color color;
             Range excRange;
             int startRow;
@@ -556,14 +556,14 @@ namespace DataProcessing.Classes
             int endRow;
             int endColumn;
 
-            foreach (KeyValuePair<string, ColorRange[]> entry in colorRanges)
+            foreach (KeyValuePair<string, ExcelRange[]> entry in colorRanges)
             {
                 colorName = entry.Key;
                 ranges = entry.Value;
                 // Get appropriate color from dictionary (if we are decorating total table we will use dark version of the color
                 color = colors[(useDarkColors ? "Dark" : "") + colorName];
 
-                foreach (ColorRange range in ranges)
+                foreach (ExcelRange range in ranges)
                 {
                     // Set relative positions (ColorRange keeps track of ranges relative to table disregarding current position on excel)
                     startRow = range.StartRow + verticalPosition;

@@ -24,9 +24,9 @@ namespace DataProcessing.Classes
         /// Which rows should be colored (string will be a name of a color e. g. "blue" and then we will have string color names mapped to actual Color class)
         /// Class ColorRange contains start and end of columns and rows which should be colored by the key
         /// </summary>
-        public Dictionary<string, ColorRange[]> ColorRanges { get; set; }
+        public Dictionary<string, ExcelRange[]> ColorRanges { get; set; }
         // Range in which we should set horizontal alignment on right in excel file (might be good idea to make it more scalable)
-        public ColorRange RightAlignmentRange { get; set; }
+        public ExcelRange RightAlignmentRange { get; set; }
         // Some tables have long names in first columns, this will determine if we want to autofit so the names will be fully visible
         public bool AutofitFirstColumn { get; set; }
 
@@ -34,7 +34,7 @@ namespace DataProcessing.Classes
         public TableCollection()
         {
             // Init
-            ColorRanges = new Dictionary<string, ColorRange[]>();
+            ColorRanges = new Dictionary<string, ExcelRange[]>();
         }
     }
 }

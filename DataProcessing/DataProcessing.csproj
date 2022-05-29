@@ -89,9 +89,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\CalculatedData.cs" />
-    <Compile Include="Classes\ColorRange.cs" />
     <Compile Include="Classes\DataProcessor.cs" />
+    <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExportSettingsManager.cs" />
+    <Compile Include="Classes\Export\ExcelTable.cs" />
+    <Compile Include="Classes\Export\IExportable.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
     <Compile Include="Classes\TableCollection.cs" />
