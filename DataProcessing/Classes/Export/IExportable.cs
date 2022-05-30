@@ -4,6 +4,6 @@ namespace DataProcessing.Classes.Export
 {
     internal interface IExportable
     {
-        void ExportToSheet(_Worksheet sheet, int verticalPosition, int horizontalPosition);
+        int ExportToSheet(_Worksheet sheet, int verticalPosition, int horizontalPosition);
     }
 }

@@ -93,7 +93,6 @@ namespace DataProcessing.ViewModels
             }
         }
 
-
         // Commands
         public ICommand AddRangeCommand { get; set; }
         public ICommand RemoveRangeCommand { get; set; }

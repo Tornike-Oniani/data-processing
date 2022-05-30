@@ -9,12 +9,16 @@ namespace DataProcessing.Classes
 {
     internal class TableDecorator
     {
-        public TableCollection DecorateRawData(object[,] data, List<TimeStamp> timeStamps)
+        private int _maxStates;
+
+        public TableDecorator(int maxStates)
+        {
+            this._maxStates = maxStates;
+        }
+
+        public ExcelTable DecorateRawData(object[,] data, List<TimeStamp> timeStamps, int timeMarkInSeconds)
         {
             ExcelTable table = new ExcelTable(data);
-
-            // Get marked record indexes for coloring
-            List<ExcelRange> rowIndexes = new List<ExcelRange>();
             // Default hour distinction colors
             int time = 0;
             TimeStamp cur;
@@ -22,175 +26,129 @@ namespace DataProcessing.Classes
             {
                 cur = timeStamps[i];
                 time += cur.TimeDifferenceInSeconds;
-                if (time == 3600) { rowIndexes.Add(new ExcelRange(0, i, 4, i)); time = 0; }
-                if (time > 3600) { throw new Exception("Incorrect time mark division."); }
+                // If timestamp was added programatically for episode divison color it dark green
+                if (cur.IsTimeMarked) { table.AddColor("DarkGreen", new ExcelRange(i, 0, i, 4)); }
+                // If timestamp was added programatically for 10am purposes color it yellow
+                if (cur.IsMarker) { table.AddColor("Yellow", new ExcelRange(i, 0, i, 4)); }
+                // If we naturally reached the end of episode color it green
+                if (time == timeMarkInSeconds) 
+                { 
+                    table.AddColor("Green", new ExcelRange(0, i, 4, i));
+                    time = 0;
+                }
+                // If we passed natural end of episode without marking it throw exception
+                if (time > timeMarkInSeconds) { throw new Exception("Incorrect time mark division."); }
             }
-            collection.ColorRanges.Add("Green", rowIndexes.ToArray());
-            rowIndexes.Clear();
-            // Indexes where we inserted hour break
-            int[] timeMarkedindexes = Enumerable.Range(0, timeStamps.Count).Where(i => timeStamps[i].IsTimeMarked).ToArray();
-            // Indexes if file doesn't contain 10 am (and another one) and we had to insert it (colored yellow)
-            int[] markerIndexes = Enumerable.Range(0, timeStamps.Count).Where(i => timeStamps[i].IsMarker).ToArray();
-            for (int i = 0; i < timeMarkedindexes.Length; i++)
-            {
-                rowIndexes.Add(new ExcelRange(0, timeMarkedindexes[i], 4, timeMarkedindexes[i]));
-            }
-            collection.ColorRanges.Add("DarkGreen", rowIndexes.ToArray());
 
-            // Create and add ColorRange array for yellow (Markers)
-            rowIndexes.Clear();
-            for (int i = 0; i < markerIndexes.Length; i++)
-            {
-                rowIndexes.Add(new ExcelRange(0, markerIndexes[i], 0, markerIndexes[i]));
-            }
-            collection.ColorRanges.Add("Yellow", rowIndexes.ToArray());
-
-            return collection;
+            return table;
         }
-        public TableCollection DecorateLatencyTable(List<DataTable> tables)
+        public ExcelTable DecorateLatencyTable(object[,] data)
         {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = false;
-            collection.HasHeader = true;
-            collection.HasTiteOnTop = true;
+            ExcelTable table = new ExcelTable(data);
 
             // Header
-            collection.ColorRanges.Add("Orange", new ExcelRange[] { new ExcelRange(0, 0, 0, 0) });
-            collection.ColorRanges.Add("Blue", new ExcelRange[] { new ExcelRange(0, 1, 1, 1) });
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, 0));
+            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates - 1));
 
-            return collection;
-
+            return table;
         }
-        public TableCollection DecorateStatTables(List<DataTable> tables, int criteriaNumber)
+        public ExcelTable DecorateStatTable(object[,] data, int criteriaNumber)
         {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = true;
-            collection.HasHeader = true;
-            collection.HasTiteOnTop = false;
-            collection.AutofitFirstColumn = true;
-            // If we don't have any table we set column number to 0 (because in that case we don't want to format anything)
-            // otherwise set the column number (Also we subtract 1 because correct range selection in excel relative to position)
-            int columnNumber = (tables == null || tables.Count == 0) ? 0 : tables[0].Columns.Count - 1;
-            collection.RightAlignmentRange = new ExcelRange(1, 0, columnNumber, 0);
+            ExcelTable table = new ExcelTable(data);
 
             // Header
-            collection.ColorRanges.Add("Orange", new ExcelRange[] { new ExcelRange(0, 0, 4, 0) });
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, 4));
             // Phases
-            collection.ColorRanges.Add("Blue", new ExcelRange[] { new ExcelRange(0, 1, 0, 3) });
+            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates + 1, 0));
             // Specific criterias
             if (criteriaNumber != 0)
             {
-                collection.ColorRanges.Add("Red", new ExcelRange[] { new ExcelRange(0, 4, 0, 4 + criteriaNumber) });
+                table.AddColor("Red", new ExcelRange(0, _maxStates + 2, 0, _maxStates + 2 + criteriaNumber));
             }
 
-            return collection;
+            return table;
         }
-        public TableCollection DecorateGraphTables(List<DataTable> tables)
+        public ExcelTable DecorateStatTableTotal(object[,] data, int criteriaNumber)
         {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = false;
-            collection.HasHeader = true;
-            collection.HasTiteOnTop = false;
-            collection.AutofitFirstColumn = true;
-            // If we don't have any table we set column number to 0 (because in that case we don't want to format anything)
-            // otherwise set the column number (Also we subtract 1 because correct range selection in excel relative to position)
-            int columnNumber = (tables == null || tables.Count == 0) ? 0 : tables[0].Columns.Count - 1;
-            collection.RightAlignmentRange = new ExcelRange(1, 0, columnNumber, 0);
+            ExcelTable table = new ExcelTable(data);
 
-            int columnCount = tables[0].Columns.Count;
             // Header
-            collection.ColorRanges.Add("Orange", new ExcelRange[] { new ExcelRange(0, 0, columnCount - 1, 0) });
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, 4));
             // Phases
-            collection.ColorRanges.Add("Blue", new ExcelRange[] { new ExcelRange(0, 1, 0, 3) });
+            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates + 2, 0));
+            // Specific criterias
+            if (criteriaNumber != 0)
+            {
+                table.AddColor("Red", new ExcelRange(0, _maxStates + 3, 0, _maxStates + 3 + criteriaNumber));
+            }
 
-            return collection;
+            return table;
         }
-        public TableCollection DecorateDuplicatesTable(List<DataTable> tables)
+        public ExcelTable DecorateGraphTable(object[,] data)
         {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = false;
-            collection.HasHeader = false;
-            collection.HasTiteOnTop = false;
-
-            return collection;
-        }
-        public TableCollection DecorateFrequencyTables(List<DataTable> tables)
-        {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = true;
-            collection.HasHeader = true;
-            collection.HasTiteOnTop = true;
-
+            ExcelTable table = new ExcelTable(data);
+            int columnCount = data.GetLength(1);
             // Header
-            collection.ColorRanges.Add("Orange", new ExcelRange[] { new ExcelRange(0, 0, 0, 0) });
-            // For scalability it would be better to make this dynamic and select range based on max states
-            collection.ColorRanges.Add("Blue", new ExcelRange[] { new ExcelRange(0, 1, 5, 1) });
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, columnCount - 1));
+            // Phases
+            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates + 1, 0));
 
-            return collection;
+            return table;
         }
-        public TableCollection DecorateCustomFrequencyTables(List<DataTable> tables, int numberOfFrequencyRanges)
+        public ExcelTable DecorateDuplicatesTable(object[,] data)
         {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = true;
-            collection.HasHeader = true;
-            collection.HasTiteOnTop = true;
+            return new ExcelTable(data);
+        }
+        public ExcelTable DecorateFrequencyTable(object[,] data)
+        {
+            ExcelTable table = new ExcelTable(data);
 
+            // Title
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, 0));
             // Header
-            collection.ColorRanges.Add("Orange", new ExcelRange[] { new ExcelRange(0, 0, 0, 0) });
-            // For scalability it would be better to make this dynamic and select range based on max states
-            collection.ColorRanges.Add("Blue", new ExcelRange[] { new ExcelRange(0, 1, 3, 1) });
+            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates * 2 - 1));
+
+            return table;
+        }
+        public ExcelTable DecorateCustomFrequencyTable(object[,] data, int numberOfFrequencyRanges)
+        {
+            ExcelTable table = new ExcelTable(data);
+
+            // Title
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, 0));
+            // Header
+            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates));
             // Ranges (We add +1 to range number because (>) range gets added automatically) 
             // for example if last range is 20-30, >30 will be added and we have to account for that
-            collection.ColorRanges.Add("Gray", new ExcelRange[] { new ExcelRange(0, 2, 0, numberOfFrequencyRanges + 1) });
+            table.AddColor("Gray", new ExcelRange(2, 0, numberOfFrequencyRanges + 1, 0));
 
-            return collection;
+            return table;
         }
-        public TableCollection DecorateClusterDataTable(List<DataTable> tables, List<TimeStamp> timeStamps, int clusterTime)
+        public ExcelTable DecorateClusterDataTable(object[,] data, List<TimeStamp> timeStamps, int clusterTime)
         {
-            TableCollection collection = new TableCollection();
-            collection.Tables = tables;
-            collection.HasTotal = false;
-            collection.HasHeader = false;
-            collection.HasTiteOnTop = false;
-
-            List<ExcelRange> darkReds = new List<ExcelRange>();
-            List<ExcelRange> reds = new List<ExcelRange>();
-            List<ExcelRange> yellows = new List<ExcelRange>();
-            List<ExcelRange> greens = new List<ExcelRange>();
-
+            ExcelTable table = new ExcelTable(data);
             TimeStamp cur;
             ExcelRange cRange;
             // Go through timestamps and add appropriate coloring
             for (int i = 0; i < timeStamps.Count; i++)
             {
-                cRange = new ExcelRange(0, i, 1, i);
+                cRange = new ExcelRange(i, 0, i, 1);
                 cur = timeStamps[i];
                 // Cluster time and wakefulness - dark red
                 if (cur.TimeDifferenceInSeconds >= clusterTime && cur.State == 3)
-                    darkReds.Add(cRange);
+                    table.AddColor("DarkRed", cRange);
                 // Wakefulness - red
                 else if (cur.State == 3)
-                    reds.Add(cRange);
+                    table.AddColor("Red", cRange);
                 // Sleep - yellow
                 else if (cur.State == 2)
-                    yellows.Add(cRange);
+                    table.AddColor("Yellow", cRange);
                 // PS - green
                 else if (cur.State == 1)
-                    greens.Add(cRange);
+                    table.AddColor("Green", cRange);
             }
 
-            collection.ColorRanges.Add("DarkRed", darkReds.ToArray());
-            collection.ColorRanges.Add("Red", reds.ToArray());
-            collection.ColorRanges.Add("Yellow", yellows.ToArray());
-            collection.ColorRanges.Add("Green", greens.ToArray());
-
-            return collection;
+            return table;
         }
     }
 }

@@ -21,18 +21,24 @@ namespace DataProcessing.Classes
         private List<TimeStamp> nonMarkedTimeStamps;
         // Exported options selected by user
         private ExportOptions options;
+        private int _criteriaNumber;
         // Table decorator for coloring
         private TableDecorator decorator;
 
         // Constructor
-        public TableCreator(CalculatedData data, ExportOptions options, List<TimeStamp> timeStamps, List<TimeStamp> nonMarkedTimeStamps)
+        public TableCreator(
+            CalculatedData data, 
+            ExportOptions options, 
+            List<TimeStamp> timeStamps, 
+            List<TimeStamp> nonMarkedTimeStamps)
         {
             // Init
             this.calculatedData = data;
             this.options = options;
             this.timeStamps = timeStamps;
             this.nonMarkedTimeStamps = nonMarkedTimeStamps;
-            decorator = new TableDecorator();
+            this._criteriaNumber = options.Criterias.Where(c => c.Value != null).Count();
+            decorator = new TableDecorator(options.MaxStates);
         }
 
         // Public table collection creators
@@ -40,112 +46,107 @@ namespace DataProcessing.Classes
         {
             int rowCount = timeStamps.Count;
             int colCount = 5;
-            object[,] table = new object[rowCount, colCount];
+            object[,] data = new object[rowCount, colCount];
 
             // Fill in data
             int rowIndex = 0;
             foreach (TimeStamp timeStamp in timeStamps)
             {
                 // We convert time into string other wise setting range value in excel won't work
-                table[rowIndex, 0] = timeStamp.Time.ToString();
-                table[rowIndex, 1] = timeStamp.TimeDifference.ToString();
-                table[rowIndex, 2] = timeStamp.TimeDifferenceInDouble;
-                table[rowIndex, 3] = timeStamp.TimeDifferenceInSeconds;
-                table[rowIndex, 4] = timeStamp.State;
+                data[rowIndex, 0] = timeStamp.Time.ToString();
+                data[rowIndex, 1] = timeStamp.TimeDifference.ToString();
+                data[rowIndex, 2] = timeStamp.TimeDifferenceInDouble;
+                data[rowIndex, 3] = timeStamp.TimeDifferenceInSeconds;
+                data[rowIndex, 4] = timeStamp.State;
                 rowIndex++;
             }
 
             // Decorate collection and return it
-            return decorator.DecorateRawData(new ExcelTable(table), timeStamps);
+            return decorator.DecorateRawData(data, timeStamps, options.TimeMarkInSeconds);
         }
         public ExcelTable CreateLatencyTable()
         {
-            List<DataTable> tables = new List<DataTable>();
-            DataTable table = new DataTable("Latency");
+            // Title + header + data
+            int rowCount = 3;
+            // If we have 3 states we have first sleep and first PS
+            // but if we have only 2 then we only want first sleep
+            int colCount = options.MaxStates - 1;
+            object[,] data = new object[rowCount, colCount];
 
-            // Add columns
-            table.Columns.Add(new DataColumn("First sleep", typeof(int)));
-            table.Columns.Add(new DataColumn("First PS", typeof(int)));
+            // Set title
+            data[0, 0] = "Latency";
+
+            // Set header
+            data[1, 0] = "First sleep";
+            if (options.MaxStates == 3)
+            {
+                data[1, 1] = "First PS";
+            }
 
             // Fill in data
-            DataRow row = table.NewRow();
-            row["First sleep"] = calculatedData.timeBeforeFirstSleep;
-            row["First PS"] = calculatedData.timeBeforeFirstParadoxicalSleep;
-            table.Rows.Add(row);
-
-            tables.Add(table);
+            data[2, 0] = calculatedData.timeBeforeFirstSleep;
+            if (options.MaxStates == 3)
+            {
+                data[2, 1] = calculatedData.timeBeforeFirstParadoxicalSleep;
+            }
 
             // Decorate table and return it
-            return decorator.DecorateLatencyTable(tables);
+            return decorator.DecorateLatencyTable(data);
         }
-        public TableCollection CreateStatTables()
+        public List<ExcelTable> CreateStatTables()
         {
-            List<DataTable> tables = new List<DataTable>();
+            List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create a total stat table and add it on top
             tables.Add(CreateStatTable("Total", calculatedData.totalStats, true));
 
             // Add table for each hour mark
             int counter = 1;
-            string tableName = "";
+            string tableName;
             foreach (KeyValuePair<int, Stats> hourAndStat in calculatedData.hourAndStats)
             {
-                tableName = $"hour {hourAndStat.Key * options.TimeMark}";
-
-                // If we reached the stats for final hour and it is not full hour then we name the table with remaning time
-                if (counter == calculatedData.hourAndStats.Count && hourAndStat.Value.TotalTime % 3600 != 0)
-                {
-                    tableName = getTimeForStats(hourAndStat.Value.TotalTime);
-                }
-
+                tableName = $"{counter}ep";
                 tables.Add(CreateStatTable(tableName, hourAndStat.Value, false));
                 counter++;
             }
 
             // Decorate collection and return it
-            int criteriaNumber = options.Criterias.Where(c => c.Value != null).Count();
-            return decorator.DecorateStatTables(tables, criteriaNumber);
+            return tables;
         }
-        public TableCollection CreateGraphTables()
+        public List<ExcelTable> CreateGraphTables()
         {
-            List<DataTable> tables = new List<DataTable>();
+            List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create graph tables
-            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages));
-            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes));
-            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds));
-            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers));
+            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, calculatedData.hourAndStats));
+            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, calculatedData.hourAndStats));
+            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, calculatedData.hourAndStats));
+            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, calculatedData.hourAndStats));
 
             // Decorate collection and return it
-            return decorator.DecorateGraphTables(tables);
+            return tables;
         }
-        public TableCollection CreateDuplicatesTable()
+        public ExcelTable CreateDuplicatesTable()
         {
-            List<DataTable> tables = new List<DataTable>();
-            DataTable table = new DataTable();
-            DataRow row;
-
-            // Add columns
-            table.Columns.Add(new DataColumn("Time", typeof(int)));
-            table.Columns.Add(new DataColumn("State", typeof(int)));
+            int rowCount = calculatedData.duplicatedTimes.Count;
+            int colCount = 2;
+            object[,] data = new object[rowCount, colCount];
 
             // Fill in data
+            int rowIndex = 0;
             foreach (Tuple<int, int> item in calculatedData.duplicatedTimes)
             {
-                row = table.NewRow();
-                row["Time"] = item.Item1;
-                row["State"] = item.Item2;
-                table.Rows.Add(row);
+                data[rowIndex, 0] = item.Item1;
+                data[rowIndex, 1] = item.Item2;
+                rowIndex++;
             }
 
-            tables.Add(table);
-
             // Decorate collection and return it
-            return decorator.DecorateDuplicatesTable(tables);
+            return decorator.DecorateDuplicatesTable(data);
         }
-        public TableCollection CreateFrequencyTables()
+        public List<ExcelTable> CreateFrequencyTables()
         {
-            List<DataTable> tables = new List<DataTable>();
+            List<ExcelTable> tables = new List<ExcelTable>();
 
             int hour = 0;
             foreach (Dictionary<int, SortedList<int, int>> stateTimeFrequency in calculatedData.hourStateFrequencies)
@@ -162,14 +163,14 @@ namespace DataProcessing.Classes
                 hour++;
             }
 
-            return decorator.DecorateFrequencyTables(tables);
+            return tables;
         }
-        public TableCollection CreateCustomFrequencyTables()
+        public List<ExcelTable> CreateCustomFrequencyTables()
         {
             // If user didn't provide any custom frequency
             if (options.customFrequencyRanges.Count == 0) { return null; }
 
-            List<DataTable> tables = new List<DataTable>();
+            List<ExcelTable> tables = new List<ExcelTable>();
 
             int hour = 0;
             foreach (Dictionary<int, Dictionary<string, int>> stateTimeFrequency in calculatedData.hourStateCustomFrequencies)
@@ -186,84 +187,78 @@ namespace DataProcessing.Classes
                 hour++;
             }
 
-            return decorator.DecorateCustomFrequencyTables(tables, options.customFrequencyRanges.Count);
+            return tables;
         }
-        public TableCollection CreateClusterDataTable()
+        public ExcelTable CreateClusterDataTable()
         {
-            List<DataTable> tables = new List<DataTable>();
-            DataTable table = new DataTable();
-            DataRow row = table.NewRow();
-
-            // Add columns
-            table.Columns.Add(new DataColumn("Time", typeof(int)));
-            table.Columns.Add(new DataColumn("State", typeof(int)));
+            int rowCount = nonMarkedTimeStamps.Count;
+            int colCount = 2;
+            object[,] data = new object[rowCount, colCount];
 
             // Fill in data
+            int rowIndex = 0;
             foreach (TimeStamp timeStamp in nonMarkedTimeStamps)
             {
-                row["Time"] = timeStamp.TimeDifferenceInSeconds;
-                row["State"] = timeStamp.State;
-                table.Rows.Add(row);
-                row = table.NewRow();
+                data[rowIndex, 0] = timeStamp.TimeDifferenceInSeconds;
+                data[rowIndex, 1] = timeStamp.State;
+                rowIndex++;
             }
 
-            tables.Add(table);
-
             // Decorate collection and return it
-            return decorator.DecorateClusterDataTable(tables, nonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
+            return decorator.DecorateClusterDataTable(data, nonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
         }
-        public TableCollection CreateGraphTablesForClusters()
+        public List<ExcelTable> CreateGraphTablesForClusters()
         {
-            List<DataTable> tables = new List<DataTable>();
+            List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create graph tables
-            tables.Add(CreateGraphTableForCluster("Percentages %", GraphTableDataType.Percentages));
-            tables.Add(CreateGraphTableForCluster("Minutes", GraphTableDataType.Minutes));
-            tables.Add(CreateGraphTableForCluster("Seconds", GraphTableDataType.Seconds));
-            tables.Add(CreateGraphTableForCluster("Numbers", GraphTableDataType.Numbers));
+            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, calculatedData.clusterAndStats));
+            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, calculatedData.clusterAndStats));
+            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, calculatedData.clusterAndStats));
+            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, calculatedData.clusterAndStats));
 
             // Decorate collection and return it
-            return decorator.DecorateGraphTables(tables);
+            return tables;
         }
 
         // Single table helper creators
-        private object[,] CreateStatTable(string name, Stats stats, bool isTotal)
+        private ExcelTable CreateStatTable(string name, Stats stats, bool isTotal)
         {
             // Header + all the phases + optional criterias
             int rowCount =
                 calculatedData.stateAndPhases.Count +
                 options.Criterias.Count(c => c.Value != null) +
                 1;
-            object[,] table = new object[rowCount, 5];
+            object[,] data = new object[rowCount, 5];
 
             // Set title
-            table[0, 0] = name;
+            data[0, 0] = name;
 
             // Add columns
-            table[0, 1] = "sec";
-            table[0, 2] = "min";
-            table[0, 3] = "%";
-            table[0, 4] = "num";
+            data[0, 1] = "sec";
+            data[0, 2] = "min";
+            data[0, 3] = "%";
+            data[0, 4] = "num";
 
             // Fill in essential data
             // We start from 1 because 0 is set to header
             int rowIndex = 1;
             foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
             {
-                table[rowIndex, 0] = stateAndPhase.Value;
-                table[rowIndex, 1] = stats.StateTimes[stateAndPhase.Key];
-                table[rowIndex, 2] = Math.Round((double)stats.StateTimes[stateAndPhase.Key] / 60, 2);
-                table[rowIndex, 3] = stats.StatePercentages[stateAndPhase.Key];
-                table[rowIndex, 4] = stats.StateNumber[stateAndPhase.Key];
+                data[rowIndex, 0] = stateAndPhase.Value;
+                data[rowIndex, 1] = stats.StateTimes[stateAndPhase.Key];
+                data[rowIndex, 2] = Math.Round((double)stats.StateTimes[stateAndPhase.Key] / 60, 2);
+                data[rowIndex, 3] = stats.StatePercentages[stateAndPhase.Key];
+                data[rowIndex, 4] = stats.StateNumber[stateAndPhase.Key];
                 rowIndex++;
             }
 
             // If table is total add one more row for summed up stats
             if (isTotal)
             {
-                table[rowIndex, 0] = "Total";
-                table[rowIndex, 1] = stats.TotalTime;
-                table[rowIndex, 2] = Math.Round((double)stats.TotalTime / 60, 2);
+                data[rowIndex, 0] = "Total";
+                data[rowIndex, 1] = stats.TotalTime;
+                data[rowIndex, 2] = Math.Round((double)stats.TotalTime / 60, 2);
                 rowIndex++;
             }
 
@@ -273,33 +268,34 @@ namespace DataProcessing.Classes
                 // Skip nonexistent criterias
                 if (criteria.Value == null) { continue; }
 
-                table[rowIndex, 0] = $"{calculatedData.stateAndPhases[criteria.State]} {criteria.GetOperandValue()} {criteria.Value}";
-                table[rowIndex, 1] = stats.SpecificTimes[criteria];
-                table[rowIndex, 2] = Math.Round((double)stats.SpecificTimes[criteria] / 60, 2);
-                table[rowIndex, 3] = stats.SpecificNumbers[criteria];
+                data[rowIndex, 0] = $"{calculatedData.stateAndPhases[criteria.State]} {criteria.GetOperandValue()} {criteria.Value}";
+                data[rowIndex, 1] = stats.SpecificTimes[criteria];
+                data[rowIndex, 2] = Math.Round((double)stats.SpecificTimes[criteria] / 60, 2);
+                data[rowIndex, 3] = stats.SpecificNumbers[criteria];
                 rowIndex++;
             }
 
-            return table;
+            if (isTotal) { return decorator.DecorateStatTableTotal(data, _criteriaNumber); }
+            return decorator.DecorateStatTable(data, _criteriaNumber);
         }
         // Division can be either hourAndStats or clusterAndStats
-        private object[,] CreateGraphTable(string name, Dictionary<int, Stats> division, GraphTableDataType dataType)
+        private ExcelTable CreateGraphTable(string name, GraphTableDataType dataType, Dictionary<int, Stats> division)
         {
             // Header + phases
             int rowCount = calculatedData.stateAndPhases.Count + 1;
             // Phases + each hour mark
             int colCount = calculatedData.hourAndStats.Count + 1;
-            object[,] table = new object[rowCount, colCount];
+            object[,] data = new object[rowCount, colCount];
 
             // Set title
-            table[0, 0] = name;
+            data[0, 0] = name;
 
             // Add columns
             // We start from 1 because 0 is set to title
             int colIndex = 1;
             foreach (KeyValuePair<int, Stats> hourAndStat in division)
             {
-                table[0, colIndex] = $"{colIndex}ep";
+                data[0, colIndex] = $"{colIndex}ep";
                 colIndex++;
             }
 
@@ -309,35 +305,35 @@ namespace DataProcessing.Classes
             colIndex = 0;
             foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
             {
-                table[rowIndex, colIndex] = stateAndPhase.Value;
+                data[rowIndex, colIndex] = stateAndPhase.Value;
                 colIndex++;
                 switch (dataType)
                 {
                     case GraphTableDataType.Seconds:
                         foreach (KeyValuePair<int, Stats> hourAndStat in division)
                         {
-                            table[rowIndex, colIndex] = hourAndStat.Value.StateTimes[stateAndPhase.Key];
+                            data[rowIndex, colIndex] = hourAndStat.Value.StateTimes[stateAndPhase.Key];
                             colIndex++;
                         }
                         break;
                     case GraphTableDataType.Minutes:
                         foreach (KeyValuePair<int, Stats> hourAndStat in division)
                         {
-                            table[rowIndex, colIndex] = Math.Round((double)hourAndStat.Value.StateTimes[stateAndPhase.Key] / 60, 2);
+                            data[rowIndex, colIndex] = Math.Round((double)hourAndStat.Value.StateTimes[stateAndPhase.Key] / 60, 2);
                             colIndex++;
                         }
                         break;
                     case GraphTableDataType.Percentages:
                         foreach (KeyValuePair<int, Stats> hourAndStat in division)
                         {
-                            table[rowIndex, colIndex] = hourAndStat.Value.StatePercentages[stateAndPhase.Key];
+                            data[rowIndex, colIndex] = hourAndStat.Value.StatePercentages[stateAndPhase.Key];
                             colIndex++;
                         }
                         break;
                     case GraphTableDataType.Numbers:
                         foreach (KeyValuePair<int, Stats> hourAndStat in division)
                         {
-                            table[rowIndex, colIndex] = hourAndStat.Value.StateNumber[stateAndPhase.Key];
+                            data[rowIndex, colIndex] = hourAndStat.Value.StateNumber[stateAndPhase.Key];
                             colIndex++;
                         }
                         break;
@@ -346,9 +342,9 @@ namespace DataProcessing.Classes
                 rowIndex++;
             }
 
-            return table;
+            return decorator.DecorateGraphTable(data);
         }
-        private object[,] CreateFrequencyTable(string name, Dictionary<int, SortedList<int, int>> stateFrequencies, bool isTotal = false)
+        private ExcelTable CreateFrequencyTable(string name, Dictionary<int, SortedList<int, int>> stateFrequencies, bool isTotal = false)
         {
             // Find largest dictionary to iterate with
             int max = 0;
@@ -361,17 +357,17 @@ namespace DataProcessing.Classes
             int rowCount = max + 2;
             // time and frequency for each state
             int colCount = options.MaxStates * 2;
-            object[,] table = new object[rowCount, colCount];
+            object[,] data = new object[rowCount, colCount];
 
             // Set title
-            table[0, 0] = name;
+            data[0, 0] = name;
 
             // Add columns based on states
             int colIndex = 0;
             foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
             {
-                table[1, colIndex] = $"{stateAndPhase.Value.Substring(0, 1)} time";
-                table[1, colIndex + 1] = $"{stateAndPhase.Value.Substring(0, 1)} freq";
+                data[1, colIndex] = $"{stateAndPhase.Value.Substring(0, 1)} time";
+                data[1, colIndex + 1] = $"{stateAndPhase.Value.Substring(0, 1)} freq";
                 colIndex += 2;
             }
 
@@ -396,14 +392,14 @@ namespace DataProcessing.Classes
                     {
                         time = current.ElementAt(i).Key;
                         frequency = current.ElementAt(i).Value;
-                        table[rowIndex, colIndex] = time;
-                        table[rowIndex, colIndex + 1] = frequency;
+                        data[rowIndex, colIndex] = time;
+                        data[rowIndex, colIndex + 1] = frequency;
                     }
                     else
                     {
                         // Since we can't pass null to datatable column we have to use DBNull.Value instead
-                        table[rowIndex, colIndex] = null;
-                        table[rowIndex, colIndex + 1] = null;
+                        data[rowIndex, colIndex] = null;
+                        data[rowIndex, colIndex + 1] = null;
                     }
                     colIndex += 2;
                 }
@@ -411,9 +407,9 @@ namespace DataProcessing.Classes
                 colIndex = 0;
             }
 
-            return table;
+            return decorator.DecorateFrequencyTable(data);
         }
-        private object[,] CreateCustomFrequencyTable(string name, Dictionary<int, Dictionary<string, int>> stateCustomFrequencies, bool isTotal = false)
+        private ExcelTable CreateCustomFrequencyTable(string name, Dictionary<int, Dictionary<string, int>> stateCustomFrequencies, bool isTotal = false)
         {
             int max = 0;
             foreach (KeyValuePair<int, Dictionary<string, int>> stateTimeFrequency in stateCustomFrequencies)
@@ -425,17 +421,17 @@ namespace DataProcessing.Classes
             int rowCount = max + 2;
             // Ranges column + frequency for each state
             int colCount = options.MaxStates + 1;
-            object[,] table = new object[rowCount, colCount];
+            object[,] data = new object[rowCount, colCount];
 
             // Set title
-            table[0, 0] = name;
+            data[0, 0] = name;
 
             // Add columns based on states
-            table[1, 0] = "Ranges";
+            data[1, 0] = "Ranges";
             int colIndex = 1;
             foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
             {
-                table[1, colIndex] = $"{stateAndPhase.Value.Substring(0, 1)} freq";
+                data[1, colIndex] = $"{stateAndPhase.Value.Substring(0, 1)} freq";
                 colIndex++;
             }
 
@@ -451,14 +447,14 @@ namespace DataProcessing.Classes
                     current = stateCustomFrequencies[stateAndPhase.Key];
                     range = current.ElementAt(i).Key;
                     frequency = current.ElementAt(i).Value;
-                    table[rowIndex, 0] = range;
-                    table[rowIndex, colIndex] = frequency;
+                    data[rowIndex, 0] = range;
+                    data[rowIndex, colIndex] = frequency;
                     colIndex++;
                 }
                 rowIndex++;
             }
 
-            return table;
+            return decorator.DecorateCustomFrequencyTable(data, options.customFrequencyRanges.Count);
         }
 
         // Small helper functions

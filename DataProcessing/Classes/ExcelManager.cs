@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using DataProcessing.Classes.Export;
 using DataProcessing.Models;
 using DataProcessing.Repositories;
 using DataProcessing.Utils;
@@ -26,35 +27,9 @@ namespace DataProcessing.Classes
         [DllImport("user32.dll")]
         static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
 
-        // Color dictionary for table decorations
-        private Dictionary<string, Color> colors = new Dictionary<string, Color>()
-        {
-            {"DarkBlue", Color.FromArgb(75, 177, 250) },
-            {"DarkOrange", Color.FromArgb(250, 148, 75) },
-            {"DarkRed", Color.FromArgb(250, 92, 75) },
-            {"DarkGray", Color.FromArgb(230, 229, 225) },
-            {"DarkGreen", Color.FromArgb(181, 250, 97) },
-            {"Blue", Color.FromArgb(148, 216, 255) },
-            {"Orange", Color.FromArgb(255, 187, 148) },
-            {"Green", Color.FromArgb(202, 255, 138) },
-            {"Yellow", Color.FromArgb(250, 228, 102) },
-            {"Gray", Color.FromArgb(230, 229, 225) },
-            {"Red", Color.FromArgb(255, 157, 148) }
-        };
-
-        // Table collections for each to be exported data
-        private TableCollection RawData;
-        private TableCollection Latency;
-        private TableCollection Stats;
-        private TableCollection Graphs;
-        private TableCollection Duplicates;
-        private TableCollection Frequencies;
-        private TableCollection FrequencyRanges;
-        private TableCollection ClusterData;
-        private TableCollection ClusterGraphs;
-
         // User selected export options
         private ExportOptions options;
+        private TableCreator _tableCreator;
 
         // Global services
         private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
@@ -69,27 +44,12 @@ namespace DataProcessing.Classes
         // Constructor
         public ExcelManager(
             ExportOptions options,
-            TableCollection RawData,
-            TableCollection Latency,
-            TableCollection Stats,
-            TableCollection Graphs,
-            TableCollection Duplicates,
-            TableCollection Frequencies,
-            TableCollection FrequencyRanges,
-            TableCollection ClusterData,
-            TableCollection ClusterGraphs
-            )
+            CalculatedData data,
+            List<TimeStamp> timeStamps,
+            List<TimeStamp> nonMarkedTimeStamps)
         {
             this.options = options;
-            this.RawData = RawData;
-            this.Latency = Latency;
-            this.Stats = Stats;
-            this.Graphs = Graphs;
-            this.Duplicates = Duplicates;
-            this.Frequencies = Frequencies;
-            this.FrequencyRanges = FrequencyRanges;
-            this.ClusterData = ClusterData;
-            this.ClusterGraphs = ClusterGraphs;
+            this._tableCreator = new TableCreator(data, options, timeStamps, nonMarkedTimeStamps);
         }
 
         public async Task<List<int>> CheckExcelFile(string filePath)
@@ -212,7 +172,7 @@ namespace DataProcessing.Classes
                 {
                     errorRange = worksheet.Range[$"A{errorRow}:B{errorRow}"];
                     interior = errorRange.Interior;
-                    interior.Color = colors["DarkRed"];
+                    interior.Color = ExcelResources.GetInstance().Colors["DarkRed"];
                 }
 
                 excel.Visible = true;
@@ -368,8 +328,8 @@ namespace DataProcessing.Classes
                 CreateDuplicatesSheet();
                 CreateFrequenciesSheet();
                 // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
-                if (options.customFrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet();}
-                if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet();}
+                if (options.customFrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
+                if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
 
                 // Release excel to accesible state for user
                 wb.Sheets[1].Select(Type.Missing);
@@ -387,7 +347,7 @@ namespace DataProcessing.Classes
 
             // Raw data
             services.UpdateWorkStatus("Exporting raw data");
-            ExportTableCollection(sheet, RawData, 1);
+            _tableCreator.CreateRawDataTable().ExportToSheet(sheet, 1, 1);
 
             formatRange = sheet.Range["A:B"];
             formatRange.NumberFormat = "[h]:mm:ss";
@@ -396,7 +356,7 @@ namespace DataProcessing.Classes
 
             // Latency table
             services.UpdateWorkStatus("Exporting latency");
-            ExportTableCollection(sheet, Latency, 8);
+            _tableCreator.CreateLatencyTable().ExportToSheet(sheet, 1, 8);
 
             sheetNumber = 1;
         }
@@ -405,7 +365,12 @@ namespace DataProcessing.Classes
             // Stat tables
             services.UpdateWorkStatus("Exporting stat tables");
             sheet = CreateNewSheet(wb, "Stats", sheetNumber);
-            ExportTableCollection(sheet, Stats, 1);
+            int vPos = 1;
+            foreach (IExportable table in _tableCreator.CreateStatTables())
+            {
+                vPos = table.ExportToSheet(sheet, vPos, 1);
+                vPos += DISTANCE_BETWEEN_TABLES;
+            }
 
             sheetNumber++;
         }
@@ -414,7 +379,12 @@ namespace DataProcessing.Classes
             // Graph tables
             services.UpdateWorkStatus("Exporting graph tables");
             sheet = CreateNewSheet(wb, "Graph Stats", sheetNumber);
-            ExportTableCollection(sheet, Graphs, 1);
+            int vPos = 1;
+            foreach (IExportable table in _tableCreator.CreateGraphTables())
+            {
+                table.ExportToSheet(sheet, vPos, 1);
+                vPos += DISTANCE_BETWEEN_TABLES;
+            }
 
             sheetNumber++;
         }
@@ -423,7 +393,7 @@ namespace DataProcessing.Classes
             // Duplicates
             services.UpdateWorkStatus("Exporting duplicates");
             sheet = CreateNewSheet(wb, "Duplicated Graph Stats", sheetNumber);
-            ExportTableCollection(sheet, Duplicates, 1);
+            _tableCreator.CreateDuplicatesTable().ExportToSheet(sheet, 1, 1);
 
             sheetNumber++;
         }
@@ -432,7 +402,12 @@ namespace DataProcessing.Classes
             // Frequencies
             services.UpdateWorkStatus("Exporting frequencies");
             sheet = CreateNewSheet(wb, "Frequencies", sheetNumber);
-            ExportTableCollection(sheet, Frequencies, 1);
+            int vPos = 1;
+            foreach (IExportable table in _tableCreator.CreateFrequencyTables())
+            {
+                table.ExportToSheet(sheet, vPos, 1);
+                vPos += DISTANCE_BETWEEN_TABLES;
+            }
 
             sheetNumber++;
         }
