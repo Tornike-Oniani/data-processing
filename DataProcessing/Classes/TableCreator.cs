@@ -442,7 +442,7 @@ namespace DataProcessing.Classes
             int frequency;
             Dictionary<string, int> current;
             int rowIndex = 2;
-            colIndex = 0;
+            colIndex = 1;
             for (int i = 0; i < max; i++)
             {
                 foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
@@ -454,7 +454,7 @@ namespace DataProcessing.Classes
                     data[rowIndex, colIndex] = frequency;
                     colIndex++;
                 }
-                colIndex = 0;
+                colIndex = 1;
                 rowIndex++;
             }
 

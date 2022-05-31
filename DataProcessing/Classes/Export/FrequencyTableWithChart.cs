@@ -32,16 +32,18 @@ namespace DataProcessing.Classes.Export
                 (2 * excelResources.CellWidth);
             double topPos = 1;
 
+            // chartTop = WriteStatChart(statsSheet, tableInfo, 5, 10, tableCount, chartTop);
             ChartObjects charts = sheet.ChartObjects();
             ChartObject chartObject = charts.Add(leftPos, topPos, chartWidth, chartHeight);
             Chart chart = chartObject.Chart;
 
+            // This is weird but it works only if this table is on position 1,1 (we might want to scale this to accomodate state change)
             Range range = GetRange(
                 sheet,
-                verticalPosition + 2,
-                horizontalPosition,
-                verticalPosition + _data.GetLength(0) - 1,
-                horizontalPosition + _data.GetLength(1));
+                2,
+                1,
+                _data.GetLength(0),
+                _data.GetLength(1));
             chart.ChartWizard(
                 range,
                 XlChartType.xlColumnClustered,
@@ -53,7 +55,9 @@ namespace DataProcessing.Classes.Export
             }
             chart.HasLegend = true;
             chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
-            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
+            //Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
+            //range = GetRange(customFrequencySheet, 2, 1, 2, tableInfo.Table.Columns.Count - 2);
+            //xAxis.CategoryNames = range;
         }
     }
 }
