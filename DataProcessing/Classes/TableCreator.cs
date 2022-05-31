@@ -105,7 +105,7 @@ namespace DataProcessing.Classes
             string tableName;
             foreach (KeyValuePair<int, Stats> hourAndStat in calculatedData.hourAndStats)
             {
-                tableName = $"{counter} episode";
+                tableName = $"episode {counter}";
                 tables.Add(CreateStatTable(tableName, hourAndStat.Value, false));
                 counter++;
             }
@@ -159,7 +159,7 @@ namespace DataProcessing.Classes
                     continue;
                 }
 
-                tables.Add(CreateFrequencyTable($"hour {hour}", stateTimeFrequency));
+                tables.Add(CreateFrequencyTable($"episode {hour}", stateTimeFrequency));
                 hour++;
             }
 
@@ -183,7 +183,7 @@ namespace DataProcessing.Classes
                     continue;
                 }
 
-                tables.Add(CreateCustomFrequencyTable($"hour {hour}", stateTimeFrequency));
+                tables.Add(CreateCustomFrequencyTable($"episode {hour}", stateTimeFrequency));
                 hour++;
             }
 

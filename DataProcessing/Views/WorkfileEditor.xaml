@@ -8,7 +8,7 @@
              xmlns:utils="clr-namespace:DataProcessing.Utils"
              xmlns:converters="clr-namespace:DataProcessing.Converters"
              xmlns:ap="clr-namespace:DataProcessing.Utils.AttachedProperties"
-             mc:Ignorable="d">
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="700">
 
     <UserControl.Resources>
         <converters:TimeSpanToStringConverter x:Key="TimeSpanToString" />
@@ -358,8 +358,8 @@
                                FontWeight="Bold" 
                                Margin="0 0 5 0" />
                                         <ComboBox ItemsSource="{Binding ExportSettingsManager.TimeMarks}"
-                          SelectedValue="{Binding ExportSettingsManager.SelectedTimeMark}"
-                          MinWidth="35" />
+                                                  SelectedValue="{Binding ExportSettingsManager.SelectedTimeMark}"
+                                                  MinWidth="35" />
 
                                     </StackPanel>
                                 </Border>
@@ -417,10 +417,13 @@
                                                Style="{StaticResource LabelDefault}"
                                                FontWeight="Bold" 
                                                VerticalAlignment="Center" />
-                                        <TextBox Text="{Binding ExportSettingsManager.MaxStates}"
-                                             Style="{StaticResource SmallTextBox}"
-                                             IsReadOnly="True"
-                                             Width="20" />
+                                        <!--<TextBox Text="{Binding ExportSettingsManager.MaxStates}"
+                                                 Style="{StaticResource SmallTextBox}"
+                                                 IsReadOnly="True"
+                                                 Width="20" />-->
+                                        <ComboBox ItemsSource="{Binding ExportSettingsManager.States}"
+                                                  SelectedItem="{Binding ExportSettingsManager.SelectedState}"
+                                                  MinWidth="20 "/>
                                     </StackPanel>
                                 </Border>
                                 <!-- Cluster -->

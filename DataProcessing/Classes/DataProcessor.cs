@@ -25,8 +25,6 @@ namespace DataProcessing.Classes
         private List<TimeStamp> timeStamps;
         private List<TimeStamp> nonMarkedTimeStamps;
         private CalculatedData calculatedData = new CalculatedData();
-        //private List<int> hourRowIndexes = new List<int>();
-        //private List<Tuple<int, string>> hourRowIndexesTime = new List<Tuple<int, string>>();
 
         // Constructor
         public DataProcessor(List<TimeStamp> timeStamps, List<TimeStamp> nonMarkedTimeStamps, ExportOptions options)
@@ -156,7 +154,7 @@ namespace DataProcessing.Classes
                         calculatedData.timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
                 }
 
-                if (time > options.TimeMark * 3600) { throw new Exception("Invalid hour marks"); }
+                if (time > options.TimeMark) { throw new Exception("Invalid hour marks"); }
 
                 hourRegion.Add(currentTimeStamp);
                 lastHourIndex = i + 1;
@@ -168,7 +166,7 @@ namespace DataProcessing.Classes
                     AddCustomFrequencyToCollection(hourCustomFrequencies, currentTimeStamp);
                 }
 
-                if (time == options.TimeMark * 3600)
+                if (time == options.TimeMark)
                 {
                     currentHour++;
                     //hourRowIndexes.Add(i + 1);
@@ -260,15 +258,18 @@ namespace DataProcessing.Classes
         }
         private void CreatePhases()
         {
-            if (options.MaxStates == 3)
+            if (options.MaxStates == 2)
+            {
+                calculatedData.stateAndPhases = new Dictionary<int, string>();
+                calculatedData.stateAndPhases.Add(2, "Wakefulness");
+                calculatedData.stateAndPhases.Add(1, "Sleep");
+            }
+            else if (options.MaxStates == 3)
             {
                 calculatedData.stateAndPhases = new Dictionary<int, string>();
                 calculatedData.stateAndPhases.Add(3, "Wakefulness");
                 calculatedData.stateAndPhases.Add(2, "Sleep");
                 calculatedData.stateAndPhases.Add(1, "Paradoxical sleep");
-                
-                
-
             }
             else if (options.MaxStates == 4)
             {

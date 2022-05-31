@@ -20,10 +20,13 @@ namespace DataProcessing.Classes
         private TimeSpan _till;
 
         // Public properties
-        // All available timemarks for user to choose from combobox (0.5hr, 1hr, 2hr & 4hr)
-        public List<float> TimeMarks { get; set; }
-        public float SelectedTimeMark { get; set; }
-        // Max number of states (can be 3 or 4, right now processing for only 3 is implemented)
+        // All available timemarks for user to choose from combobox (10min, 20min, 1hr, 2hr, 4hr)
+        public List<string> TimeMarks { get; set; }
+        // We use converter method (see below) to convert string from TimeMarks list into seconds
+        public string SelectedTimeMark { get; set; }
+        // Max number of states (can be 2 or 3 (in future we might also add 4))
+        public List<int> States { get; set; }
+        public int SelectedState { get; set; }
         public int MaxStates { get; set; }
         // Selected period from data to process
         public TimeSpan From
@@ -60,8 +63,11 @@ namespace DataProcessing.Classes
         public ExportSettingsManager()
         {
             // Init
-            this.TimeMarks = new List<float>() { 0.5f, 1, 2, 4 };
-            this.SelectedTimeMark = TimeMarks[1];
+            // 10min, 20min, 1hr, 2hr and 4hr in seconds
+            this.TimeMarks = new List<string>() { "10min", "20min", "30min", "1hr", "2hr", "4hr" };
+            this.SelectedTimeMark = TimeMarks[3];
+            this.States = new List<int>() { 2, 3 };
+            this.SelectedState = States[1];
             this.MaxStates = 3;
 
             // Set up commands
@@ -73,9 +79,9 @@ namespace DataProcessing.Classes
             ExportOptions exportOptions = new ExportOptions()
             {
                 // Init
-                TimeMark = SelectedTimeMark,
-                TimeMarkInSeconds = (int)(SelectedTimeMark * 3600),
-                MaxStates = MaxStates,
+                TimeMark = ConvertTimeMarkToSeconds(SelectedTimeMark),
+                TimeMarkInSeconds = ConvertTimeMarkToSeconds(SelectedTimeMark),
+                MaxStates = SelectedState,
                 From = From,
                 Till = Till,
                 // Set up criterias for processing
@@ -138,12 +144,14 @@ namespace DataProcessing.Classes
             this.Till = till;
             this.customFrequencyRanges = customFrequencyRanges;
         }
+
         // Private helpers
         private List<TimeStamp> AddTimeMarksToSamples(List<TimeStamp> records)
         {
             List<TimeStamp> result = new List<TimeStamp>();
 
-            TimeSpan markCap = TimeSpan.FromHours(SelectedTimeMark);
+            //TimeSpan markCap1 = TimeSpan.FromHours(1);
+            TimeSpan markCap = TimeSpan.FromSeconds(ConvertTimeMarkToSeconds(SelectedTimeMark));
             TimeSpan markSum = new TimeSpan(0, 0, 0);
             TimeSpan lastMarkTime = records[0].Time;
 
@@ -210,6 +218,26 @@ namespace DataProcessing.Classes
             else
             {
                 return from <= time || time <= till;
+            }
+        }
+        private int ConvertTimeMarkToSeconds(string timeMark)
+        {
+            switch (timeMark)
+            {
+                case "10min":
+                    return 600;
+                case "20min":
+                    return 1200;
+                case "30min":
+                    return 1800;
+                case "1hr":
+                    return 3600;
+                case "2hr":
+                    return 7200;
+                case "4hr":
+                    return 14400;
+                default:
+                    throw new Exception("Time mark does not exists");
             }
         }
     }
