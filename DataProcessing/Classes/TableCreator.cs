@@ -118,7 +118,7 @@ namespace DataProcessing.Classes
             List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create graph tables
-            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, false));
+            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, false, true));
             tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, false));
             tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, false));
             tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, false));
@@ -212,7 +212,7 @@ namespace DataProcessing.Classes
             List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create graph tables
-            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, true));
+            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, true, true));
             tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, true));
             tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, true));
             tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, true));
@@ -280,7 +280,7 @@ namespace DataProcessing.Classes
             return decorator.DecorateStatTable(data, _criteriaNumber);
         }
         // Division can be either hourAndStats or clusterAndStats
-        private ExcelTable CreateGraphTable(string name, GraphTableDataType dataType, bool isCluster)
+        private ExcelTable CreateGraphTable(string name, GraphTableDataType dataType, bool isCluster, bool hasChart = false)
         {
             Dictionary<int, Stats> division = isCluster ? calculatedData.clusterAndStats : calculatedData.hourAndStats;
 
@@ -345,7 +345,7 @@ namespace DataProcessing.Classes
                 rowIndex++;
             }
 
-            return decorator.DecorateGraphTable(data);
+            return decorator.DecorateGraphTable(data, hasChart);
         }
         private ExcelTable CreateFrequencyTable(string name, Dictionary<int, SortedList<int, int>> stateFrequencies, bool isTotal = false)
         {

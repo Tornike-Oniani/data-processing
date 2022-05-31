@@ -56,7 +56,7 @@ namespace DataProcessing.Classes
         }
         public ExcelTable DecorateStatTable(object[,] data, int criteriaNumber)
         {
-            ExcelTable table = new ExcelTable(data);
+            StatTable table = new StatTable(data);
 
             // Header
             table.AddColor("Orange", new ExcelRange(0, 0, 0, 4));
@@ -74,12 +74,12 @@ namespace DataProcessing.Classes
         }
         public ExcelTable DecorateStatTableTotal(object[,] data, int criteriaNumber)
         {
-            ExcelTable table = new ExcelTable(data);
+            StatTable table = new StatTable(data);
 
             // Header
             table.AddColor("DarkOrange", new ExcelRange(0, 0, 0, 4));
             // Phases
-            table.AddColor("DarkBlue", new ExcelRange(1, 0, _maxStates + 2, 0));
+            table.AddColor("DarkBlue", new ExcelRange(1, 0, _maxStates + 1, 0));
             // Specific criterias
             if (criteriaNumber != 0)
             {
@@ -90,9 +90,9 @@ namespace DataProcessing.Classes
 
             return table;
         }
-        public ExcelTable DecorateGraphTable(object[,] data)
+        public ExcelTable DecorateGraphTable(object[,] data, bool hasChart)
         {
-            ExcelTable table = new ExcelTable(data);
+            ExcelTable table = hasChart ? new GraphTableWithChart(data) : new ExcelTable(data);
             int columnCount = data.GetLength(1);
             // Header
             table.AddColor("Orange", new ExcelRange(0, 0, 0, columnCount - 1));
@@ -105,7 +105,7 @@ namespace DataProcessing.Classes
         }
         public ExcelTable DecorateDuplicatesTable(object[,] data)
         {
-            return new ExcelTable(data);
+            return new DuplicatesTable(data);
         }
         public ExcelTable DecorateFrequencyTable(object[,] data, bool isTotal)
         {
@@ -122,7 +122,7 @@ namespace DataProcessing.Classes
         }
         public ExcelTable DecorateCustomFrequencyTable(object[,] data, int numberOfFrequencyRanges, bool isTotal)
         {
-            ExcelTable table = new ExcelTable(data);
+            ExcelTable table = isTotal ? new FrequencyTableWithChart(data) : new ExcelTable(data);
 
             // Title
             table.AddColor((isTotal ? "Dark" : "") + "Orange", new ExcelRange(0, 0, 0, 0));

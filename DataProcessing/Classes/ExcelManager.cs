@@ -369,10 +369,17 @@ namespace DataProcessing.Classes
             services.UpdateWorkStatus("Exporting stat tables");
             sheet = CreateNewSheet(wb, "Stats", sheetNumber);
             int vPos = 1;
+            // Since all stat table has a chart beside it we have to add additional
+            // distance between them, because the chart height is longer than the table
+            // but if table has specific criterias (which will make the table longer)
+            // than the additional increment will be smaller or sometimes nonexistent
+            int criteriaNumber = options.Criterias.Count(c => c.Value != null);
+            int additionaDistance = criteriaNumber >= 3 ? 0 : 3 - criteriaNumber;
+
             foreach (IExportable table in _tableCreator.CreateStatTables())
             {
                 vPos = table.ExportToSheet(sheet, vPos, 1);
-                vPos += DISTANCE_BETWEEN_TABLES;
+                vPos += DISTANCE_BETWEEN_TABLES + additionaDistance;
             }
 
             // Autofit first column
@@ -453,129 +460,6 @@ namespace DataProcessing.Classes
             formatRange.EntireColumn.AutoFit();
 
             sheetNumber++;
-        }
-
-        // Export whole table collection on excel sheet
-        private void ExportTableCollection(_Worksheet sheet, TableCollection collection, int horizontalPosition)
-        {
-            object[,] tableArray;
-            int rowPos = 1;
-            Range range;
-            Range formatRange;
-            // Keep track of number of iteration in foreach loop
-            int counter = 0;
-
-            // Write each table in collection into sheet
-            foreach (System.Data.DataTable table in collection.Tables)
-            {
-                // Convert table to 2d array
-                tableArray = DataTableTo2DArray(table, collection.HasHeader, collection.HasTiteOnTop);
-                // Get appropriate range in excel and set its value to 2d array
-                range = GetRange(sheet, rowPos, horizontalPosition, rowPos - 1 + tableArray.GetLength(0), horizontalPosition - 1 + tableArray.GetLength(1));
-                range.Value = tableArray;
-
-                // Decorate table
-                decorateTable(sheet, collection.ColorRanges, horizontalPosition, rowPos, counter == 0 && collection.HasTotal);
-
-                // Adjust horizontal alignment
-                if (collection.RightAlignmentRange != null)
-                {
-                    formatRange = GetRange(sheet, rowPos + collection.RightAlignmentRange.StartRow, horizontalPosition + collection.RightAlignmentRange.StartColumn, rowPos + collection.RightAlignmentRange.EndRow, horizontalPosition + collection.RightAlignmentRange.EndColumn);
-                    formatRange.HorizontalAlignment = XlHAlign.xlHAlignRight;
-                }
-
-                // Prepare row position for the next table
-                rowPos += tableArray.GetLength(0) + DISTANCE_BETWEEN_TABLES;
-                // Keep track of iteration number
-                counter++;
-            }
-
-            // Autofit first column of the table
-            if (collection.AutofitFirstColumn) { formatRange = sheet.Cells[1, horizontalPosition]; formatRange.EntireColumn.AutoFit(); }
-        }
-
-        // We want to convert data table to object array because excel works fastest when you select a range and set it's value to 2d array
-        private object[,] DataTableTo2DArray(System.Data.DataTable table, bool includeColumnNames, bool titleOnTop)
-        {
-            int rowIndex = 0;
-            // Array row and column size (detemined by different factors, such as if table includes colum names, if it has title on top etc.)
-            int rowNumber = table.Rows.Count;
-            int columnNumber = table.Columns.Count;
-
-            // If table should also show column names then we increase row by 1 (for the header)
-            if (includeColumnNames) { rowNumber++; }
-            // If title is on top of header we increase it by one again
-            if (titleOnTop) { rowNumber++; }
-
-            // Rows + 1 because we also have to add column names and title
-            object[,] table2D = new object[rowNumber, columnNumber];
-
-            // If we want title on top we have to incement index so all other values come below it
-            if (titleOnTop) { rowIndex++; }
-
-            // Column names
-            if (includeColumnNames)
-            {
-                for (int i = 0; i < table.Columns.Count; i++)
-                {
-                    table2D[rowIndex, i] = table.Columns[i].ColumnName;
-                }
-                rowIndex++;
-            }
-
-            // Table contents
-            DataRow curRow;
-            DataColumn curColumn;
-            for (int i = 0; i < table.Rows.Count; i++)
-            {
-                curRow = table.Rows[i];
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    curColumn = table.Columns[j];
-                    table2D[i + rowIndex, j] = curRow[curColumn.ColumnName];
-                }
-            }
-
-            // If we want to display header then switch first element with title
-            // We want to do this both when title is on top and also when it is the first column name
-            if (includeColumnNames)
-            {
-                table2D[0, 0] = table.TableName;
-            }
-
-            return table2D;
-        }
-        private void decorateTable(_Worksheet sheet, Dictionary<string, ExcelRange[]> colorRanges, int horizontalPosition, int verticalPosition, bool useDarkColors)
-        {
-            string colorName;
-            ExcelRange[] ranges;
-            Color color;
-            Range excRange;
-            int startRow;
-            int startColumn;
-            int endRow;
-            int endColumn;
-
-            foreach (KeyValuePair<string, ExcelRange[]> entry in colorRanges)
-            {
-                colorName = entry.Key;
-                ranges = entry.Value;
-                // Get appropriate color from dictionary (if we are decorating total table we will use dark version of the color
-                color = ExcelResources.GetInstance().Colors[(useDarkColors ? "Dark" : "") + colorName];
-
-                foreach (ExcelRange range in ranges)
-                {
-                    // Set relative positions (ColorRange keeps track of ranges relative to table disregarding current position on excel)
-                    startRow = range.StartRow + verticalPosition;
-                    startColumn = range.StartColumn + horizontalPosition;
-                    endRow = range.EndRow + verticalPosition;
-                    endColumn = range.EndColumn + horizontalPosition;
-
-                    // Get range and set its color
-                    excRange = GetRange(sheet, startRow, startColumn, endRow, endColumn);
-                    excRange.Interior.Color = color;
-                }
-            }
         }
 
         // Creates new sheet in excel file

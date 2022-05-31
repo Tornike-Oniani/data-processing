@@ -93,8 +93,12 @@
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />
     <Compile Include="Classes\ExportSettingsManager.cs" />
+    <Compile Include="Classes\Export\DuplicatesTable.cs" />
     <Compile Include="Classes\Export\ExcelTable.cs" />
+    <Compile Include="Classes\Export\FrequencyTableWithChart.cs" />
+    <Compile Include="Classes\Export\GraphTableWithChart.cs" />
     <Compile Include="Classes\Export\IExportable.cs" />
+    <Compile Include="Classes\Export\StatTable.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
     <Compile Include="Classes\TableCollection.cs" />

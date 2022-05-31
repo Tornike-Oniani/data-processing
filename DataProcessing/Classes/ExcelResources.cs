@@ -36,5 +36,7 @@ namespace DataProcessing.Classes
             {"Gray", Color.FromArgb(230, 229, 225) },
             {"Red", Color.FromArgb(255, 157, 148) }
         };
+        public double CellWidth { get; private set; } = 48;
+        public double CellHeight { get; private set; } = 15;
     }
 }
