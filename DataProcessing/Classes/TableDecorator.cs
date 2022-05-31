@@ -48,7 +48,9 @@ namespace DataProcessing.Classes
 
             // Header
             table.AddColor("Orange", new ExcelRange(0, 0, 0, 0));
-            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates - 1));
+            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates - 2));
+
+            table.SetHeaderRange(1, 0, 1, _maxStates - 2);
 
             return table;
         }
@@ -59,12 +61,14 @@ namespace DataProcessing.Classes
             // Header
             table.AddColor("Orange", new ExcelRange(0, 0, 0, 4));
             // Phases
-            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates + 1, 0));
+            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates, 0));
             // Specific criterias
             if (criteriaNumber != 0)
             {
-                table.AddColor("Red", new ExcelRange(0, _maxStates + 2, 0, _maxStates + 2 + criteriaNumber));
+                table.AddColor("Red", new ExcelRange(_maxStates + 1, 0, _maxStates + criteriaNumber, 0));
             }
+
+            table.SetHeaderRange(0, 1, 0, 4);
 
             return table;
         }
@@ -73,14 +77,16 @@ namespace DataProcessing.Classes
             ExcelTable table = new ExcelTable(data);
 
             // Header
-            table.AddColor("Orange", new ExcelRange(0, 0, 0, 4));
+            table.AddColor("DarkOrange", new ExcelRange(0, 0, 0, 4));
             // Phases
-            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates + 2, 0));
+            table.AddColor("DarkBlue", new ExcelRange(1, 0, _maxStates + 2, 0));
             // Specific criterias
             if (criteriaNumber != 0)
             {
-                table.AddColor("Red", new ExcelRange(0, _maxStates + 3, 0, _maxStates + 3 + criteriaNumber));
+                table.AddColor("DarkRed", new ExcelRange(_maxStates + 2, 0, _maxStates + 1 + criteriaNumber, 0));
             }
+
+            table.SetHeaderRange(0, 1, 0, 4);
 
             return table;
         }
@@ -91,7 +97,9 @@ namespace DataProcessing.Classes
             // Header
             table.AddColor("Orange", new ExcelRange(0, 0, 0, columnCount - 1));
             // Phases
-            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates + 1, 0));
+            table.AddColor("Blue", new ExcelRange(1, 0, _maxStates, 0));
+
+            table.SetHeaderRange(0, 1, 0, columnCount - 1);
 
             return table;
         }
@@ -99,28 +107,32 @@ namespace DataProcessing.Classes
         {
             return new ExcelTable(data);
         }
-        public ExcelTable DecorateFrequencyTable(object[,] data)
+        public ExcelTable DecorateFrequencyTable(object[,] data, bool isTotal)
         {
             ExcelTable table = new ExcelTable(data);
 
             // Title
-            table.AddColor("Orange", new ExcelRange(0, 0, 0, 0));
+            table.AddColor((isTotal ? "Dark" : "") + "Orange", new ExcelRange(0, 0, 0, 0));
             // Header
-            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates * 2 - 1));
+            table.AddColor((isTotal ? "Dark" : "") + "Blue", new ExcelRange(1, 0, 1, _maxStates * 2 - 1));
+
+            table.SetHeaderRange(1, 0, 1, _maxStates * 2 - 1);
 
             return table;
         }
-        public ExcelTable DecorateCustomFrequencyTable(object[,] data, int numberOfFrequencyRanges)
+        public ExcelTable DecorateCustomFrequencyTable(object[,] data, int numberOfFrequencyRanges, bool isTotal)
         {
             ExcelTable table = new ExcelTable(data);
 
             // Title
-            table.AddColor("Orange", new ExcelRange(0, 0, 0, 0));
+            table.AddColor((isTotal ? "Dark" : "") + "Orange", new ExcelRange(0, 0, 0, 0));
             // Header
-            table.AddColor("Blue", new ExcelRange(1, 0, 1, _maxStates));
+            table.AddColor((isTotal ? "Dark" : "") + "Blue", new ExcelRange(1, 0, 1, _maxStates));
             // Ranges (We add +1 to range number because (>) range gets added automatically) 
             // for example if last range is 20-30, >30 will be added and we have to account for that
             table.AddColor("Gray", new ExcelRange(2, 0, numberOfFrequencyRanges + 1, 0));
+
+            table.SetHeaderRange(1, 1, 1, _maxStates);
 
             return table;
         }

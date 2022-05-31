@@ -91,6 +91,7 @@
     <Compile Include="Classes\CalculatedData.cs" />
     <Compile Include="Classes\DataProcessor.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
+    <Compile Include="Classes\ExcelResources.cs" />
     <Compile Include="Classes\ExportSettingsManager.cs" />
     <Compile Include="Classes\Export\ExcelTable.cs" />
     <Compile Include="Classes\Export\IExportable.cs" />

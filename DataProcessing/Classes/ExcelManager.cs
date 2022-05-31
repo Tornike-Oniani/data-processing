@@ -358,6 +358,9 @@ namespace DataProcessing.Classes
             services.UpdateWorkStatus("Exporting latency");
             _tableCreator.CreateLatencyTable().ExportToSheet(sheet, 1, 8);
 
+            formatRange = sheet.Range["H1:H1"];
+            formatRange.EntireColumn.AutoFit();
+
             sheetNumber = 1;
         }
         private void CreateStatsSheet()
@@ -372,6 +375,10 @@ namespace DataProcessing.Classes
                 vPos += DISTANCE_BETWEEN_TABLES;
             }
 
+            // Autofit first column
+            formatRange = sheet.Range["A1:A1"];
+            formatRange.EntireColumn.AutoFit();
+
             sheetNumber++;
         }
         private void CreateGraphSheet()
@@ -382,9 +389,13 @@ namespace DataProcessing.Classes
             int vPos = 1;
             foreach (IExportable table in _tableCreator.CreateGraphTables())
             {
-                table.ExportToSheet(sheet, vPos, 1);
+                vPos = table.ExportToSheet(sheet, vPos, 1);
                 vPos += DISTANCE_BETWEEN_TABLES;
             }
+
+            // Autofit first column
+            formatRange = sheet.Range["A1:A1"];
+            formatRange.EntireColumn.AutoFit();
 
             sheetNumber++;
         }
@@ -405,7 +416,7 @@ namespace DataProcessing.Classes
             int vPos = 1;
             foreach (IExportable table in _tableCreator.CreateFrequencyTables())
             {
-                table.ExportToSheet(sheet, vPos, 1);
+                vPos = table.ExportToSheet(sheet, vPos, 1);
                 vPos += DISTANCE_BETWEEN_TABLES;
             }
 
@@ -417,7 +428,12 @@ namespace DataProcessing.Classes
             sheet = CreateNewSheet(wb, "Frequency ranges", sheetNumber);
             formatRange = sheet.Range["A:A"];
             formatRange.NumberFormat = "@";
-            ExportTableCollection(sheet, FrequencyRanges, 1);
+            int vPos = 1;
+            foreach (IExportable table in _tableCreator.CreateCustomFrequencyTables())
+            {
+                vPos = table.ExportToSheet(sheet, vPos, 1);
+                vPos += DISTANCE_BETWEEN_TABLES;
+            }
 
             sheetNumber++;
         }
@@ -425,8 +441,17 @@ namespace DataProcessing.Classes
         {
             services.UpdateWorkStatus("Exporting cluster data");
             sheet = CreateNewSheet(wb, "Clusters", sheetNumber);
-            ExportTableCollection(sheet, ClusterData, 1);
-            ExportTableCollection(sheet, ClusterGraphs, 5);
+            _tableCreator.CreateClusterDataTable().ExportToSheet(sheet, 1, 1);
+            int vPos = 1;
+            foreach (IExportable table in _tableCreator.CreateGraphTablesForClusters())
+            {
+                vPos = table.ExportToSheet(sheet, vPos, 5);
+                vPos += DISTANCE_BETWEEN_TABLES;
+            }
+
+            formatRange = sheet.Range["E1:E1"];
+            formatRange.EntireColumn.AutoFit();
+
             sheetNumber++;
         }
 
@@ -536,7 +561,7 @@ namespace DataProcessing.Classes
                 colorName = entry.Key;
                 ranges = entry.Value;
                 // Get appropriate color from dictionary (if we are decorating total table we will use dark version of the color
-                color = colors[(useDarkColors ? "Dark" : "") + colorName];
+                color = ExcelResources.GetInstance().Colors[(useDarkColors ? "Dark" : "") + colorName];
 
                 foreach (ExcelRange range in ranges)
                 {
@@ -592,278 +617,5 @@ namespace DataProcessing.Classes
             GetWindowThreadProcessId(excelApp.Hwnd, out id);
             return Process.GetProcessById(id);
         }
-
-
-        /*
-        public async Task ExportToExcel()
-        {
-            services.SetWorkStatus(true);
-            await Task.Run(() =>
-            {
-                // 1. Open excel
-                Application excel = new Application();
-                excel.Caption = WorkfileManager.GetInstance().SelectedWorkFile.Name;
-                _Workbook wb = excel.Workbooks.Add(Missing.Value);
-                _Worksheet rawDataSheet = wb.ActiveSheet;
-                rawDataSheet.Name = "Raw Data";
-
-                // Raw Data
-                services.UpdateWorkStatus("Exporting raw data");
-                WriteRawDataList(rawDataSheet, timeStamps, 1);
-
-                Range formatRange = rawDataSheet.Range["A:B"];
-                formatRange.NumberFormat = "[h]:mm:ss";
-                formatRange = rawDataSheet.Range["C:C"];
-                formatRange.NumberFormat = "General";
-
-                int prev = 1;
-                formatRange = rawDataSheet.Range[$"A{prev}:E{prev}"];
-                formatRange.Interior.Color = timeMarkColor;
-                Tuple<int, string> indexTime;
-                for (int i = 0; i < hourRowIndexesTime.Count; i++)
-                {
-                    indexTime = hourRowIndexesTime[i];
-                    formatRange = rawDataSheet.Range[$"A{indexTime.Item1}:E{indexTime.Item1}"];
-                    formatRange.Interior.Color = timeMarkColor;
-                    formatRange = rawDataSheet.Range[$"F{prev}:F{indexTime.Item1}"];
-                    formatRange.Merge();
-                    formatRange.Value = indexTime.Item2;
-                    formatRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
-                    formatRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
-                    if (i % 2 == 0) formatRange.Interior.Color = alternateColor;
-                    prev = indexTime.Item1 + 1;
-
-                    // Autofit after finishing
-                    if (i == hourRowIndexesTime.Count - 1)
-                        formatRange.EntireColumn.AutoFit();
-                }
-
-                //for (int i = 0; i < markerLocations.Count; i++)
-                //{
-                //    formatRange = rawDataSheet.Range[$"A{markerLocations[i]}:E{markerLocations[i]}"];
-                //    formatRange.Interior.Color = timeMarkColor;
-                //}
-                for (int i = 0; i < darkLightMarkerLocations.Count; i++)
-                {
-                    formatRange = rawDataSheet.Range[$"A{darkLightMarkerLocations[i]}:E{darkLightMarkerLocations[i]}"];
-                    formatRange.Interior.Color = darkLightMarkColor;
-                }
-
-                Range[] ranges = new Range[4] { rawDataSheet.Range["A1"], rawDataSheet.Range["B1"], rawDataSheet.Range["C1"], rawDataSheet.Range["D1"] };
-                foreach (Range r in ranges)
-                    r.EntireColumn.AutoFit();
-
-                // Write latency table
-                WriteLatencyTable(rawDataSheet, latencyTable, 8);
-
-                // Stats table
-                services.UpdateWorkStatus("Exporting stats tables");
-                _Worksheet statsSheet = CreateNewSheet(wb, "Stats", 1);
-                statsSheet.EnableSelection = XlEnableSelection.xlNoSelection;
-
-                int position = 1;
-                statTablePositions.Add(position);
-                int index = 1;
-                int max = statTableCollection.Count;
-                foreach (DataTableInfo tableInfo in statTableCollection)
-                {
-                    updateStatus("Stat tables", index, max);
-                    position = WriteDataTable(statsSheet, tableInfo, position);
-                    position += distanceBetweenTables;
-                    statTablePositions.Add(position);
-                    index++;
-                }
-
-                statsSheet.Range["A1"].EntireColumn.AutoFit();
-
-                // Create stat charts
-                Range range = statsSheet.Range["A1:G1"];
-                chartLeft = range.Width;
-                range = statsSheet.Range["A1:N1"];
-                chartLeftAlt = range.Width;
-                range = statsSheet.Range["G1:G2"];
-                chartVerticalDistance = range.Height;
-                range = range = statsSheet.Range["G1:G1"];
-                cellWidth = range.Width;
-                cellHeight = range.Height;
-
-                int tableCount = 1;
-                double chartTop = 0;
-                index = 1;
-                foreach (DataTableInfo tableInfo in statTableCollection)
-                {
-                    updateStatus("Stat charts", index, max);
-                    chartTop = WriteStatChart(statsSheet, tableInfo, 5, 10, tableCount, chartTop);
-                    tableCount++;
-                    index++;
-                }
-
-                // Graph table
-                services.UpdateWorkStatus("Exporting graph tables");
-                _Worksheet graphSheet = CreateNewSheet(wb, "Graph Stats", 2);
-                graphSheet.EnableSelection = XlEnableSelection.xlNoSelection;
-
-                position = 1;
-                Range lastHour;
-                index = 1;
-                max = graphTableCollection.Count;
-                foreach (DataTableInfo tableInfo in graphTableCollection)
-                {
-                    updateStatus("Graph tables", index, max);
-                    position = WriteDataTable(graphSheet, tableInfo, position);
-                    lastHour = graphSheet.Cells[position, tableInfo.HeaderIndexes.Item2];
-                    lastHour.EntireColumn.AutoFit();
-                    position += distanceBetweenTables;
-                    index++;
-                }
-
-                graphSheet.Range["A1"].EntireColumn.AutoFit();
-
-                range = graphSheet.Range["A1:K1"];
-                graphLeft = range.Width;
-                // Width is calculated by columns for now (parameter 10 doesn't do anything)
-                WriteGraphChart(graphSheet, graphTableCollection[0], 10, 15, 1);
-
-                // Duplicated graph
-                services.UpdateWorkStatus("Exporting duplicated graph times");
-                _Worksheet duplicatesSheet = CreateNewSheet(wb, "Duplicated Graph Stats", 3);
-                duplicatesSheet.EnableSelection = XlEnableSelection.xlNoSelection;
-
-                WriteDuplicatesList(duplicatesSheet, duplicatedTimes, 1);
-
-                range = duplicatesSheet.Range["A1:D1"];
-                duplicatedChartLeft = range.Width;
-                WriteDuplicatesChart(duplicatesSheet, duplicatedTimes.Count, 17, 15);
-
-                // Frequency table
-                services.UpdateWorkStatus("Exporting frequencies");
-                _Worksheet frequencySheet = CreateNewSheet(wb, "Frequenies", 4);
-                frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
-                int pos = 1;
-                foreach (DataTableInfo tableInfo in frequenciesCollection)
-                {
-                    pos = WriteFrequencyTable(frequencySheet, tableInfo, pos);
-                }
-
-                // Autofit first column (In case the total hour is not round we will get 'Last x minutes' in the last table and we need autofit for that)
-                Range start = frequencySheet.Cells[1, 1];
-                start.EntireColumn.AutoFit();
-
-                // Autofit every second column (ones which have 'frequency' in title)
-                for (int i = 1; i <= frequenciesCollection[0].Table.Columns.Count; i++)
-                {
-                    if (i % 2 == 0)
-                    {
-                        start = frequencySheet.Cells[1, i];
-                        start.EntireColumn.AutoFit();
-                    }
-                }
-
-                // Custom frequency ranges
-                if (customFrequenciesCollection != null)
-                {
-                    services.UpdateWorkStatus("Exporting custom frequency ranges");
-                    _Worksheet customFrequencySheet = CreateNewSheet(wb, "Frequency ranges", 5);
-                    frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
-                    pos = 1;
-                    foreach (DataTableInfo tableInfo in customFrequenciesCollection)
-                    {
-                        pos = WriteCustomFrequencyTable(customFrequencySheet, tableInfo, pos);
-                        if (tableInfo.IsTotal)
-                        {
-                            // chartTop = WriteStatChart(statsSheet, tableInfo, 5, 10, tableCount, chartTop);
-                            ChartObjects charts = customFrequencySheet.ChartObjects();
-                            ChartObject chartObject = charts.Add(chartLeft, 1, 17 * cellWidth, 22 * cellHeight);
-                            Chart chart = chartObject.Chart;
-
-                            //range = GetRange(customFrequencySheet, 3, 1, tableInfo.Table.Rows.Count + 2, tableInfo.Table.Columns.Count - 2);
-                            range = GetRange(customFrequencySheet, 2, 1, tableInfo.Table.Rows.Count + 2, tableInfo.Table.Columns.Count - 2);
-                            chart.ChartWizard(
-                                range,
-                                XlChartType.xlColumnClustered,
-                                Title: tableInfo.Table.TableName,
-                                ValueTitle: "Frequency");
-                            foreach (Series series in chart.SeriesCollection())
-                            {
-                                series.HasDataLabels = true;
-                            }
-                            chart.HasLegend = true;
-                            chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
-                            Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
-                            //range = GetRange(customFrequencySheet, 2, 1, 2, tableInfo.Table.Columns.Count - 2);
-                            //xAxis.CategoryNames = range;
-                        }
-                    }
-
-                    // Autofit first column (In case the total hour is not round we will get 'Last x minutes' in the last table and we need autofit for that)
-                    start = customFrequencySheet.Cells[1, 1];
-                    start.EntireColumn.AutoFit();
-
-                    // Autofit every second column (ones which have 'frequency' in title)
-                    for (int i = 1; i <= customFrequenciesCollection[0].Table.Columns.Count; i++)
-                    {
-                        if (i % 2 == 0)
-                        {
-                            start = customFrequencySheet.Cells[1, i];
-                            start.EntireColumn.AutoFit();
-                        }
-                    }
-                }
-
-                // If cluster separation time was set other than 0 we want to generate cluster data
-                if (options.ClusterSeparationTimeInSeconds != 0) 
-                {
-                    // Clusters
-                    services.UpdateWorkStatus("Exporting clusters");
-                    _Worksheet clusterSheet = CreateNewSheet(wb, "Clusters", 5);
-                    frequencySheet.EnableSelection = XlEnableSelection.xlNoSelection;
-
-                    // Write cluster raw data
-                    WriteClusterData(clusterSheet, nonMarkedTimeStamps, 1);
-
-                    // Mark cluster ends with red color
-                    for (int i = 0; i < clusterLocation.Count; i++)
-                    {
-                        formatRange = clusterSheet.Range[$"A{clusterLocation[i]}:B{clusterLocation[i]}"];
-                        formatRange.Interior.Color = clusterColor;
-                    }
-
-                    // Color each phase in cluster with appropriate color
-                    for (int i = 0; i < clusterColorIndexState.Count; i++)
-                    {
-                        formatRange = clusterSheet.Range[$"A{clusterColorIndexState[i].Item1}:B{clusterColorIndexState[i].Item1}"];
-                        // We have array that corresponds each state to color, but since indexes in array start from 0 we have to substract 1 from state for mapping
-                        formatRange.Interior.Color = clusterColorsForEachState[clusterColorIndexState[i].Item2 - 1];
-                    }
-
-                    // Create graph charts
-                    position = 1;
-                    index = 1;
-                    max = graphTableCollectionForClusters.Count;
-                    foreach (DataTableInfo tableInfo in graphTableCollectionForClusters)
-                    {
-                        updateStatus("Graph tables for clusters", index, max);
-                        position = WriteDataTable(clusterSheet, tableInfo, position, 5);
-                        lastHour = graphSheet.Cells[position, tableInfo.HeaderIndexes.Item2];
-                        lastHour.EntireColumn.AutoFit();
-                        position += distanceBetweenTables;
-                        index++;
-                    }
-
-                    clusterSheet.Range["E1"].EntireColumn.AutoFit();
-
-                    range = graphSheet.Range["A1:K1"];
-                    graphLeft = range.Width;
-                    // Width is calculated by columns for now (parameter 10 doesn't do anything)
-                    WriteGraphChartForCluster(clusterSheet, graphTableCollectionForClusters[0], 15, 1);
-                }
-
-                wb.Sheets[1].Select(Type.Missing);
-                excel.Visible = true;
-                excel.UserControl = true;
-            });
-            services.SetWorkStatus(false);
-        }
-         */
     }
 }

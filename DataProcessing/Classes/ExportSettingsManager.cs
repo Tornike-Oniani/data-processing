@@ -49,7 +49,7 @@ namespace DataProcessing.Classes
             get { return _exportSelectedPeriod; }
             set { _exportSelectedPeriod = value; OnPropertyChanged("ExportSelectedPeriod"); }
         }
-        // Check if user wishes to set filename on clipboard (We need this becasue file name can't be set on opened excel file by interop)
+        // Check if user wishes to set filename on clipboard (We need this because file name can't be set on opened excel file by interop)
         public bool SetNameToClipboard { get; set; }
         // By what time margin should we define clusters (For example every time wakefulness is more than 10min)
         public int ClusterSeparationTime { get; set; }
@@ -74,6 +74,7 @@ namespace DataProcessing.Classes
             {
                 // Init
                 TimeMark = SelectedTimeMark,
+                TimeMarkInSeconds = (int)(SelectedTimeMark * 3600),
                 MaxStates = MaxStates,
                 From = From,
                 Till = Till,
@@ -115,19 +116,11 @@ namespace DataProcessing.Classes
 
             // 4. Export to excel
             DataProcessor dataProcessor = new DataProcessor(markedRecords, nonMarkedRecords, exportOptions);
-            TableCreator tableCreator = new TableCreator(dataProcessor.Calculate(), exportOptions, markedRecords, nonMarkedRecords);
-            await new ExcelManager
-                (
+            await new ExcelManager(
                 exportOptions,
-                tableCreator.CreateRawDataTable(),
-                tableCreator.CreateLatencyTable(),
-                tableCreator.CreateStatTables(),
-                tableCreator.CreateGraphTables(),
-                tableCreator.CreateDuplicatesTable(),
-                tableCreator.CreateFrequencyTables(),
-                tableCreator.CreateCustomFrequencyTables(),
-                tableCreator.CreateClusterDataTable(),
-                tableCreator.CreateGraphTablesForClusters()
+                dataProcessor.Calculate(),
+                markedRecords,
+                nonMarkedRecords
                 ).ExportToExcelC();
 
             if (SetNameToClipboard)

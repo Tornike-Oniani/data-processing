@@ -41,7 +41,7 @@ namespace DataProcessing.Classes
             decorator = new TableDecorator(options.MaxStates);
         }
 
-        // Public table collection creators
+        // Public table creators
         public ExcelTable CreateRawDataTable()
         {
             int rowCount = timeStamps.Count;
@@ -105,7 +105,7 @@ namespace DataProcessing.Classes
             string tableName;
             foreach (KeyValuePair<int, Stats> hourAndStat in calculatedData.hourAndStats)
             {
-                tableName = $"{counter}ep";
+                tableName = $"{counter} episode";
                 tables.Add(CreateStatTable(tableName, hourAndStat.Value, false));
                 counter++;
             }
@@ -118,10 +118,10 @@ namespace DataProcessing.Classes
             List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create graph tables
-            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, calculatedData.hourAndStats));
-            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, calculatedData.hourAndStats));
-            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, calculatedData.hourAndStats));
-            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, calculatedData.hourAndStats));
+            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, false));
+            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, false));
+            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, false));
+            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, false));
 
             // Decorate collection and return it
             return tables;
@@ -212,10 +212,10 @@ namespace DataProcessing.Classes
             List<ExcelTable> tables = new List<ExcelTable>();
 
             // Create graph tables
-            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, calculatedData.clusterAndStats));
-            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, calculatedData.clusterAndStats));
-            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, calculatedData.clusterAndStats));
-            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, calculatedData.clusterAndStats));
+            tables.Add(CreateGraphTable("Percentages %", GraphTableDataType.Percentages, true));
+            tables.Add(CreateGraphTable("Minutes", GraphTableDataType.Minutes, true));
+            tables.Add(CreateGraphTable("Seconds", GraphTableDataType.Seconds, true));
+            tables.Add(CreateGraphTable("Numbers", GraphTableDataType.Numbers, true));
 
             // Decorate collection and return it
             return tables;
@@ -224,11 +224,12 @@ namespace DataProcessing.Classes
         // Single table helper creators
         private ExcelTable CreateStatTable(string name, Stats stats, bool isTotal)
         {
-            // Header + all the phases + optional criterias
+            // Header + all the phases + optional criterias + total row if its total
             int rowCount =
                 calculatedData.stateAndPhases.Count +
                 options.Criterias.Count(c => c.Value != null) +
-                1;
+                1 +
+                (isTotal ? 1 : 0);
             object[,] data = new object[rowCount, 5];
 
             // Set title
@@ -279,12 +280,14 @@ namespace DataProcessing.Classes
             return decorator.DecorateStatTable(data, _criteriaNumber);
         }
         // Division can be either hourAndStats or clusterAndStats
-        private ExcelTable CreateGraphTable(string name, GraphTableDataType dataType, Dictionary<int, Stats> division)
+        private ExcelTable CreateGraphTable(string name, GraphTableDataType dataType, bool isCluster)
         {
+            Dictionary<int, Stats> division = isCluster ? calculatedData.clusterAndStats : calculatedData.hourAndStats;
+
             // Header + phases
             int rowCount = calculatedData.stateAndPhases.Count + 1;
             // Phases + each hour mark
-            int colCount = calculatedData.hourAndStats.Count + 1;
+            int colCount = division.Count + 1;
             object[,] data = new object[rowCount, colCount];
 
             // Set title
@@ -295,7 +298,7 @@ namespace DataProcessing.Classes
             int colIndex = 1;
             foreach (KeyValuePair<int, Stats> hourAndStat in division)
             {
-                data[0, colIndex] = $"{colIndex}ep";
+                data[0, colIndex] = $"{colIndex}" + (isCluster ? "cl" : "ep");
                 colIndex++;
             }
 
@@ -407,7 +410,7 @@ namespace DataProcessing.Classes
                 colIndex = 0;
             }
 
-            return decorator.DecorateFrequencyTable(data);
+            return decorator.DecorateFrequencyTable(data, isTotal);
         }
         private ExcelTable CreateCustomFrequencyTable(string name, Dictionary<int, Dictionary<string, int>> stateCustomFrequencies, bool isTotal = false)
         {
@@ -451,32 +454,11 @@ namespace DataProcessing.Classes
                     data[rowIndex, colIndex] = frequency;
                     colIndex++;
                 }
+                colIndex = 0;
                 rowIndex++;
             }
 
-            return decorator.DecorateCustomFrequencyTable(data, options.customFrequencyRanges.Count);
-        }
-
-        // Small helper functions
-        private string getCriteriaLabel(SpecificCriteria criteria)
-        {
-            return $"{calculatedData.stateAndPhases[criteria.State]} {criteria.GetOperandValue()} {criteria.Value}";
-        }
-        private string getTimeForStats(int seconds)
-        {
-            if (seconds % 3600 == 0) { return $"hour {seconds / 3600}"; }
-
-            TimeSpan span = TimeSpan.FromSeconds(seconds);
-            if (span.TotalHours < 1) { return $"Last {Math.Round(span.TotalMinutes)} minutes"; }
-            return $"Last {span.Hours} hours and {span.Minutes} minutes";
-        }
-        private string getTimeForGraph(int seconds)
-        {
-            if (seconds % 3600 == 0) { return $"{seconds / 3600}hr"; }
-
-            TimeSpan span = TimeSpan.FromSeconds(seconds);
-            if (span.TotalHours < 1) { return $"Last {Math.Round(span.TotalMinutes)} minutes"; }
-            return $"Last {span.Hours}hr {span.Minutes} min";
+            return decorator.DecorateCustomFrequencyTable(data, options.customFrequencyRanges.Count, isTotal);
         }
     }
 }

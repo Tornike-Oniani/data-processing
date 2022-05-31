@@ -8,6 +8,8 @@ namespace DataProcessing.Classes.Export
     {
         // Table data that should be written on excel file
         protected object[,] _data;
+        // Range where column names are set, used to right align
+        private ExcelRange _headerRange;
         // List of all colors and ranges that will be used for decorating this table
         // in excel file. We keep here name of the color as key and value all the ranges
         // that should be colored with that color. Here the color is string but in excel
@@ -32,13 +34,17 @@ namespace DataProcessing.Classes.Export
 
             ColorRanges[colorName].Add(range);
         }
+        public void SetHeaderRange(int startRow, int startColumn, int endRow, int endColumn)
+        {
+            this._headerRange = new ExcelRange(startRow, startColumn, endRow, endColumn);
+        }
 
         // IExportable interface
         public virtual int ExportToSheet(_Worksheet sheet, int verticalPosition, int horizontalPosition)
         {
             WriteData(sheet, verticalPosition, horizontalPosition);
             Decorate(sheet, verticalPosition, horizontalPosition);
-            return verticalPosition + _data.GetLength(1);
+            return verticalPosition + _data.GetLength(0);
         }
 
         // Main export functions
@@ -67,6 +73,7 @@ namespace DataProcessing.Classes.Export
                 // Get appropriate color from dictionary
                 color = ExcelResources.GetInstance().Colors[colorName];
 
+                // Set colors
                 foreach (ExcelRange range in ranges)
                 {
                     // Set relative positions (ColorRange keeps track of ranges relative to table disregarding current position on excel)
@@ -79,6 +86,15 @@ namespace DataProcessing.Classes.Export
                     excRange = GetRange(sheet, startRow, startColumn, endRow, endColumn);
                     excRange.Interior.Color = color;
                 }
+
+                // Set right alignment to header
+                if (_headerRange == null) { continue; }
+                startRow = _headerRange.StartRow + verticalPosition;
+                startColumn = _headerRange.StartColumn + horizontalPosition;
+                endRow = _headerRange.EndRow + verticalPosition;
+                endColumn = _headerRange.EndColumn + horizontalPosition;
+                excRange = GetRange(sheet, startRow, startColumn, endRow, endColumn);
+                excRange.HorizontalAlignment = XlHAlign.xlHAlignRight;
             }
         }
 
