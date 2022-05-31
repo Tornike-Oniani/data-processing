@@ -32,7 +32,6 @@ namespace DataProcessing.Classes.Export
                 (2 * excelResources.CellWidth);
             double topPos = 1;
 
-            // Get range to determine width of chart
             ChartObjects charts = sheet.ChartObjects();
             ChartObject chartObject = charts.Add(leftPos, topPos, chartWidth, chartHeight);
             Chart chart = chartObject.Chart;
@@ -42,23 +41,19 @@ namespace DataProcessing.Classes.Export
                 verticalPosition + 2,
                 horizontalPosition,
                 verticalPosition + _data.GetLength(0) - 1,
-                horizontalPosition + _data.GetLength(1) - 1);
+                horizontalPosition + _data.GetLength(1));
             chart.ChartWizard(
                 range,
                 XlChartType.xlColumnClustered,
-                PlotBy: XlRowCol.xlRows,
-                Title: _data[0, 0].ToString(),
-                ValueTitle: "Percents");
+                Title: _data[0,0],
+                ValueTitle: "Frequency");
+            foreach (Series series in chart.SeriesCollection())
+            {
+                series.HasDataLabels = true;
+            }
             chart.HasLegend = true;
             chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
             Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
-            range = GetRange(
-                sheet,
-                verticalPosition + 1,
-                horizontalPosition + 1,
-                verticalPosition + 1,
-                horizontalPosition + _data.GetLength(1) - 1);
-            xAxis.CategoryNames = range;
         }
     }
 }
