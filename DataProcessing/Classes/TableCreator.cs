@@ -272,7 +272,7 @@ namespace DataProcessing.Classes
                 data[rowIndex, 0] = $"{calculatedData.stateAndPhases[criteria.State]} {criteria.GetOperandValue()} {criteria.Value}";
                 data[rowIndex, 1] = stats.SpecificTimes[criteria];
                 data[rowIndex, 2] = Math.Round((double)stats.SpecificTimes[criteria] / 60, 2);
-                data[rowIndex, 3] = stats.SpecificNumbers[criteria];
+                data[rowIndex, 4] = stats.SpecificNumbers[criteria];
                 rowIndex++;
             }
 
