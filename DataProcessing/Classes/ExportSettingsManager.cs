@@ -3,8 +3,6 @@ using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -27,13 +25,12 @@ namespace DataProcessing.Classes
         // Max number of states (can be 2 or 3 (in future we might also add 4))
         public List<int> States { get; set; }
         public int SelectedState { get; set; }
-        public int MaxStates { get; set; }
         // Selected period from data to process
         public TimeSpan From
         {
             get { return _from; }
             set { _from = value; OnPropertyChanged("From"); }
-        }     
+        }
         public TimeSpan Till
         {
             get { return _till; }
@@ -68,7 +65,6 @@ namespace DataProcessing.Classes
             this.SelectedTimeMark = TimeMarks[3];
             this.States = new List<int>() { 2, 3 };
             this.SelectedState = States[1];
-            this.MaxStates = 3;
 
             // Set up commands
             ExportCommand = new RelayCommand(Export);
@@ -76,6 +72,29 @@ namespace DataProcessing.Classes
 
         public async void Export(object input = null)
         {
+            List<SpecificCriteria> criterias = new List<SpecificCriteria>();
+            if (SelectedState == 3)
+            {
+                criterias = new List<SpecificCriteria>()
+                {
+                    new SpecificCriteria() { State = SelectedState, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 2, Operand = "Below", Value = SleepBelow },
+                    new SpecificCriteria() { State = 1, Operand = "Below", Value = ParadoxicalSleepBelow },
+                    new SpecificCriteria() { State = SelectedState, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
+                    new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
+                };
+            }
+            else if (SelectedState == 2)
+            {
+                criterias = new List<SpecificCriteria>()
+                {
+                    new SpecificCriteria() { State = SelectedState, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 1, Operand = "Below", Value = SleepBelow },
+                    new SpecificCriteria() { State = SelectedState, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 1, Operand = "Above", Value = SleepAbove },
+                };
+            }
             ExportOptions exportOptions = new ExportOptions()
             {
                 // Init
@@ -85,18 +104,12 @@ namespace DataProcessing.Classes
                 From = From,
                 Till = Till,
                 // Set up criterias for processing
-                Criterias = new List<SpecificCriteria>()
-                {
-                    new SpecificCriteria() { State = MaxStates, Operand = "Below", Value = WakefulnessBelow },
-                    new SpecificCriteria() { State = 2, Operand = "Below", Value = SleepBelow },
-                    new SpecificCriteria() { State = 1, Operand = "Below", Value = ParadoxicalSleepBelow },
-                    new SpecificCriteria() { State = MaxStates, Operand = "Above", Value = WakefulnessAbove },
-                    new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
-                    new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
-                },
+                Criterias = criterias,
                 customFrequencyRanges = customFrequencyRanges,
                 ClusterSeparationTimeInSeconds = ClusterSeparationTime * 60
             };
+
+            ExcelResources.GetInstance().MaxStates = SelectedState;
 
             List<TimeStamp> markedRecords;
             if (ExportSelectedPeriod)

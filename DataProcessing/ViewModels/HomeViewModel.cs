@@ -7,9 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -35,8 +32,8 @@ namespace DataProcessing.ViewModels
         public string Search
         {
             get { return _search; }
-            set 
-            { 
+            set
+            {
                 _search = value;
                 _workfilesCollection.View.Refresh();
                 OnPropertyChanged("Search");
@@ -105,11 +102,11 @@ namespace DataProcessing.ViewModels
             workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
 
             // 3. Check file for errors
-            ExcelManager excelManager = new ExcelManager(new ExportOptions(), null, null, null);
+            ExcelManager excelManager = new ExcelManager();
             List<int> errorRows = new List<int>();
             try
             {
-                
+
                 errorRows = await excelManager.CheckExcelFile(file);
             }
             catch (Exception e)
@@ -173,5 +170,5 @@ namespace DataProcessing.ViewModels
                 Workfiles.Add(workfile);
             }
         }
-    } 
+    }
 }

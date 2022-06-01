@@ -1,20 +1,14 @@
-﻿using System;
+﻿using DataProcessing.Classes.Export;
+using DataProcessing.Models;
+using DataProcessing.Utils;
+using Microsoft.Office.Interop.Excel;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
-using DataProcessing.Classes.Export;
-using DataProcessing.Models;
-using DataProcessing.Repositories;
-using DataProcessing.Utils;
-using Microsoft.Office.Interop.Excel;
 
 namespace DataProcessing.Classes
 {
@@ -41,7 +35,12 @@ namespace DataProcessing.Classes
         private int sheetNumber;
         private Range formatRange;
 
-        // Constructor
+        // Constructor for importing
+        public ExcelManager()
+        {
+
+        }
+        // Constructor for exporting
         public ExcelManager(
             ExportOptions options,
             CalculatedData data,
@@ -255,13 +254,13 @@ namespace DataProcessing.Classes
 
                 // Supposed to clean excel from memory but fails miserably
                 Process excelProcess = GetExcelProcess(excel);
-                while (Marshal.ReleaseComObject(allRows) > 0);
-                while (Marshal.ReleaseComObject(targetCells) > 0);
-                while (Marshal.ReleaseComObject(targetRange) > 0);
+                while (Marshal.ReleaseComObject(allRows) > 0) ;
+                while (Marshal.ReleaseComObject(targetCells) > 0) ;
+                while (Marshal.ReleaseComObject(targetRange) > 0) ;
                 allRows = null;
                 targetCells = null;
                 targetRange = null;
-                while (Marshal.ReleaseComObject(worksheet) > 0);
+                while (Marshal.ReleaseComObject(worksheet) > 0) ;
                 worksheet = null;
                 excel.Workbooks.Close();
                 while (Marshal.ReleaseComObject(workbook) > 0) ;

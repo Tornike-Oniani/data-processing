@@ -1,9 +1,4 @@
 ﻿using Microsoft.Office.Interop.Excel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataProcessing.Classes.Export
 {
@@ -40,7 +35,7 @@ namespace DataProcessing.Classes.Export
                 sheet,
                 verticalPosition + 1,
                 horizontalPosition + 3,
-                verticalPosition + 3,
+                verticalPosition + excelResources.MaxStates,
                 horizontalPosition + 3
                 );
 
@@ -59,10 +54,10 @@ namespace DataProcessing.Classes.Export
 
             // Get relatice phases range
             range = GetRange(
-                sheet, 
-                verticalPosition + 1, 
-                1, 
-                verticalPosition + 3,
+                sheet,
+                verticalPosition + 1,
+                1,
+                verticalPosition + excelResources.MaxStates,
                 1);
             xAxis.CategoryNames = range;
         }

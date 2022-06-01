@@ -1,9 +1,4 @@
 ﻿using Microsoft.Office.Interop.Excel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataProcessing.Classes.Export
 {
@@ -26,9 +21,9 @@ namespace DataProcessing.Classes.Export
             ExcelResources excelResources = ExcelResources.GetInstance();
             double chartWidth = excelResources.CellWidth * 10;
             double chartHeight = excelResources.CellHeight * 15;
-            double leftPos = 
-                ((horizontalPosition - 1) * excelResources.CellWidth) + 
-                (excelResources.CellWidth * _data.GetLength(1)) + 
+            double leftPos =
+                ((horizontalPosition - 1) * excelResources.CellWidth) +
+                (excelResources.CellWidth * _data.GetLength(1)) +
                 (2 * excelResources.CellWidth);
             double topPos = 1;
 
@@ -41,7 +36,7 @@ namespace DataProcessing.Classes.Export
                 sheet,
                 verticalPosition + 1,
                 horizontalPosition,
-                verticalPosition + 3,
+                verticalPosition + excelResources.MaxStates,
                 horizontalPosition + _data.GetLength(1) - 1);
             chart.ChartWizard(
                 range,
@@ -53,10 +48,10 @@ namespace DataProcessing.Classes.Export
             chart.Legend.Position = XlLegendPosition.xlLegendPositionBottom;
             Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
             range = GetRange(
-                sheet, 
-                verticalPosition, 
-                horizontalPosition + 1, 
-                verticalPosition, 
+                sheet,
+                verticalPosition,
+                horizontalPosition + 1,
+                verticalPosition,
                 horizontalPosition + _data.GetLength(1) - 1);
             xAxis.CategoryNames = range;
         }

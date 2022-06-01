@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataProcessing.Classes
 {
@@ -38,5 +34,7 @@ namespace DataProcessing.Classes
         };
         public double CellWidth { get; private set; } = 48;
         public double CellHeight { get; private set; } = 15;
+        // this is temoprarily here (I should consider making ExportOptions singleton)
+        public int MaxStates { get; set; }
     }
 }

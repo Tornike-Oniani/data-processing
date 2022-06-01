@@ -2,8 +2,8 @@
 using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Data;
+using System.Linq;
 
 namespace DataProcessing.Classes
 {
@@ -120,7 +120,7 @@ namespace DataProcessing.Classes
                 foreach (KeyValuePair<string, int[]> range in options.customFrequencyRanges)
                 {
                     if (
-                        currentTimeStamp.TimeDifferenceInSeconds >= range.Value[0] && 
+                        currentTimeStamp.TimeDifferenceInSeconds >= range.Value[0] &&
                         currentTimeStamp.TimeDifferenceInSeconds <= range.Value[1])
                     {
                         totalCustomFrequencies[currentTimeStamp.State][range.Key] += 1;
@@ -141,14 +141,14 @@ namespace DataProcessing.Classes
                 // Calculate time before first sleep and paradoxical sleep (Latency)
                 if (!foundFirstSleep)
                 {
-                    if (currentTimeStamp.State == 2)
+                    if (currentTimeStamp.State == calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Sleep").Key)
                         foundFirstSleep = true;
                     else
                         calculatedData.timeBeforeFirstSleep += currentTimeStamp.TimeDifferenceInSeconds;
                 }
                 if (!foundFirstParadoxicalSleep)
                 {
-                    if (currentTimeStamp.State == 1)
+                    if (currentTimeStamp.State == calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Paradoxical sleep").Key)
                         foundFirstParadoxicalSleep = true;
                     else
                         calculatedData.timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
@@ -203,7 +203,7 @@ namespace DataProcessing.Classes
             }
 
             // Do last part (might be less than marked time)
-            if (hourRegion.Count != 0) 
+            if (hourRegion.Count != 0)
             {
                 currentHour++;
                 calculatedData.hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
@@ -234,7 +234,7 @@ namespace DataProcessing.Classes
                 curTimeStamp = nonMarkedTimeStamps[i];
 
                 // If we found end of the cluster calculate its stats and add it to dictionary
-                if (curTimeStamp.TimeDifferenceInSeconds >= options.ClusterSeparationTimeInSeconds && curTimeStamp.State == 3)
+                if (curTimeStamp.TimeDifferenceInSeconds >= options.ClusterSeparationTimeInSeconds && curTimeStamp.State == options.MaxStates)
                 {
                     // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it
                     // This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end

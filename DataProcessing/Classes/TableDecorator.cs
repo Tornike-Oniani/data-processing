@@ -2,8 +2,6 @@
 using DataProcessing.Models;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 
 namespace DataProcessing.Classes
 {
@@ -31,8 +29,8 @@ namespace DataProcessing.Classes
                 // If timestamp was added programatically for 10am purposes color it yellow
                 if (cur.IsMarker) { table.AddColor("Yellow", new ExcelRange(i, 0, i, 4)); }
                 // If we naturally reached the end of episode color it green
-                if (time == timeMarkInSeconds) 
-                { 
+                if (time == timeMarkInSeconds)
+                {
                     table.AddColor("Green", new ExcelRange(i, 0, i, 4));
                     time = 0;
                 }
@@ -141,22 +139,23 @@ namespace DataProcessing.Classes
             ExcelTable table = new ExcelTable(data);
             TimeStamp cur;
             ExcelRange cRange;
+            ExcelResources excelResources = ExcelResources.GetInstance();
             // Go through timestamps and add appropriate coloring
             for (int i = 0; i < timeStamps.Count; i++)
             {
                 cRange = new ExcelRange(i, 0, i, 1);
                 cur = timeStamps[i];
                 // Cluster time and wakefulness - dark red
-                if (cur.TimeDifferenceInSeconds >= clusterTime && cur.State == 3)
+                if (cur.TimeDifferenceInSeconds >= clusterTime && cur.State == excelResources.MaxStates)
                     table.AddColor("DarkRed", cRange);
                 // Wakefulness - red
-                else if (cur.State == 3)
+                else if (cur.State == excelResources.MaxStates)
                     table.AddColor("Red", cRange);
                 // Sleep - yellow
-                else if (cur.State == 2)
+                else if (cur.State == excelResources.MaxStates - 1)
                     table.AddColor("Yellow", cRange);
                 // PS - green
-                else if (cur.State == 1)
+                else if (cur.State == excelResources.MaxStates - 2)
                     table.AddColor("Green", cRange);
             }
 
