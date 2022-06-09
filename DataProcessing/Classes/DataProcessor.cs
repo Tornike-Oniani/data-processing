@@ -169,8 +169,6 @@ namespace DataProcessing.Classes
                 if (time == options.TimeMark)
                 {
                     currentHour++;
-                    //hourRowIndexes.Add(i + 1);
-                    //hourRowIndexesTime.Add(new Tuple<int, string>(i + 1, $"Hour {currentHour * options.TimeMark}"));
                     calculatedData.hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
                     calculatedData.hourStateFrequencies.Add(hourFrequencies);
                     calculatedData.hourStateCustomFrequencies.Add(hourCustomFrequencies);
@@ -209,8 +207,6 @@ namespace DataProcessing.Classes
                 calculatedData.hourAndStats.Add(currentHour, CalculateStats(hourRegion, false));
                 calculatedData.hourStateFrequencies.Add(hourFrequencies);
                 calculatedData.hourStateCustomFrequencies.Add(hourCustomFrequencies);
-                //hourRowIndexes.Add(lastHourIndex);
-                //hourRowIndexesTime.Add(new Tuple<int, string>(lastHourIndex, getTimeForStats(hourAndStats.Last().Value.TotalTime)));
             }
 
             // Calculate stats for clusters
@@ -291,7 +287,7 @@ namespace DataProcessing.Classes
 
             foreach (int state in calculatedData.stateAndPhases.Keys)
             {
-                result.StateTimes.Add(state, calculateStateTime(region, state));
+                result.StateTimes.Add(state, calculateStateTime(region, state, forTotal));
                 result.StateNumber.Add(state, calculateStateNumber(region, state, forTotal));
             }
             result.CalculatePercentages();
@@ -301,26 +297,31 @@ namespace DataProcessing.Classes
                 // Skip nonexistent crietrias
                 if (criteria.Value == null) { continue; }
 
-                result.SpecificTimes.Add(criteria, calculateStateCriteriaTime(region, criteria));
+                result.SpecificTimes.Add(criteria, calculateStateCriteriaTime(region, criteria, forTotal));
                 result.SpecificNumbers.Add(criteria, calculateStateCriteriaNumber(region, criteria, forTotal));
             }
 
             return result;
         }
 
-        private int calculateStateTime(List<TimeStamp> region, int state)
+        private int calculateStateTime(List<TimeStamp> region, int state, bool forTotal)
         {
+            if (forTotal)
+            {
+                return nonMarkedTimeStamps.Where((sample) => sample.State == state).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
+            }
+
             return region.Where((sample) => sample.State == state).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
         }
         private int calculateStateNumber(List<TimeStamp> region, int state, bool forTotal = false)
         {
             if (forTotal)
             {
-                return region.Count(sample => sample.State == state && !sample.IsMarker && !sample.IsTimeMarked);
+                return nonMarkedTimeStamps.Count(sample => sample.State == state && !sample.IsMarker && !sample.IsTimeMarked);
             }
             return region.Count(sample => sample.State == state);
         }
-        private int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria)
+        private int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria, bool forTotal)
         {
             if (criteria.Operand == "Below")
             {
@@ -336,14 +337,22 @@ namespace DataProcessing.Classes
             {
                 if (forTotal)
                 {
-                    return samples.Count(sample => sample.State == criteria.State && !sample.IsMarker && !sample.IsTimeMarked && sample.TimeDifferenceInSeconds <= criteria.Value);
+                    return nonMarkedTimeStamps.Count(
+                        sample => sample.State == criteria.State && 
+                                  !sample.IsMarker && 
+                                  !sample.IsTimeMarked && 
+                                  sample.TimeDifferenceInSeconds <= criteria.Value);
                 }
                 return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value);
             }
 
             if (forTotal)
             {
-                return samples.Count(sample => sample.State == criteria.State && !sample.IsMarker && !sample.IsTimeMarked && sample.TimeDifferenceInSeconds >= criteria.Value);
+                return nonMarkedTimeStamps.Count(
+                    sample => sample.State == criteria.State && 
+                              !sample.IsMarker && 
+                              !sample.IsTimeMarked && 
+                              sample.TimeDifferenceInSeconds >= criteria.Value);
             }
             return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value);
         }

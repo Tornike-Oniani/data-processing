@@ -19,6 +19,7 @@ namespace DataProcessing.Classes
 
         // Public properties
         // All available timemarks for user to choose from combobox (10min, 20min, 1hr, 2hr, 4hr)
+        // we use function to convert string to seconds
         public List<string> TimeMarks { get; set; }
         // We use converter method (see below) to convert string from TimeMarks list into seconds
         public string SelectedTimeMark { get; set; }
@@ -61,7 +62,7 @@ namespace DataProcessing.Classes
         {
             // Init
             // 10min, 20min, 1hr, 2hr and 4hr in seconds
-            this.TimeMarks = new List<string>() { "10min", "20min", "30min", "1hr", "2hr", "4hr" };
+            this.TimeMarks = new List<string>() { "10min", "15min", "20min", "30min", "1hr", "2hr", "4hr" };
             this.SelectedTimeMark = TimeMarks[3];
             this.States = new List<int>() { 2, 3 };
             this.SelectedState = States[1];
@@ -239,6 +240,8 @@ namespace DataProcessing.Classes
             {
                 case "10min":
                     return 600;
+                case "15min":
+                    return 900;
                 case "20min":
                     return 1200;
                 case "30min":
