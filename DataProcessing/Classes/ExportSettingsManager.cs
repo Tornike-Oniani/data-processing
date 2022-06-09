@@ -181,11 +181,6 @@ namespace DataProcessing.Classes
                 else
                     markSum += span + new TimeSpan(24, 0, 0) - records[i - 1].Time;
 
-                if (span == new TimeSpan(23, 50, 16))
-                {
-                    Console.WriteLine("Break point");
-                }
-
                 // If sum exceeds one hour
                 if (markSum > markCap)
                 {

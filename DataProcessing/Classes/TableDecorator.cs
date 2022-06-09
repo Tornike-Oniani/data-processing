@@ -31,7 +31,10 @@ namespace DataProcessing.Classes
                 // If we naturally reached the end of episode color it green
                 if (time == timeMarkInSeconds)
                 {
-                    table.AddColor("Green", new ExcelRange(i, 0, i, 4));
+                    if (!cur.IsTimeMarked && !cur.IsMarker)
+                    {
+                        table.AddColor("Green", new ExcelRange(i, 0, i, 4));
+                    }
                     time = 0;
                 }
                 // If we passed natural end of episode without marking it throw exception
