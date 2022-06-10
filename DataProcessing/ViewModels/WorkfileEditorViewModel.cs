@@ -1,13 +1,10 @@
 ﻿using DataProcessing.Classes;
 using DataProcessing.Models;
-using DataProcessing.Repositories;
 using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -52,19 +49,19 @@ namespace DataProcessing.ViewModels
             get { return _isRangeEntryFocused; }
             set { _isRangeEntryFocused = value; OnPropertyChanged("IsRangeEntryFocused"); }
         }
-        public ObservableCollection<FrequencyRangeTemplate> FrequencyRangeTemplates { get; set; }    
+        public ObservableCollection<FrequencyRangeTemplate> FrequencyRangeTemplates { get; set; }
         public FrequencyRangeTemplate SelectedFrequencyRangeTemplate
         {
             get { return _selectedFrequencyRangeTemplate; }
-            set 
-            { 
-                _selectedFrequencyRangeTemplate = value; 
+            set
+            {
+                _selectedFrequencyRangeTemplate = value;
                 OnPropertyChanged("SelectedFrequencyRangeTemplate");
                 FrequencyRanges.Clear();
                 IsTemplateChanged = false;
                 if (_selectedFrequencyRangeTemplate == null) { IsTemplateSelected = false; return; }
                 IsTemplateSelected = true;
-                if( _selectedFrequencyRangeTemplate.FrequencyRanges == null) { return; }
+                if (_selectedFrequencyRangeTemplate.FrequencyRanges == null) { return; }
                 foreach (FrequencyRange range in _selectedFrequencyRangeTemplate.FrequencyRanges)
                 {
                     FrequencyRanges.Add(range);
@@ -84,9 +81,9 @@ namespace DataProcessing.ViewModels
         public int SelectedTabIndex
         {
             get { return _selectedTabIndex; }
-            set 
-            { 
-                _selectedTabIndex = value; 
+            set
+            {
+                _selectedTabIndex = value;
                 OnPropertyChanged("SelectedTabIndex");
                 if (value == 2)
                     SetExportSettings();
@@ -133,10 +130,26 @@ namespace DataProcessing.ViewModels
         // Command actions
         public void AddRange(object input = null)
         {
-            string[] rangeSplit = FrequencyRange.Split('-');
+            string[] rangeSplit = FrequencyRange.Trim().Split('-');
             // Check for incorrect range entry
-            if (rangeSplit.Length != 2 || !int.TryParse(rangeSplit[0], out _) || !int.TryParse(rangeSplit[1], out _)) { return; }
-            FrequencyRanges.Add(new FrequencyRange() { Range = FrequencyRange, TimeUnit = SelectedFrequencyTimeUnit });
+            if (
+                FrequencyRange.Trim().Any(Char.IsWhiteSpace) ||
+                rangeSplit.Length != 2 ||
+                !int.TryParse(rangeSplit[0], out _) ||
+                !int.TryParse(rangeSplit[1], out _)) { return; }
+
+            FrequencyRange range = new FrequencyRange() { Range = FrequencyRange, TimeUnit = SelectedFrequencyTimeUnit };
+
+            // Check for duplicate entry
+            if (FrequencyRanges.Any(r => r.Range == FrequencyRange && r.TimeUnit == SelectedFrequencyTimeUnit))
+            {
+                FrequencyRange = null;
+                IsRangeEntryFocused = false;
+                IsRangeEntryFocused = true;
+                return;
+            }
+
+            FrequencyRanges.Add(range);
             FrequencyRange = null;
             IsRangeEntryFocused = false;
             IsRangeEntryFocused = true;
@@ -164,7 +177,7 @@ namespace DataProcessing.ViewModels
                 return;
             }
 
-            FrequencyRangeTemplate newTemplate = new FrequencyRangeTemplate() { Name = templateName } ;
+            FrequencyRangeTemplate newTemplate = new FrequencyRangeTemplate() { Name = templateName };
             newTemplate.FrequencyRanges = FrequencyRanges.ToList();
             FrequencyRangeTemplates.Add(newTemplate);
             SelectedFrequencyRangeTemplate = newTemplate;
@@ -189,7 +202,7 @@ namespace DataProcessing.ViewModels
         }
         public void DeleteTemplate(object input = null)
         {
-            if(MessageBox.Show($"Are you sure you want to delete '{SelectedFrequencyRangeTemplate.Name}'?", "Delete template", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete '{SelectedFrequencyRangeTemplate.Name}'?", "Delete template", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 FrequencyRangeTemplates.Remove(SelectedFrequencyRangeTemplate);
                 frequencyRangeTemplateManager.SaveFrequencyRangeTemplates(FrequencyRangeTemplates.ToList());
@@ -236,15 +249,15 @@ namespace DataProcessing.ViewModels
                 rangeSplit = frequencyRange.Range.Split('-');
                 // Convert range into seconds
                 result.Add(frequencyRange.Range,
-                    new int[2] 
-                    { 
-                        int.Parse(rangeSplit[0]) * SelectedFrequencyTimeUnit, 
-                        int.Parse(rangeSplit[1]) * SelectedFrequencyTimeUnit 
+                    new int[2]
+                    {
+                        int.Parse(rangeSplit[0]) * SelectedFrequencyTimeUnit,
+                        int.Parse(rangeSplit[1]) * SelectedFrequencyTimeUnit
                     });
             }
             rangeSplit = ranges.Last().Range.Split('-');
             // Add more than last interval (if last interval is 15-20 we add >20)
-            result.Add($">{rangeSplit[1]}", 
+            result.Add($">{rangeSplit[1]}",
                 new int[2]
                 {
                     int.Parse(rangeSplit[1]) * SelectedFrequencyTimeUnit,
