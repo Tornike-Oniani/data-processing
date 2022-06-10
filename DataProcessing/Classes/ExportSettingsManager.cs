@@ -16,6 +16,7 @@ namespace DataProcessing.Classes
         private Dictionary<string, int[]> customFrequencyRanges;
         private TimeSpan _from;
         private TimeSpan _till;
+        private int _selectedState;
 
         // Public properties
         // All available timemarks for user to choose from combobox (10min, 20min, 1hr, 2hr, 4hr)
@@ -25,7 +26,24 @@ namespace DataProcessing.Classes
         public string SelectedTimeMark { get; set; }
         // Max number of states (can be 2 or 3 (in future we might also add 4))
         public List<int> States { get; set; }
-        public int SelectedState { get; set; }
+        public int SelectedState
+        {
+            get { return _selectedState; }
+            set
+            {
+                _selectedState = value;
+                // If user has set these criterias and then changed state to 2
+                // where these criterias don't exist then set them to null so they 
+                // won't be calculated (We also set Visibility to collapsed on UI
+                // with ValueConverter)
+                if (value == 2)
+                {
+                    ParadoxicalSleepBelow = null;
+                    ParadoxicalSleepAbove = null;
+                }
+                OnPropertyChanged("SelectedState");
+            }
+        }
         // Selected period from data to process
         public TimeSpan From
         {
