@@ -73,6 +73,7 @@ namespace DataProcessing.Classes
 
         public async void Export(object input = null)
         {
+            // Set specific criterias based on max states
             List<SpecificCriteria> criterias = new List<SpecificCriteria>();
             if (SelectedState == 3)
             {
@@ -96,6 +97,7 @@ namespace DataProcessing.Classes
                     new SpecificCriteria() { State = 1, Operand = "Above", Value = SleepAbove },
                 };
             }
+
             ExportOptions exportOptions = new ExportOptions()
             {
                 // Init
