@@ -297,8 +297,8 @@ namespace DataProcessing.Classes
                 // Skip nonexistent crietrias
                 if (criteria.Value == null) { continue; }
 
-                result.SpecificTimes.Add(criteria, calculateStateCriteriaTime(region, criteria, forTotal));
-                result.SpecificNumbers.Add(criteria, calculateStateCriteriaNumber(region, criteria, forTotal));
+                result.SpecificTimes.Add(criteria, calculateStateCriteriaTime(forTotal ? nonMarkedTimeStamps : region, criteria));
+                result.SpecificNumbers.Add(criteria, calculateStateCriteriaNumber(forTotal ? nonMarkedTimeStamps : region, criteria));
             }
 
             return result;
@@ -321,39 +321,26 @@ namespace DataProcessing.Classes
             }
             return region.Count(sample => sample.State == state);
         }
-        private int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria, bool forTotal)
+        private int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria)
         {
             if (criteria.Operand == "Below")
             {
                 return samples.Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
             }
 
-            return samples.Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
+            return samples
+                .Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value)
+                .Select((sample) => sample.TimeDifferenceInSeconds)
+                .Sum();
 
         }
-        private int calculateStateCriteriaNumber(List<TimeStamp> samples, SpecificCriteria criteria, bool forTotal = false)
+        private int calculateStateCriteriaNumber(List<TimeStamp> samples, SpecificCriteria criteria)
         {
             if (criteria.Operand == "Below")
             {
-                if (forTotal)
-                {
-                    return nonMarkedTimeStamps.Count(
-                        sample => sample.State == criteria.State && 
-                                  !sample.IsMarker && 
-                                  !sample.IsTimeMarked && 
-                                  sample.TimeDifferenceInSeconds <= criteria.Value);
-                }
                 return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value);
             }
 
-            if (forTotal)
-            {
-                return nonMarkedTimeStamps.Count(
-                    sample => sample.State == criteria.State && 
-                              !sample.IsMarker && 
-                              !sample.IsTimeMarked && 
-                              sample.TimeDifferenceInSeconds >= criteria.Value);
-            }
             return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value);
         }
         private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
