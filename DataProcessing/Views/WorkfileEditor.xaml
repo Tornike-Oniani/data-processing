@@ -20,19 +20,17 @@
     </UserControl.Resources>
 
     <Grid Margin="10">
-        <TabControl Style="{StaticResource StepTabControl}" 
-                    
+        <TabControl Style="{StaticResource StepTabControl}"                   
                     SelectedIndex="{Binding SelectedTabIndex}">
             <TabItem Header="Select data"
-                 Tag="1"
-                 Style="{StaticResource TabItemFirst}">
+                     Tag="1"
+                     Style="{StaticResource TabItemFirst}">
                 <DataGrid x:Name="myDataGrid" 
-                      ItemsSource="{Binding DisplayManager.Items}"
-                      utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
-                      Style="{StaticResource MainDataGrid}"
-                      MouseUp="DataGrid_MouseUp"
-                      Grid.Column="0">
-
+                          ItemsSource="{Binding DisplayManager.Items}"
+                          utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
+                          Style="{StaticResource MainDataGrid}"
+                          MouseUp="DataGrid_MouseUp"
+                          Grid.Column="0">
                     <!-- Columns -->
                     <DataGrid.Columns>
                         <!-- Title column -->
