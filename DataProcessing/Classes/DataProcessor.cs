@@ -343,29 +343,6 @@ namespace DataProcessing.Classes
 
             return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value);
         }
-<<<<<<< HEAD
-        private string getCriteriaLabel(SpecificCriteria criteria)
-        {
-            return $"{stateAndPhases[criteria.State]} {criteria.GetOperandValue()} {criteria.Value}";
-        }
-        private string getTimeForStats(int seconds)
-        {
-            if (seconds % 3600 == 0) { return $"hour {seconds / 3600}"; }
-
-            TimeSpan span = TimeSpan.FromSeconds(seconds);
-            if (span.TotalHours < 1) { return $"Last {Math.Round(span.TotalMinutes)} minutes"; }
-            return $"Last {span.Hours} hours and {span.Minutes} minutes";
-        }
-        private string getTimeForGraph(int seconds)
-        {
-            if (seconds % 3600 == 0) { return $"{seconds / 3600}hr"; }
-
-            TimeSpan span = TimeSpan.FromSeconds(seconds);
-            if (span.TotalHours < 1) { return $"Last {Math.Round(span.TotalMinutes)} minutes"; }
-            return $"Last {span.Hours}hr {span.Minutes} min";
-        }
-=======
->>>>>>> newRework
         private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
         {
             // If time is already enetered increment frequency
