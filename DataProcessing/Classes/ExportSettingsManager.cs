@@ -3,8 +3,6 @@ using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -18,69 +16,121 @@ namespace DataProcessing.Classes
         private Dictionary<string, int[]> customFrequencyRanges;
         private TimeSpan _from;
         private TimeSpan _till;
+        private int _selectedState;
 
         // Public properties
-        public List<float> TimeMarks { get; set; }
-        public float SelectedTimeMark { get; set; }
-        public int MaxStates { get; set; }
+        // All available timemarks for user to choose from combobox (10min, 20min, 1hr, 2hr, 4hr)
+        // we use function to convert string to seconds
+        public List<string> TimeMarks { get; set; }
+        // We use converter method (see below) to convert string from TimeMarks list into seconds
+        public string SelectedTimeMark { get; set; }
+        // Max number of states (can be 2 or 3 (in future we might also add 4))
+        public List<int> States { get; set; }
+        public int SelectedState
+        {
+            get { return _selectedState; }
+            set
+            {
+                _selectedState = value;
+                // If user has set these criterias and then changed state to 2
+                // where these criterias don't exist then set them to null so they 
+                // won't be calculated (We also set Visibility to collapsed on UI
+                // with ValueConverter)
+                if (value == 2)
+                {
+                    ParadoxicalSleepBelow = null;
+                    ParadoxicalSleepAbove = null;
+                }
+                OnPropertyChanged("SelectedState");
+            }
+        }
+        // Selected period from data to process
         public TimeSpan From
         {
             get { return _from; }
             set { _from = value; OnPropertyChanged("From"); }
-        }     
+        }
         public TimeSpan Till
         {
             get { return _till; }
             set { _till = value; OnPropertyChanged("Till"); }
         }
+        // Specific crieterias for stat calculations
         public int? WakefulnessBelow { get; set; }
         public int? SleepBelow { get; set; }
         public int? ParadoxicalSleepBelow { get; set; }
         public int? WakefulnessAbove { get; set; }
         public int? SleepAbove { get; set; }
         public int? ParadoxicalSleepAbove { get; set; }
+        // Check if user wishes to process and export whole data or a selected period
         public bool ExportSelectedPeriod
         {
             get { return _exportSelectedPeriod; }
             set { _exportSelectedPeriod = value; OnPropertyChanged("ExportSelectedPeriod"); }
         }
+        // Check if user wishes to set filename on clipboard (We need this because file name can't be set on opened excel file by interop)
         public bool SetNameToClipboard { get; set; }
+        // By what time margin should we define clusters (For example every time wakefulness is more than 10min)
         public int ClusterSeparationTime { get; set; }
 
         // Commands
         public ICommand ExportCommand { get; set; }
 
-        public ExportSettingsManager(
-
-            )
+        public ExportSettingsManager()
         {
-            this.TimeMarks = new List<float>() { 0.5f, 1, 2, 4 };
-            this.SelectedTimeMark = TimeMarks[1];
-            this.MaxStates = 3;
+            // Init
+            // 10min, 20min, 1hr, 2hr and 4hr in seconds
+            this.TimeMarks = new List<string>() { "10min", "15min", "20min", "30min", "1hr", "2hr", "4hr" };
+            this.SelectedTimeMark = TimeMarks[3];
+            this.States = new List<int>() { 2, 3 };
+            this.SelectedState = States[1];
 
+            // Set up commands
             ExportCommand = new RelayCommand(Export);
         }
 
         public async void Export(object input = null)
         {
-            ExportOptions exportOptions = new ExportOptions()
+            // Set specific criterias based on max states
+            List<SpecificCriteria> criterias = new List<SpecificCriteria>();
+            if (SelectedState == 3)
             {
-                TimeMark = SelectedTimeMark,
-                MaxStates = MaxStates,
-                From = From,
-                Till = Till,
-                Criterias = new List<SpecificCriteria>()
+                criterias = new List<SpecificCriteria>()
                 {
-                    new SpecificCriteria() { State = MaxStates, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = SelectedState, Operand = "Below", Value = WakefulnessBelow },
                     new SpecificCriteria() { State = 2, Operand = "Below", Value = SleepBelow },
                     new SpecificCriteria() { State = 1, Operand = "Below", Value = ParadoxicalSleepBelow },
-                    new SpecificCriteria() { State = MaxStates, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = SelectedState, Operand = "Above", Value = WakefulnessAbove },
                     new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
                     new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
-                },
+                };
+            }
+            else if (SelectedState == 2)
+            {
+                criterias = new List<SpecificCriteria>()
+                {
+                    new SpecificCriteria() { State = SelectedState, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 1, Operand = "Below", Value = SleepBelow },
+                    new SpecificCriteria() { State = SelectedState, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 1, Operand = "Above", Value = SleepAbove },
+                };
+            }
+
+            ExportOptions exportOptions = new ExportOptions()
+            {
+                // Init
+                TimeMark = ConvertTimeMarkToSeconds(SelectedTimeMark),
+                TimeMarkInSeconds = ConvertTimeMarkToSeconds(SelectedTimeMark),
+                MaxStates = SelectedState,
+                From = From,
+                Till = Till,
+                // Set up criterias for processing
+                Criterias = criterias,
                 customFrequencyRanges = customFrequencyRanges,
                 ClusterSeparationTimeInSeconds = ClusterSeparationTime * 60
             };
+
+            ExcelResources.GetInstance().MaxStates = SelectedState;
 
             List<TimeStamp> markedRecords;
             if (ExportSelectedPeriod)
@@ -106,21 +156,13 @@ namespace DataProcessing.Classes
 
             // 4. Export to excel
             DataProcessor dataProcessor = new DataProcessor(markedRecords, nonMarkedRecords, exportOptions);
-            // We are also passing non marked records for total frequencies
-            dataProcessor.Calculate(nonMarkedRecords);
-            await new ExcelManager(exportOptions,
-                dataProcessor.CreateStatTables(),
-                dataProcessor.CreateGraphTables(),
-                dataProcessor.CreateGraphTablesForClusters(),
-                dataProcessor.CreateFrequencyTables(),
-                dataProcessor.CreateLatencyTable(),
-                dataProcessor.CreateCustomFrequencyTables()).
-                ExportToExcel(
-                    markedRecords,
-                    nonMarkedRecords,
-                    dataProcessor.getDuplicatedTimes(),
-                    dataProcessor.getHourRowIndexes(),
-                    dataProcessor.getHourRowIndexesTime());
+            await new ExcelManager(
+                exportOptions,
+                dataProcessor.Calculate(),
+                markedRecords,
+                nonMarkedRecords
+                ).ExportToExcelC();
+
             if (SetNameToClipboard)
                 Clipboard.SetText("Calc - " + WorkfileManager.GetInstance().SelectedWorkFile.Name);
         }
@@ -136,12 +178,14 @@ namespace DataProcessing.Classes
             this.Till = till;
             this.customFrequencyRanges = customFrequencyRanges;
         }
+
         // Private helpers
         private List<TimeStamp> AddTimeMarksToSamples(List<TimeStamp> records)
         {
             List<TimeStamp> result = new List<TimeStamp>();
 
-            TimeSpan markCap = TimeSpan.FromHours(SelectedTimeMark);
+            //TimeSpan markCap1 = TimeSpan.FromHours(1);
+            TimeSpan markCap = TimeSpan.FromSeconds(ConvertTimeMarkToSeconds(SelectedTimeMark));
             TimeSpan markSum = new TimeSpan(0, 0, 0);
             TimeSpan lastMarkTime = records[0].Time;
 
@@ -156,11 +200,6 @@ namespace DataProcessing.Classes
                     markSum += span - records[i - 1].Time;
                 else
                     markSum += span + new TimeSpan(24, 0, 0) - records[i - 1].Time;
-
-                if (span == new TimeSpan(23, 50, 16))
-                {
-                    Console.WriteLine("Break point");
-                }
 
                 // If sum exceeds one hour
                 if (markSum > markCap)
@@ -208,6 +247,28 @@ namespace DataProcessing.Classes
             else
             {
                 return from <= time || time <= till;
+            }
+        }
+        private int ConvertTimeMarkToSeconds(string timeMark)
+        {
+            switch (timeMark)
+            {
+                case "10min":
+                    return 600;
+                case "15min":
+                    return 900;
+                case "20min":
+                    return 1200;
+                case "30min":
+                    return 1800;
+                case "1hr":
+                    return 3600;
+                case "2hr":
+                    return 7200;
+                case "4hr":
+                    return 14400;
+                default:
+                    throw new Exception("Time mark does not exists");
             }
         }
     }

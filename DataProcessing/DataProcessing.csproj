@@ -89,10 +89,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\CalculatedData.cs" />
     <Compile Include="Classes\DataProcessor.cs" />
+    <Compile Include="Classes\ExcelRange.cs" />
+    <Compile Include="Classes\ExcelResources.cs" />
     <Compile Include="Classes\ExportSettingsManager.cs" />
+    <Compile Include="Classes\Export\DuplicatesTable.cs" />
+    <Compile Include="Classes\Export\ExcelTable.cs" />
+    <Compile Include="Classes\Export\FrequencyTableWithChart.cs" />
+    <Compile Include="Classes\Export\GraphTableWithChart.cs" />
+    <Compile Include="Classes\Export\IExportable.cs" />
+    <Compile Include="Classes\Export\StatTable.cs" />
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
+    <Compile Include="Classes\TableCollection.cs" />
+    <Compile Include="Classes\TableCreator.cs" />
+    <Compile Include="Classes\TableDecorator.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />
     <Compile Include="Models\Stats.cs" />
@@ -106,7 +118,7 @@
     <Compile Include="Utils\Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Utils\Converters\MarkerToColorConverter.cs" />
     <Compile Include="Utils\Converters\SecondsToUnitConverter.cs" />
-    <Compile Include="Utils\DataTableInfo.cs" />
+    <Compile Include="Utils\Converters\StateToVisibilityConverter.cs" />
     <Compile Include="Utils\ExportOptions.cs" />
     <Compile Include="Utils\SpecificCriteria.cs" />
     <Compile Include="Utils\SpecificCriteriaComparer.cs" />
