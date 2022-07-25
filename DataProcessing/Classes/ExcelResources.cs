@@ -24,7 +24,7 @@ namespace DataProcessing.Classes
             {"DarkOrange", Color.FromArgb(250, 148, 75) },
             {"DarkRed", Color.FromArgb(250, 92, 75) },
             {"DarkGray", Color.FromArgb(230, 229, 225) },
-            {"DarkGreen", Color.FromArgb(51, 74, 27) },
+            {"DarkGreen", Color.FromArgb(184, 232, 125) },
             {"Blue", Color.FromArgb(148, 216, 255) },
             {"Orange", Color.FromArgb(255, 187, 148) },
             {"Green", Color.FromArgb(202, 255, 138) },
