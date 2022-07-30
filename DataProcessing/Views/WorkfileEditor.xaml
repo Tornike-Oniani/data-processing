@@ -48,9 +48,11 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
-            <TabItem Header="Set frequencies"
-                 Tag="2"
-                 Style="{StaticResource TabItemMiddle}">
+            <TabItem 
+                Header="Set frequencies"
+                Tag="2"
+                Style="{StaticResource TabItemMiddle}"
+                >
                 <Grid>
                     <!--Custom frequency ranges-->
                     <Grid.RowDefinitions>
@@ -60,8 +62,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-
-
+                    <!--Enable ranges -->
                     <Border BorderBrush="{StaticResource ColorBrushGrayBorder}"
                         BorderThickness="1 1 1 1"
                         Padding="7"
@@ -69,7 +70,6 @@
                         <CheckBox IsChecked="{Binding CustomRangesEnabled}" 
                               Content="Enable custom frequency ranges" />
                     </Border>
-
 
                     <!--Frequencies enty & list-->
                     <Grid IsEnabled="{Binding CustomRangesEnabled}"
@@ -79,6 +79,8 @@
                             <!--Frequency range entry * display column-->
                             <ColumnDefinition Width="Auto" />
                             <!--Template management column-->
+                            <ColumnDefinition Width="Auto" />
+                            <!-- Guide label column -->
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
@@ -314,7 +316,56 @@
                                 </Grid>
                             </Grid>
                         </Border>
-
+                        
+                        <!-- Guide label -->
+                        <Grid
+                            Margin="12 12 12 12"
+                            Grid.Column="2"
+                            >
+                            <Grid.RowDefinitions>
+                                <!-- Title row -->
+                                <RowDefinition Height="Auto" />
+                                <!-- Text row -->
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <!-- Title -->
+                            <StackPanel
+                                Orientation="Horizontal"
+                                Margin="0 0 0 6"
+                                Grid.Row="0"
+                                >
+                                <Border
+                                    BorderThickness="0"
+                                    BorderBrush="{StaticResource PrimaryColorBrush}"
+                                    CornerRadius="100"
+                                    Background="{StaticResource PrimaryColorBrush}"
+                                    Padding="6"
+                                    >
+                                    <iconPacks:PackIconBootstrapIcons 
+                                        Kind="Question"
+                                        Foreground="{StaticResource ColorBrushWhite}"
+                                        Width="20"
+                                        Height="20"
+                                        />
+                                </Border>
+                                <TextBlock 
+                                    Text="Help" 
+                                    VerticalAlignment="Center"
+                                    Margin="6 0 0 0"
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    />
+                            </StackPanel>
+                            <!-- Text -->
+                            <TextBlock
+                                TextWrapping="Wrap"
+                                TextAlignment="Justify"
+                                FontSize="15"
+                                Grid.Row="1"
+                                >
+                                დიაპაზონი იწერება შემდეგნაირად x-y, რაც ნიშნავს x-წამიდან y-ის ჩათვლით. მაგალითად თუ გვაქვს 1-5, 6-10 პირველში შევა სტადიები რომლების ხანგრძლივობაც იყო (1, ან 2, 3, 4, 5) და მეორეში შევა რომლების ხანგრძლივობაც იყო (6, 7, 8, 9, 10). ასევე იმის მიხედვით ბოლო რა დიაპაზონს შეიყვან ავტომატურად ემატება დამატებითი ბოლო დიაპაზონი რომელიც მეტია ყველაზე მაღალ წამზე. ჩვენ მაგალითზე მესამე დიაპაზონი იქნება 10-ზე მეტი ყველა ხანგრძლივობა ანუ >10.
+                            </TextBlock>
+                        </Grid>
                     </Grid>
                 </Grid>
             </TabItem>
