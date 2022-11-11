@@ -141,6 +141,7 @@ namespace DataProcessing.ViewModels
         }
         public void DeleteWorkfile(object input = null)
         {
+            if (SelectedWorkfile == null) { return; }
             MessageBoxResult dialogResult = MessageBox.Show($"Are you sure you want to delete \"{SelectedWorkfile.Name}\"?", "Delete workfile", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (dialogResult == MessageBoxResult.No) { return; }
 
@@ -149,6 +150,7 @@ namespace DataProcessing.ViewModels
         }
         public void RenameWorkfile(object input = null)
         {
+            if (SelectedWorkfile == null) { return; }
             string oldName = SelectedWorkfile.Name;
             string name = Services.GetInstance().DialogService.OpenTextDialog("Name:", oldName);
             if (String.IsNullOrEmpty(name) || oldName == name) { return; }

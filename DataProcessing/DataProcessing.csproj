@@ -40,6 +40,12 @@
   <PropertyGroup>
     <ApplicationIcon>Data Processing icon.ico</ApplicationIcon>
   </PropertyGroup>
+    <PropertyGroup>
+	    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
+	    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
+	    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
+	    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
+    </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Dapper.2.0.123\lib\net461\Dapper.dll</HintPath>

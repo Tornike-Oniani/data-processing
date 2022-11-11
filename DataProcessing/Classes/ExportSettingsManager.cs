@@ -212,8 +212,12 @@ namespace DataProcessing.Classes
                         timeMark = lastMarkTime + markCap >= new TimeSpan(24, 0, 0) ?
                             lastMarkTime + markCap - new TimeSpan(24, 0, 0) :
                             lastMarkTime + markCap;
-                        result.Add(new TimeStamp() { Time = timeMark, State = state, IsTimeMarked = true });
-                        lastMarkTime = timeMark;
+                        // If file already contains timestamp that exactly the same as our generated one don't add it to avoid duplicating
+                        if (timeMark != span)
+                        {
+                            result.Add(new TimeStamp() { Time = timeMark, State = state, IsTimeMarked = true });
+                            lastMarkTime = timeMark;
+                        }
                     }
 
                     markSum = span - timeMark;
