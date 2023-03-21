@@ -16,7 +16,7 @@ namespace DataProcessing.Classes
         private Dictionary<string, int[]> customFrequencyRanges;
         private TimeSpan _from;
         private TimeSpan _till;
-        private int _selectedState;
+        private int _selectedRecordingType;
 
         // Public properties
         // All available timemarks for user to choose from combobox (10min, 20min, 1hr, 2hr, 4hr)
@@ -25,13 +25,13 @@ namespace DataProcessing.Classes
         // We use converter method (see below) to convert string from TimeMarks list into seconds
         public string SelectedTimeMark { get; set; }
         // Max number of states (can be 2 or 3 (in future we might also add 4))
-        public List<int> States { get; set; }
-        public int SelectedState
+        public List<string> RecordingType { get; set; }
+        public string SelectedRecordingType
         {
-            get { return _selectedState; }
+            get { return _selectedRecordingType; }
             set
             {
-                _selectedState = value;
+                _selectedRecordingType = value;
                 // If user has set these criterias and then changed state to 2
                 // where these criterias don't exist then set them to null so they 
                 // won't be calculated (We also set Visibility to collapsed on UI
@@ -76,6 +76,7 @@ namespace DataProcessing.Classes
         // Commands
         public ICommand ExportCommand { get; set; }
 
+        // Constructor
         public ExportSettingsManager()
         {
             // Init
