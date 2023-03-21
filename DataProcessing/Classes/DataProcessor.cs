@@ -277,7 +277,7 @@ namespace DataProcessing.Classes
             }
             else
             {
-                throw new Exception($"Max states can be either 3 or 4");
+                throw new Exception("Max states can be either 2 or 3");
             }
         }
         private Stats CalculateStats(List<TimeStamp> region, bool forTotal)

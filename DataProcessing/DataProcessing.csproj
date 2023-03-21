@@ -40,12 +40,12 @@
   <PropertyGroup>
     <ApplicationIcon>Data Processing icon.ico</ApplicationIcon>
   </PropertyGroup>
-    <PropertyGroup>
-	    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
-	    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
-	    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
-	    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
-    </PropertyGroup>
+  <PropertyGroup>
+    <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>
+    <CopySQLiteInteropFiles>false</CopySQLiteInteropFiles>
+    <CleanSQLiteInteropFiles>false</CleanSQLiteInteropFiles>
+    <CollectSQLiteInteropFiles>false</CollectSQLiteInteropFiles>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Dapper.2.0.123\lib\net461\Dapper.dll</HintPath>
@@ -110,6 +110,7 @@
     <Compile Include="Classes\TableCollection.cs" />
     <Compile Include="Classes\TableCreator.cs" />
     <Compile Include="Classes\TableDecorator.cs" />
+    <Compile Include="Constants\RecordingType.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />
     <Compile Include="Models\Stats.cs" />

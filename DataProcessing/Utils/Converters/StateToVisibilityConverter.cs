@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataProcessing.Constants;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -11,9 +12,9 @@ namespace DataProcessing.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            int state = (int)value;
+            string state = (string)value;
 
-            if (state == 2) { return Visibility.Collapsed; }
+            if (state == RecordingType.TwoStates) { return Visibility.Collapsed; }
 
             return Visibility.Visible;
         }

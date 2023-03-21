@@ -576,7 +576,7 @@
                                     >
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock 
-                                            Text="Max number of states: " 
+                                            Text="Recording type: " 
                                             Style="{StaticResource LabelDefault}"
                                             FontWeight="Bold" 
                                             VerticalAlignment="Center" 
@@ -588,9 +588,9 @@
                                                 Width="20" 
                                                 />-->
                                         <ComboBox 
-                                            ItemsSource="{Binding ExportSettingsManager.States}"
-                                            SelectedItem="{Binding ExportSettingsManager.SelectedState}"
-                                            MinWidth="20 " 
+                                            ItemsSource="{Binding ExportSettingsManager.RecordingTypes}"
+                                            SelectedItem="{Binding ExportSettingsManager.SelectedRecordingType}"
+                                            MinWidth="20" 
                                             />
                                     </StackPanel>
                                 </Border>
@@ -745,7 +745,7 @@
                                         BorderThickness="0 0 1 0"
                                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                         Padding="7"
-                                        Visibility="{Binding ExportSettingsManager.SelectedState, Converter={StaticResource StateToVisibility}}"
+                                        Visibility="{Binding ExportSettingsManager.SelectedRecordingType, Converter={StaticResource StateToVisibility}}"
                                         Grid.Column="0"
                                         Grid.Row="2"
                                         >
@@ -836,7 +836,7 @@
                                         BorderThickness="0 0 0 0"
                                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                         Padding="7"
-                                        Visibility="{Binding ExportSettingsManager.SelectedState, Converter={StaticResource StateToVisibility}}"
+                                        Visibility="{Binding ExportSettingsManager.SelectedRecordingType, Converter={StaticResource StateToVisibility}}"
                                         Grid.Column="1"
                                         Grid.Row="2"
                                         >

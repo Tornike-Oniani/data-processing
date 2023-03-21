@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using DataProcessing.Constants;
+using DataProcessing.Models;
 using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace DataProcessing.Classes
         private Dictionary<string, int[]> customFrequencyRanges;
         private TimeSpan _from;
         private TimeSpan _till;
-        private int _selectedRecordingType;
+        private string _selectedRecordingType;
 
         // Public properties
         // All available timemarks for user to choose from combobox (10min, 20min, 1hr, 2hr, 4hr)
@@ -25,7 +26,7 @@ namespace DataProcessing.Classes
         // We use converter method (see below) to convert string from TimeMarks list into seconds
         public string SelectedTimeMark { get; set; }
         // Max number of states (can be 2 or 3 (in future we might also add 4))
-        public List<string> RecordingType { get; set; }
+        public List<string> RecordingTypes { get; set; }
         public string SelectedRecordingType
         {
             get { return _selectedRecordingType; }
@@ -36,12 +37,12 @@ namespace DataProcessing.Classes
                 // where these criterias don't exist then set them to null so they 
                 // won't be calculated (We also set Visibility to collapsed on UI
                 // with ValueConverter)
-                if (value == 2)
+                if (value == RecordingType.TwoStates)
                 {
                     ParadoxicalSleepBelow = null;
                     ParadoxicalSleepAbove = null;
                 }
-                OnPropertyChanged("SelectedState");
+                OnPropertyChanged("SelectedRecordingType");
             }
         }
         // Selected period from data to process
@@ -83,8 +84,12 @@ namespace DataProcessing.Classes
             // 10min, 20min, 1hr, 2hr and 4hr in seconds
             this.TimeMarks = new List<string>() { "10min", "15min", "20min", "30min", "1hr", "2hr", "4hr" };
             this.SelectedTimeMark = TimeMarks[3];
-            this.States = new List<int>() { 2, 3 };
-            this.SelectedState = States[1];
+            this.RecordingTypes = new List<string>()
+            {
+                RecordingType.ThreeStates,
+                RecordingType.TwoStates
+            };
+            this.SelectedRecordingType = RecordingTypes[0];
 
             // Set up commands
             ExportCommand = new RelayCommand(Export);
@@ -94,25 +99,25 @@ namespace DataProcessing.Classes
         {
             // Set specific criterias based on max states
             List<SpecificCriteria> criterias = new List<SpecificCriteria>();
-            if (SelectedState == 3)
+            if (SelectedRecordingType == RecordingType.ThreeStates)
             {
                 criterias = new List<SpecificCriteria>()
                 {
-                    new SpecificCriteria() { State = SelectedState, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 3, Operand = "Below", Value = WakefulnessBelow },
                     new SpecificCriteria() { State = 2, Operand = "Below", Value = SleepBelow },
                     new SpecificCriteria() { State = 1, Operand = "Below", Value = ParadoxicalSleepBelow },
-                    new SpecificCriteria() { State = SelectedState, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 3, Operand = "Above", Value = WakefulnessAbove },
                     new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
                     new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
                 };
             }
-            else if (SelectedState == 2)
+            else if (SelectedRecordingType == RecordingType.TwoStates)
             {
                 criterias = new List<SpecificCriteria>()
                 {
-                    new SpecificCriteria() { State = SelectedState, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 2, Operand = "Below", Value = WakefulnessBelow },
                     new SpecificCriteria() { State = 1, Operand = "Below", Value = SleepBelow },
-                    new SpecificCriteria() { State = SelectedState, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 2, Operand = "Above", Value = WakefulnessAbove },
                     new SpecificCriteria() { State = 1, Operand = "Above", Value = SleepAbove },
                 };
             }
@@ -122,7 +127,7 @@ namespace DataProcessing.Classes
                 // Init
                 TimeMark = ConvertTimeMarkToSeconds(SelectedTimeMark),
                 TimeMarkInSeconds = ConvertTimeMarkToSeconds(SelectedTimeMark),
-                MaxStates = SelectedState,
+                MaxStates = RecordingType.MaxStates[SelectedRecordingType],
                 From = From,
                 Till = Till,
                 // Set up criterias for processing
@@ -131,7 +136,7 @@ namespace DataProcessing.Classes
                 ClusterSeparationTimeInSeconds = ClusterSeparationTime * 60
             };
 
-            ExcelResources.GetInstance().MaxStates = SelectedState;
+            ExcelResources.GetInstance().MaxStates = RecordingType.MaxStates[SelectedRecordingType];
 
             List<TimeStamp> markedRecords;
             if (ExportSelectedPeriod)
