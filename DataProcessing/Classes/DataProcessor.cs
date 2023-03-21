@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using DataProcessing.Constants;
+using DataProcessing.Models;
 using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
@@ -218,7 +219,6 @@ namespace DataProcessing.Classes
             return calculatedData;
         }
 
-
         // Private helpers
         private void CreateStatsForClusters()
         {
@@ -256,16 +256,15 @@ namespace DataProcessing.Classes
         {
             if (options.MaxStates == 2)
             {
-                calculatedData.stateAndPhases = new Dictionary<int, string>();
-                calculatedData.stateAndPhases.Add(2, "Wakefulness");
-                calculatedData.stateAndPhases.Add(1, "Sleep");
+                calculatedData.stateAndPhases = RecordingType.GetTwoStatesDictionary();
             }
             else if (options.MaxStates == 3)
             {
-                calculatedData.stateAndPhases = new Dictionary<int, string>();
-                calculatedData.stateAndPhases.Add(3, "Wakefulness");
-                calculatedData.stateAndPhases.Add(2, "Sleep");
-                calculatedData.stateAndPhases.Add(1, "Paradoxical sleep");
+                calculatedData.stateAndPhases = RecordingType.GetThreeStatesDictionary();
+            }
+            else if (options.MaxStates == 6)
+            {
+                calculatedData.stateAndPhases = RecordingType.GetTwoStatesWithBehaviorDictionary();
             }
             else if (options.MaxStates == 4)
             {

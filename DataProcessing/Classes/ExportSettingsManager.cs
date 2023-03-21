@@ -87,7 +87,8 @@ namespace DataProcessing.Classes
             this.RecordingTypes = new List<string>()
             {
                 RecordingType.ThreeStates,
-                RecordingType.TwoStates
+                RecordingType.TwoStates,
+                RecordingType.TwoStatesWithBehavior
             };
             this.SelectedRecordingType = RecordingTypes[0];
 

@@ -456,7 +456,7 @@
                     <StackPanel>
                         <!-- Time config -->
                         <Grid 
-                            Width="500" 
+                            Width="560" 
                             HorizontalAlignment="Left"
                             Margin="0 0 0 20"
                             >
@@ -622,7 +622,7 @@
                         </Grid>
 
                         <!-- Specific criteria-->
-                        <Grid Width="500" HorizontalAlignment="left">
+                        <Grid Width="560" HorizontalAlignment="left">
                             <Grid.RowDefinitions>
                                 <!-- Criteria header row -->
                                 <RowDefinition Height="Auto" />
