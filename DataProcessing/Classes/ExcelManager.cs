@@ -1,4 +1,5 @@
-﻿using DataProcessing.Classes.Export;
+﻿using DataProcessing.Classes.Calculate;
+using DataProcessing.Classes.Export;
 using DataProcessing.Models;
 using DataProcessing.Utils;
 using Microsoft.Office.Interop.Excel;
@@ -22,12 +23,11 @@ namespace DataProcessing.Classes
         static extern int GetWindowThreadProcessId(int hWnd, out int lpdwProcessId);
 
         // User selected export options
-        private ExportOptions options;
-        private TableCreator _tableCreator;
+        private readonly CalculationOptions options;
+        private readonly TableCreator _tableCreator;
 
         // Global services
-        private Workfile workfile = WorkfileManager.GetInstance().SelectedWorkFile;
-        private Services services = Services.GetInstance();
+        private readonly Services services = Services.GetInstance();
 
         // Reusable excel component references
         private _Workbook wb;
@@ -42,13 +42,11 @@ namespace DataProcessing.Classes
         }
         // Constructor for exporting
         public ExcelManager(
-            ExportOptions options,
-            CalculatedData data,
-            List<TimeStamp> timeStamps,
-            List<TimeStamp> nonMarkedTimeStamps)
+            CalculationOptions calcOptions,
+            CalculatedData data)
         {
-            this.options = options;
-            this._tableCreator = new TableCreator(data, options, timeStamps, nonMarkedTimeStamps);
+            this.options = calcOptions;
+            this._tableCreator = new TableCreator(calcOptions, data);
         }
 
         public async Task<List<int>> CheckExcelFile(string filePath)
@@ -327,7 +325,7 @@ namespace DataProcessing.Classes
                 CreateDuplicatesSheet();
                 CreateFrequenciesSheet();
                 // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
-                if (options.customFrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
+                if (options.FrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
                 if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
 
                 // Release excel to accesible state for user

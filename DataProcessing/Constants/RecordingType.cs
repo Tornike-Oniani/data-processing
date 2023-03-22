@@ -10,13 +10,13 @@ namespace DataProcessing.Constants
     {
         public static readonly string ThreeStates = "1 - Paradoxical; 2 - Sleep; 3 - Wakefulness";
         public static readonly string TwoStates = "1 - Sleep; 2 - Wakefulness";
-        public static readonly string TwoStatesWithBehavior = "1 - Sleep + Behaviors (2 - Active; 3 - Passive; 4 - Grooming; 5 - Eating; 6 - Water";
+        public static readonly string TwoStatesWithBehavior = "1 - Sleep; 2 - Wakefulness + Behaviors (3 - Active; 4 - Passive; 5 - Grooming; 6 - Eating; 7 - Water";
 
         public static readonly Dictionary<string, int> MaxStates = new Dictionary<string, int>()
         {
             {ThreeStates, 3},
             {TwoStates, 2},
-            {TwoStatesWithBehavior, 6}
+            {TwoStatesWithBehavior, 7}
         };
 
         public static Dictionary<int, string> GetThreeStatesDictionary()
@@ -41,11 +41,12 @@ namespace DataProcessing.Constants
             return new Dictionary<int, string>()
             {
                 {1, "Sleep" },
-                {2, "Active" },
-                {3, "Passive" },
-                {4, "Grooming" },
-                {5, "Eating" },
-                {6, "Water" },
+                {2, "Wakefulness" },
+                {3, "Active" },
+                {4, "Passive" },
+                {5, "Grooming" },
+                {6, "Eating" },
+                {7, "Water" },
             };
         }
     }

@@ -1,4 +1,5 @@
-﻿using DataProcessing.Classes.Export;
+﻿using DataProcessing.Classes.Calculate;
+using DataProcessing.Classes.Export;
 using DataProcessing.Models;
 using DataProcessing.Utils;
 using System;
@@ -14,43 +15,33 @@ namespace DataProcessing.Classes
     internal class TableCreator
     {
         // Data that was calculated by DataProcessor
-        private CalculatedData calculatedData;
-        // List of timestamps for raw data
-        private List<TimeStamp> timeStamps;
-        // List of timestamps for cluster data
-        private List<TimeStamp> nonMarkedTimeStamps;
+        private readonly CalculatedData calculatedData;
         // Exported options selected by user
-        private ExportOptions options;
-        private int _criteriaNumber;
+        private readonly CalculationOptions options;
+        private readonly int _criteriaNumber;
         // Table decorator for coloring
-        private TableDecorator decorator;
+        private readonly TableDecorator decorator;
 
         // Constructor
-        public TableCreator(
-            CalculatedData data, 
-            ExportOptions options, 
-            List<TimeStamp> timeStamps, 
-            List<TimeStamp> nonMarkedTimeStamps)
+        public TableCreator(CalculationOptions calcOptions, CalculatedData data)
         {
             // Init
-            this.calculatedData = data;
-            this.options = options;
-            this.timeStamps = timeStamps;
-            this.nonMarkedTimeStamps = nonMarkedTimeStamps;
-            this._criteriaNumber = options.Criterias.Where(c => c.Value != null).Count();
+            calculatedData = data;
+            options = calcOptions;
+            _criteriaNumber = options.Criterias.Count(c => c.Value != null);
             decorator = new TableDecorator(options.MaxStates);
         }
 
         // Public table creators
         public ExcelTable CreateRawDataTable()
         {
-            int rowCount = timeStamps.Count;
+            int rowCount = options.MarkedTimeStamps.Count;
             int colCount = 5;
             object[,] data = new object[rowCount, colCount];
 
             // Fill in data
             int rowIndex = 0;
-            foreach (TimeStamp timeStamp in timeStamps)
+            foreach (TimeStamp timeStamp in options.MarkedTimeStamps)
             {
                 // We convert time into string other wise setting range value in excel won't work
                 data[rowIndex, 0] = timeStamp.Time.ToString();
@@ -62,7 +53,7 @@ namespace DataProcessing.Classes
             }
 
             // Decorate collection and return it
-            return decorator.DecorateRawData(data, timeStamps, options.TimeMarkInSeconds);
+            return decorator.DecorateRawData(data, options.MarkedTimeStamps, options.TimeMarkInSeconds);
         }
         public ExcelTable CreateLatencyTable()
         {
@@ -168,7 +159,7 @@ namespace DataProcessing.Classes
         public List<ExcelTable> CreateCustomFrequencyTables()
         {
             // If user didn't provide any custom frequency
-            if (options.customFrequencyRanges.Count == 0) { return null; }
+            if (options.FrequencyRanges.Count == 0) { return null; }
 
             List<ExcelTable> tables = new List<ExcelTable>();
 
@@ -191,13 +182,13 @@ namespace DataProcessing.Classes
         }
         public ExcelTable CreateClusterDataTable()
         {
-            int rowCount = nonMarkedTimeStamps.Count;
+            int rowCount = options.NonMarkedTimeStamps.Count;
             int colCount = 2;
             object[,] data = new object[rowCount, colCount];
 
             // Fill in data
             int rowIndex = 0;
-            foreach (TimeStamp timeStamp in nonMarkedTimeStamps)
+            foreach (TimeStamp timeStamp in options.NonMarkedTimeStamps)
             {
                 data[rowIndex, 0] = timeStamp.TimeDifferenceInSeconds;
                 data[rowIndex, 1] = timeStamp.State;
@@ -205,7 +196,7 @@ namespace DataProcessing.Classes
             }
 
             // Decorate collection and return it
-            return decorator.DecorateClusterDataTable(data, nonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
+            return decorator.DecorateClusterDataTable(data, options.NonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
         }
         public List<ExcelTable> CreateGraphTablesForClusters()
         {
@@ -458,7 +449,7 @@ namespace DataProcessing.Classes
                 rowIndex++;
             }
 
-            return decorator.DecorateCustomFrequencyTable(data, options.customFrequencyRanges.Count, isTotal);
+            return decorator.DecorateCustomFrequencyTable(data, options.FrequencyRanges.Count, isTotal);
         }
     }
 }

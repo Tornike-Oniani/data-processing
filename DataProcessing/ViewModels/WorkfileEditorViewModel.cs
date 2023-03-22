@@ -18,7 +18,7 @@ namespace DataProcessing.ViewModels
 
         #region Properties
         public DisplayManager DisplayManager { get; set; }
-        public ExportSettingsManager ExportSettingsManager { get; set; }
+        public OptionsViewModel OptionsViewModel { get; set; }
         public FrequencyRangesViewModel FrequencyRangesViewModel { get; set; }
         public int SelectedTabIndex
         {
@@ -44,8 +44,8 @@ namespace DataProcessing.ViewModels
             // Init
             DisplayManager = new DisplayManager();
             WorkfileManager.GetInstance().OnWorkfileChanged += SetupDisplayAndEntry;
-            ExportSettingsManager = new ExportSettingsManager();
             FrequencyRangesViewModel = new FrequencyRangesViewModel();
+            OptionsViewModel = new OptionsViewModel(DisplayManager.Items.ToList(), FrequencyRangesViewModel.FrequencyRangesToArray);
 
             // Init commands
             NextCommand = new RelayCommand(Next, CanNext);
@@ -89,7 +89,7 @@ namespace DataProcessing.ViewModels
                 from = DisplayManager.SelectedRows[0].Time;
                 till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].Time;
             }
-            ExportSettingsManager.SetSettings(DisplayManager.Items.ToList(), from, till, FrequencyRangesViewModel.FrequencyRangesToArray());
+            //ExportSettingsManager.SetSettings(DisplayManager.Items.ToList(), from, till, FrequencyRangesViewModel.FrequencyRangesToArray());
         }
         #endregion
     }

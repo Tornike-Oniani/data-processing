@@ -95,10 +95,11 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\CalculatedData.cs" />
+    <Compile Include="Classes\Calculate\CalculationOptions.cs" />
+    <Compile Include="Classes\Calculate\UserSelectedOptions.cs" />
     <Compile Include="Classes\DataProcessor.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />
-    <Compile Include="Classes\ExportSettingsManager.cs" />
     <Compile Include="Classes\Export\DuplicatesTable.cs" />
     <Compile Include="Classes\Export\ExcelTable.cs" />
     <Compile Include="Classes\Export\FrequencyTableWithChart.cs" />
@@ -132,6 +133,7 @@
     <Compile Include="Utils\ViewType.cs" />
     <Compile Include="ViewModels\FrequencyRangesViewModel.cs" />
     <Compile Include="ViewModels\HomeViewModel.cs" />
+    <Compile Include="ViewModels\OptionsViewModel.cs" />
     <Compile Include="ViewModels\WorkfileEditorViewModel.cs" />
     <Compile Include="Views\Home.xaml.cs">
       <DependentUpon>Home.xaml</DependentUpon>
@@ -274,9 +276,7 @@
       <Name>PopupServiceFront</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Classes\Calculate\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

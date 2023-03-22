@@ -421,6 +421,7 @@
                 </Grid>
             </TabItem>
             <TabItem 
+                DataContext="{Binding OptionsViewModel}"
                 Header="Set options"
                 Tag="3"
                 Style="{StaticResource TabItemMiddle}"
@@ -476,8 +477,8 @@
                                             Margin="0 0 5 0" 
                                             />
                                         <ComboBox 
-                                            ItemsSource="{Binding ExportSettingsManager.TimeMarks}"
-                                            SelectedValue="{Binding ExportSettingsManager.SelectedTimeMark}"
+                                            ItemsSource="{Binding TimeMarks}"
+                                            SelectedValue="{Binding SelectedTimeMark}"
                                             MinWidth="35" 
                                             />
                                     </StackPanel>
@@ -496,7 +497,7 @@
                                             >
                                             <CheckBox 
                                                 Content="Export selected period?"
-                                                IsChecked="{Binding ExportSettingsManager.ExportSelectedPeriod}"
+                                                IsChecked="{Binding ExportSelectedPeriod}"
                                                 FontWeight="Bold" 
                                                 />
                                         </Border>
@@ -516,7 +517,7 @@
                                                 <StackPanel>
                                                     <Label Content="From:" />
                                                     <TextBox 
-                                                        Text="{Binding ExportSettingsManager.From, Converter={StaticResource TimeSpanToString}}"
+                                                        Text="{Binding From, Converter={StaticResource TimeSpanToString}}"
                                                         Width="100"
                                                         HorizontalAlignment="Left" 
                                                         />
@@ -532,7 +533,7 @@
                                                 <StackPanel>
                                                     <Label Content="Until:" />
                                                     <TextBox 
-                                                        Text="{Binding ExportSettingsManager.Till, Converter={StaticResource TimeSpanToString}}"
+                                                        Text="{Binding Till, Converter={StaticResource TimeSpanToString}}"
                                                         Width="100"
                                                         HorizontalAlignment="Left" 
                                                         />
@@ -561,8 +562,8 @@
                                                 Width="20" 
                                                 />-->
                                         <ComboBox 
-                                            ItemsSource="{Binding ExportSettingsManager.RecordingTypes}"
-                                            SelectedItem="{Binding ExportSettingsManager.SelectedRecordingType}"
+                                            ItemsSource="{Binding RecordingTypes}"
+                                            SelectedItem="{Binding SelectedRecordingType}"
                                             MinWidth="20" 
                                             />
                                     </StackPanel>
@@ -581,7 +582,7 @@
                                             VerticalAlignment="Center" 
                                             />
                                         <TextBox 
-                                            Text="{Binding ExportSettingsManager.ClusterSeparationTime}"
+                                            Text="{Binding ClusterSeparationTime}"
                                             Style="{StaticResource SmallTextBox}"
                                             Width="30" 
                                             />
@@ -673,7 +674,7 @@
                                                 Grid.Column="0"
                                                 />
                                             <TextBox 
-                                                Text="{Binding ExportSettingsManager.WakefulnessBelow}"
+                                                Text="{Binding WakefulnessBelow}"
                                                 Style="{StaticResource SmallTextBox}"
                                                 MinWidth="35"
                                                 HorizontalAlignment="Right"
@@ -703,7 +704,7 @@
                                                 Grid.Column="0"
                                                 />
                                             <TextBox 
-                                                Text="{Binding ExportSettingsManager.SleepBelow}"
+                                                Text="{Binding SleepBelow}"
                                                 Style="{StaticResource SmallTextBox}"
                                                 MinWidth="35"
                                                 HorizontalAlignment="Right"
@@ -734,7 +735,7 @@
                                                 Grid.Column="0"
                                                 />
                                             <TextBox 
-                                                Text="{Binding ExportSettingsManager.ParadoxicalSleepBelow}"
+                                                Text="{Binding ParadoxicalSleepBelow}"
                                                 Style="{StaticResource SmallTextBox}"
                                                 MinWidth="35"
                                                 HorizontalAlignment="Right"
@@ -764,7 +765,7 @@
                                                 Grid.Column="0"
                                                 />
                                             <TextBox 
-                                                Text="{Binding ExportSettingsManager.WakefulnessAbove}"
+                                                Text="{Binding WakefulnessAbove}"
                                                 Style="{StaticResource SmallTextBox}"
                                                 MinWidth="35"
                                                 HorizontalAlignment="Right"
@@ -794,7 +795,7 @@
                                                 Grid.Column="0"
                                                 />
                                             <TextBox 
-                                                Text="{Binding ExportSettingsManager.SleepAbove}"
+                                                Text="{Binding SleepAbove}"
                                                 Style="{StaticResource SmallTextBox}"
                                                 MinWidth="35"
                                                 HorizontalAlignment="Right"
@@ -825,7 +826,7 @@
                                                 Grid.Column="0"
                                                 />
                                             <TextBox 
-                                                Text="{Binding ExportSettingsManager.ParadoxicalSleepAbove}"
+                                                Text="{Binding ParadoxicalSleepAbove}"
                                                 Style="{StaticResource SmallTextBox}"
                                                 MinWidth="35"
                                                 HorizontalAlignment="Right"
@@ -840,7 +841,7 @@
 
                         <!-- Name to clipboard -->
                         <CheckBox 
-                            IsChecked="{Binding ExportSettingsManager.SetNameToClipboard}"
+                            IsChecked="{Binding SetNameToClipboard}"
                             Content="Set file name to clipboard"
                             Margin="0 20 0 20" 
                             />
@@ -849,7 +850,7 @@
                         <StackPanel Orientation="Horizontal">
                             <Button 
                                 Content="Export"
-                                Command="{Binding ExportSettingsManager.ExportCommand}"
+                                Command="{Binding CalculateCommand}"
                                 Style="{StaticResource ButtonMain}"
                                 Width="200"
                                 Margin="0 0 10 0" 
