@@ -64,6 +64,7 @@
             <TabItem 
                 Header="Set frequencies"
                 Tag="2"
+                DataContext="{Binding FrequencyRangesViewModel}"
                 Style="{StaticResource TabItemMiddle}"
                 >
                 <Grid>
@@ -122,6 +123,33 @@
                                     />
                                 <!-- Buttons -->
                                 <StackPanel Margin="0 10 0 0" HorizontalAlignment="Stretch">
+                                    <!--New button-->
+                                    <Button 
+                                        Command="{Binding NewTemplateCommand}"
+                                        Style="{StaticResource ButtonDefaultLeftAlign}"
+                                        Margin="0 0 0 5"
+                                        >
+                                        <Button.Content>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <iconPacks:PackIconBootstrapIcons 
+                                                    Kind="PlusSquare"
+                                                    VerticalAlignment="Center"
+                                                    Grid.Column="0" 
+                                                    />
+                                                <TextBlock 
+                                                    Text="New"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalAlignment="Left"
+                                                    Margin="7 0 0 0"
+                                                    Grid.Column="1" 
+                                                    />
+                                            </Grid>
+                                        </Button.Content>
+                                    </Button>
                                     <!--Save button-->
                                     <Button 
                                         Command="{Binding SaveTemplateCommand}"
@@ -143,61 +171,6 @@
                                                     />
                                                 <TextBlock 
                                                     Text="Save"
-                                                    VerticalAlignment="Center"
-                                                    HorizontalAlignment="Left"
-                                                    Margin="7 0 0 0"
-                                                    Grid.Column="1" 
-                                                    />
-                                            </Grid>
-                                        </Button.Content>
-                                    </Button>
-                                    <!--Save as button-->
-                                    <Button 
-                                        Command="{Binding SaveTemplateAsCommand}"
-                                        Style="{StaticResource ButtonDefaultLeftAlign}"
-                                        IsEnabled="{Binding IsTemplateSelected}"
-                                        Margin="0 0 0 5"
-                                        >
-                                        <Button.Content>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <iconPacks:PackIconBootstrapIcons 
-                                                    Kind="BoxArrowDown"
-                                                    VerticalAlignment="Center"
-                                                    Grid.Column="0" 
-                                                    />
-                                                <TextBlock 
-                                                    Text="Save As"
-                                                    VerticalAlignment="Center"
-                                                    HorizontalAlignment="Left"
-                                                    Margin="7 0 0 0"
-                                                    Grid.Column="1" 
-                                                    />
-                                            </Grid>
-                                        </Button.Content>
-                                    </Button>
-                                    <!--New button-->
-                                    <Button 
-                                        Command="{Binding NewTemplateCommand}"
-                                        Style="{StaticResource ButtonDefaultLeftAlign}"
-                                        Margin="0 0 0 5"
-                                        >
-                                        <Button.Content>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <iconPacks:PackIconBootstrapIcons 
-                                                    Kind="PlusSquare"
-                                                    VerticalAlignment="Center"
-                                                    Grid.Column="0" 
-                                                    />
-                                                <TextBlock 
-                                                    Text="New"
                                                     VerticalAlignment="Center"
                                                     HorizontalAlignment="Left"
                                                     Margin="7 0 0 0"
