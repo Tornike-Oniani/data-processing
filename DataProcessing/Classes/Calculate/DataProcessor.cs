@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace DataProcessing.Classes
+namespace DataProcessing.Classes.Calculate
 {
     enum GraphTableDataType
     {
@@ -17,17 +17,15 @@ namespace DataProcessing.Classes
         Numbers
     }
 
-    /// <summary>
-    /// Takes initial data and calculates necessary stats for exporting
-    /// </summary>
     internal class DataProcessor
     {
         #region Private attributes
         private readonly CalculationOptions options;
         private readonly CalculatedData calculatedData;
+        private readonly Calculator calculator;
         #endregion
 
-        // Constructor
+        #region Constructors
         public DataProcessor(CalculationOptions options)
         {
             // Init
@@ -51,22 +49,13 @@ namespace DataProcessing.Classes
             // Map state numbers to phase strings (e.g 1 - PS, 2 - Sleep, 3 - Wakefulness)
             CreatePhases();
         }
+        #endregion
 
         #region Public methods
         public CalculatedData Calculate()
         {
             // Create duplicated timestamps for graph
-            int previous = options.MarkedTimeStamps[0].TimeDifferenceInSeconds;
-            calculatedData.duplicatedTimes.Add(new Tuple<int, int>(previous, options.MarkedTimeStamps[1].State));
-            for (int i = 1; i < options.MarkedTimeStamps.Count; i++)
-            {
-                calculatedData.duplicatedTimes.Add(new Tuple<int, int>(options.MarkedTimeStamps[i].TimeDifferenceInSeconds + previous, options.MarkedTimeStamps[i].State));
-                if (i < options.MarkedTimeStamps.Count - 1)
-                {
-                    calculatedData.duplicatedTimes.Add(new Tuple<int, int>(options.MarkedTimeStamps[i].TimeDifferenceInSeconds + previous, options.MarkedTimeStamps[i + 1].State));
-                }
-                previous = previous + options.MarkedTimeStamps[i].TimeDifferenceInSeconds;
-            }
+            calculatedData.duplicatedTimes = calculator.generateDuplicatedTimeStamps(options.MarkedTimeStamps);
 
             // Calculate total
             calculatedData.totalStats = CalculateStats(options.NonMarkedTimeStamps);
@@ -293,8 +282,8 @@ namespace DataProcessing.Classes
 
             foreach (int state in calculatedData.stateAndPhases.Keys)
             {
-                result.StateTimes.Add(state, calculateStateTime(region, state));
-                result.StateNumber.Add(state, calculateStateNumber(region, state));
+                result.StateTimes.Add(state, calculator.calculateStateTime(region, state));
+                result.StateNumber.Add(state, calculator.calculateStateNumber(region, state));
             }
             result.CalculatePercentages();
 
@@ -303,42 +292,11 @@ namespace DataProcessing.Classes
                 // Skip nonexistent crietrias
                 if (criteria.Value == null) { continue; }
 
-                result.SpecificTimes.Add(criteria, calculateStateCriteriaTime(region, criteria));
-                result.SpecificNumbers.Add(criteria, calculateStateCriteriaNumber(region, criteria));
+                result.SpecificTimes.Add(criteria, calculator.calculateStateCriteriaTime(region, criteria));
+                result.SpecificNumbers.Add(criteria, calculator.calculateStateCriteriaNumber(region, criteria));
             }
 
             return result;
-        }
-
-        private int calculateStateTime(List<TimeStamp> region, int state)
-        {
-            return region.Where((sample) => sample.State == state).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
-        }
-        private int calculateStateNumber(List<TimeStamp> region, int state)
-        {
-            return region.Count(sample => sample.State == state);
-        }
-        private int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria)
-        {
-            if (criteria.Operand == "Below")
-            {
-                return samples.Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
-            }
-
-            return samples
-                .Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value)
-                .Select((sample) => sample.TimeDifferenceInSeconds)
-                .Sum();
-
-        }
-        private int calculateStateCriteriaNumber(List<TimeStamp> samples, SpecificCriteria criteria)
-        {
-            if (criteria.Operand == "Below")
-            {
-                return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value);
-            }
-
-            return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value);
         }
         private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
         {
