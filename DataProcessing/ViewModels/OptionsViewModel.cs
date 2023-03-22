@@ -23,8 +23,8 @@ namespace DataProcessing.ViewModels
         #endregion
 
         #region Private attributes
-        private readonly List<TimeStamp> records;
-        private readonly Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges;
+        private List<TimeStamp> records;
+        private Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges;
         #endregion
 
         #region Public properties
@@ -88,11 +88,9 @@ namespace DataProcessing.ViewModels
         #endregion
 
         // Constructor
-        public OptionsViewModel(List<TimeStamp> records, Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges)
+        public OptionsViewModel()
         {
             // Init
-            this.records = records;
-            this.getDictionaryofFrequencyRanges = getDictionaryofFrequencyRanges;
             TimeMarks = new List<string>() { "10min", "15min", "20min", "30min", "1hr", "2hr", "4hr" };
             SelectedTimeMark = TimeMarks[3];
             RecordingTypes = new List<string>()
@@ -172,6 +170,16 @@ namespace DataProcessing.ViewModels
             {
                 Clipboard.SetText("Calc - " + WorkfileManager.GetInstance().SelectedWorkFile.Name);
             }
+        }
+        #endregion
+
+        #region Public methods
+        public void SetSelectedParams(List<TimeStamp> region, TimeSpan from, TimeSpan till, Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges)
+        {
+            this.records = region;
+            this.From = from;
+            this.Till = till;
+            this.getDictionaryofFrequencyRanges = getDictionaryofFrequencyRanges;
         }
         #endregion
 

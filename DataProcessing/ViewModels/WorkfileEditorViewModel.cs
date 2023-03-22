@@ -28,7 +28,9 @@ namespace DataProcessing.ViewModels
                 _selectedTabIndex = value;
                 OnPropertyChanged("SelectedTabIndex");
                 if (value == 2)
-                    SetExportSettings();
+                {
+                    SetSelectedParams();
+                }
             }
         }
         #endregion
@@ -45,7 +47,7 @@ namespace DataProcessing.ViewModels
             DisplayManager = new DisplayManager();
             WorkfileManager.GetInstance().OnWorkfileChanged += SetupDisplayAndEntry;
             FrequencyRangesViewModel = new FrequencyRangesViewModel();
-            OptionsViewModel = new OptionsViewModel(DisplayManager.Items.ToList(), FrequencyRangesViewModel.FrequencyRangesToArray);
+            OptionsViewModel = new OptionsViewModel();
 
             // Init commands
             NextCommand = new RelayCommand(Next, CanNext);
@@ -79,7 +81,7 @@ namespace DataProcessing.ViewModels
         #endregion
 
         #region Private helpers
-        private void SetExportSettings()
+        private void SetSelectedParams()
         {
             List<TimeStamp> samples = DisplayManager.Items.ToList();
             TimeSpan from = samples[0].Time;
@@ -90,6 +92,8 @@ namespace DataProcessing.ViewModels
                 till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].Time;
             }
             //ExportSettingsManager.SetSettings(DisplayManager.Items.ToList(), from, till, FrequencyRangesViewModel.FrequencyRangesToArray());
+            OptionsViewModel.SetSelectedParams(samples, from, till, FrequencyRangesViewModel.FrequencyRangesToArray);
+
         }
         #endregion
     }

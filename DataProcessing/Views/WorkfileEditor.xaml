@@ -502,7 +502,7 @@
                                                 />
                                         </Border>
                                         <!-- Selected timestamps-->
-                                        <Grid IsEnabled="{Binding ExportSettingsManager.ExportSelectedPeriod}">
+                                        <Grid IsEnabled="{Binding ExportSelectedPeriod}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="*" />
@@ -719,7 +719,7 @@
                                         BorderThickness="0 0 1 0"
                                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                         Padding="7"
-                                        Visibility="{Binding ExportSettingsManager.SelectedRecordingType, Converter={StaticResource StateToVisibility}}"
+                                        Visibility="{Binding SelectedRecordingType, Converter={StaticResource StateToVisibility}}"
                                         Grid.Column="0"
                                         Grid.Row="2"
                                         >
@@ -810,7 +810,7 @@
                                         BorderThickness="0 0 0 0"
                                         BorderBrush="{StaticResource ColorBrushGrayBorder}"
                                         Padding="7"
-                                        Visibility="{Binding ExportSettingsManager.SelectedRecordingType, Converter={StaticResource StateToVisibility}}"
+                                        Visibility="{Binding SelectedRecordingType, Converter={StaticResource StateToVisibility}}"
                                         Grid.Column="1"
                                         Grid.Row="2"
                                         >
@@ -849,7 +849,7 @@
                         <!-- Buttons -->
                         <StackPanel Orientation="Horizontal">
                             <Button 
-                                Content="Export"
+                                Content="Calculate"
                                 Command="{Binding CalculateCommand}"
                                 Style="{StaticResource ButtonMain}"
                                 Width="200"
