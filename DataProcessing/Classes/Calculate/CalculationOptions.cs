@@ -17,6 +17,9 @@ namespace DataProcessing.Classes.Calculate
         public int MaxStates { get; set; }
         public List<TimeStamp> MarkedTimeStamps { get; set; }
         public List<TimeStamp> NonMarkedTimeStamps { get; set; }
+        // In behavior recording type we want a separated list that shows just sleep and wakefulness
+        public List<TimeStamp> NonMarkedNormalizedTimeStamps { get; set; }
+        public List<TimeStamp> MarkedNormalizedTimeStamps { get; set; }
         public Dictionary<string, int[]> FrequencyRanges { get; set; }
         public int ClusterSeparationTimeInSeconds { get; set; }
         public List<SpecificCriteria> Criterias { get; set; }
@@ -33,13 +36,63 @@ namespace DataProcessing.Classes.Calculate
             Criterias = options.Criterias;
             ClusterSeparationTimeInSeconds = options.ClusterSparationTime * 60;
             MaxStates = RecordingType.MaxStates[options.SelectedRecordingType];
-            NonMarkedTimeStamps = CloneTimeStamps(region);
-            MarkedTimeStamps = AddTimeMarksToSamples(region);
+            // We have switched assignment of normalized and regular!!!!!!!
+            if (MaxStates == 7)
+            {
+                NonMarkedTimeStamps = CloneAndNormalizeTimeStamps(region);
+                NonMarkedNormalizedTimeStamps =  CloneTimeStamps(region);
+                MarkedTimeStamps = AddTimeMarksToSamples(CloneAndNormalizeTimeStamps(region));
+                MarkedNormalizedTimeStamps = AddTimeMarksToSamples(region);
+            }
+            else
+            {
+                NonMarkedTimeStamps = CloneTimeStamps(region);
+                NonMarkedNormalizedTimeStamps = CloneAndNormalizeTimeStamps(region);
+                MarkedNormalizedTimeStamps = AddTimeMarksToSamples(CloneAndNormalizeTimeStamps(region));
+                MarkedTimeStamps = AddTimeMarksToSamples(region);
+            }
             CalculateSamples(NonMarkedTimeStamps);
             CalculateSamples(MarkedTimeStamps);
+            CalculateSamples(NonMarkedNormalizedTimeStamps);
+            CalculateSamples(MarkedNormalizedTimeStamps);
         }
 
         #region Private helpers
+        private List<TimeStamp> CloneAndNormalizeTimeStamps(List<TimeStamp> records)
+        {
+            List<TimeStamp> result = new List<TimeStamp>() { records[0] };
+
+            TimeStamp wakeTimeStamp = new TimeStamp();
+            bool cloneHappened = false;
+            TimeStamp currTimeStamp;
+            for (int i = 1; i < records.Count; i++)
+            {
+                currTimeStamp = records[i];
+                if (currTimeStamp.State == 1)
+                {
+                    if (cloneHappened)
+                    {
+                        result.Add(wakeTimeStamp);
+                        cloneHappened = false;
+                    }
+                    result.Add(currTimeStamp);
+                }
+                else if (currTimeStamp.State > 1)
+                {
+                    wakeTimeStamp = currTimeStamp.Clone();
+                    wakeTimeStamp.State = 2;
+                    cloneHappened = true;
+                }
+
+                // If last one isn't sleeping state add it
+                if (i == records.Count - 1 && currTimeStamp.State != 1)
+                {
+                    result.Add(wakeTimeStamp);
+                }
+            }
+
+            return result;
+        }
         private List<TimeStamp> AddTimeMarksToSamples(List<TimeStamp> records)
         {
             List<TimeStamp> result = new List<TimeStamp>();
