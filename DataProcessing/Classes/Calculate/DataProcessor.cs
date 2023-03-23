@@ -31,6 +31,7 @@ namespace DataProcessing.Classes.Calculate
             // Init
             this.options = options;
             calculatedData = new CalculatedData();
+            calculator = new Calculator();
 
             // Extract all distinct states from excel file
             List<int> states = options.MarkedTimeStamps
@@ -258,7 +259,7 @@ namespace DataProcessing.Classes.Calculate
             {
                 calculatedData.stateAndPhases = RecordingType.GetThreeStatesDictionary();
             }
-            else if (options.MaxStates == 6)
+            else if (options.MaxStates == 7)
             {
                 calculatedData.stateAndPhases = RecordingType.GetTwoStatesWithBehaviorDictionary();
             }
