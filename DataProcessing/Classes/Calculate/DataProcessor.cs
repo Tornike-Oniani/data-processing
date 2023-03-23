@@ -91,59 +91,24 @@ namespace DataProcessing.Classes.Calculate
 
             // Add total here so it will be on top of hourly frequencies
             calculatedData.hourStateFrequencies.Add(calculator.calculateTotalFrequencies(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray()));
-            calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges);
+            calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges));
 
-            // Calculate total frequencies with non marked original timestamps
-            for (int i = 1; i < options.NonMarkedTimeStamps.Count; i++)
+            // Latency
+            calculatedData.timeBeforeFirstSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Sleep").Key);
+            if (options.MaxStates == 3)
             {
-                TimeStamp currentTimeStamp = options.NonMarkedTimeStamps[i];
-
-                // We don't want program added timestamps (marker and hour marks) to be added to total
-                if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
-                    AddFrequencyToCollection(totalFrequencies, currentTimeStamp);
-
-                // Find fitting range for current timestamp
-                foreach (KeyValuePair<string, int[]> range in options.FrequencyRanges)
-                {
-                    if (
-                        currentTimeStamp.TimeDifferenceInSeconds >= range.Value[0] &&
-                        currentTimeStamp.TimeDifferenceInSeconds <= range.Value[1])
-                    {
-                        totalCustomFrequencies[currentTimeStamp.State][range.Key] += 1;
-                    }
-                }
+                calculatedData.timeBeforeFirstSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Paradoxical sleep").Key);
             }
 
             List<TimeStamp> hourRegion = new List<TimeStamp>();
-            // Latency
-            bool foundFirstSleep = false;
-            bool foundFirstParadoxicalSleep = false;
-            int lastHourIndex = 0;
             for (int i = 0; i < options.MarkedTimeStamps.Count; i++)
             {
                 TimeStamp currentTimeStamp = options.MarkedTimeStamps[i];
                 time += currentTimeStamp.TimeDifferenceInSeconds;
 
-                // Calculate time before first sleep and paradoxical sleep (Latency)
-                if (!foundFirstSleep)
-                {
-                    if (currentTimeStamp.State == calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Sleep").Key)
-                        foundFirstSleep = true;
-                    else
-                        calculatedData.timeBeforeFirstSleep += currentTimeStamp.TimeDifferenceInSeconds;
-                }
-                if (!foundFirstParadoxicalSleep)
-                {
-                    if (currentTimeStamp.State == calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Paradoxical sleep").Key)
-                        foundFirstParadoxicalSleep = true;
-                    else
-                        calculatedData.timeBeforeFirstParadoxicalSleep += currentTimeStamp.TimeDifferenceInSeconds;
-                }
-
                 if (time > options.TimeMarkInSeconds) { throw new Exception("Invalid hour marks"); }
 
                 hourRegion.Add(currentTimeStamp);
-                lastHourIndex = i + 1;
 
                 // Add frequencies, first timestamp doesn't have a state so we skip it
                 if (i > 0)
