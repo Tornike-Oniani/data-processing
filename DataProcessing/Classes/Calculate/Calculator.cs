@@ -60,5 +60,82 @@ namespace DataProcessing.Classes.Calculate
 
             return result;
         }
+        public Dictionary<int, SortedList<int, int>> calculateTotalFrequencies(List<TimeStamp> nonMarkedRegion, int[] states)
+        {
+            Dictionary<int, SortedList<int, int>> result = new Dictionary<int, SortedList<int, int>>();
+
+            foreach (int state in states)
+            {
+                // Initialize sorted list for each phase
+                result.Add(state, new SortedList<int, int>());
+            }
+
+            // Calculate total frequencies with non marked original timestamps
+            for (int i = 1; i < nonMarkedRegion.Count; i++)
+            {
+                TimeStamp currentTimeStamp = nonMarkedRegion[i];
+
+                // We don't want program added timestamps (marker and hour marks) to be added to total
+                if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
+                {
+                    AddFrequencyToCollection(result, currentTimeStamp);
+                }
+            }
+
+            return result;
+        }
+        public Dictionary<int, Dictionary<string, int>> calculateFrequencyRanges(List<TimeStamp> region, int[] states, Dictionary<string, int[]> frequencyRanges)
+        {
+            Dictionary<int, Dictionary<string, int>> result = new Dictionary<int, Dictionary<string, int>>();
+
+            // Initialize collection for each state
+            foreach (int state in states)
+            {
+                result.Add(state, new Dictionary<string, int>());
+            }
+
+            // Initialize ranges as keys
+            foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in result)
+            {
+                foreach (KeyValuePair<string, int[]> range in frequencyRanges)
+                {
+                    stateRange.Value.Add(range.Key, 0);
+                }
+            }
+
+            for (int i = 1; i < region.Count; i++)
+            {
+                TimeStamp currentTimeStamp = region[i];
+
+                // Find fitting range for current timestamp
+                foreach (KeyValuePair<string, int[]> range in frequencyRanges)
+                {
+                    if (
+                        currentTimeStamp.TimeDifferenceInSeconds >= range.Value[0] &&
+                        currentTimeStamp.TimeDifferenceInSeconds <= range.Value[1])
+                    {
+                        result[currentTimeStamp.State][range.Key] += 1;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        #region Private helpers
+        private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
+        {
+            // If time is already enetered increment frequency
+            if (collection[timeStamp.State].ContainsKey(timeStamp.TimeDifferenceInSeconds))
+            {
+                collection[timeStamp.State][timeStamp.TimeDifferenceInSeconds] += 1;
+            }
+            // Otherwise add it with frequency 1
+            else
+            {
+                collection[timeStamp.State].Add(timeStamp.TimeDifferenceInSeconds, 1);
+            }
+        }
+        #endregion
     }
 }

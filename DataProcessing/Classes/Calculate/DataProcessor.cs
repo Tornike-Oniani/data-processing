@@ -66,32 +66,21 @@ namespace DataProcessing.Classes.Calculate
             int currentHour = 0;
 
             // Hourly frequencies
-            Dictionary<int, SortedList<int, int>> totalFrequencies = new Dictionary<int, SortedList<int, int>>();
             Dictionary<int, SortedList<int, int>> hourFrequencies = new Dictionary<int, SortedList<int, int>>();
 
             // Hourly custom frequncies
-            Dictionary<int, Dictionary<string, int>> totalCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
             Dictionary<int, Dictionary<string, int>> hourCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
 
             foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
             {
                 // Create time and frequency dictionary for the state
-                totalFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
                 hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
 
                 // Create the same for customs
-                totalCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
                 hourCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
             }
 
             // Add ranges to each state for custom frequencies
-            foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in totalCustomFrequencies)
-            {
-                foreach (KeyValuePair<string, int[]> range in options.FrequencyRanges)
-                {
-                    stateRange.Value.Add(range.Key, 0);
-                }
-            }
             foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in hourCustomFrequencies)
             {
                 foreach (KeyValuePair<string, int[]> range in options.FrequencyRanges)
@@ -101,8 +90,8 @@ namespace DataProcessing.Classes.Calculate
             }
 
             // Add total here so it will be on top of hourly frequencies
-            calculatedData.hourStateFrequencies.Add(totalFrequencies);
-            calculatedData.hourStateCustomFrequencies.Add(totalCustomFrequencies);
+            calculatedData.hourStateFrequencies.Add(calculator.calculateTotalFrequencies(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray()));
+            calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges);
 
             // Calculate total frequencies with non marked original timestamps
             for (int i = 1; i < options.NonMarkedTimeStamps.Count; i++)
@@ -229,9 +218,7 @@ namespace DataProcessing.Classes.Calculate
                 // If we found end of the cluster calculate its stats and add it to dictionary
                 if (curTimeStamp.TimeDifferenceInSeconds >= options.ClusterSeparationTimeInSeconds && curTimeStamp.State == options.MaxStates)
                 {
-                    // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it
-                    // This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end
-                    // We don't want to include blank clusters like this
+                    // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it. This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end. We don't want to include blank clusters like this
                     if (clusterRegion.Count == 0) { continue; }
                     calculatedData.clusterAndStats.Add(curClusterNumber, CalculateStats(clusterRegion));
                     curClusterNumber++;
@@ -299,19 +286,7 @@ namespace DataProcessing.Classes.Calculate
 
             return result;
         }
-        private void AddFrequencyToCollection(Dictionary<int, SortedList<int, int>> collection, TimeStamp timeStamp)
-        {
-            // If time is already enetered increment frequency
-            if (collection[timeStamp.State].ContainsKey(timeStamp.TimeDifferenceInSeconds))
-            {
-                collection[timeStamp.State][timeStamp.TimeDifferenceInSeconds] += 1;
-            }
-            // Otherwise add it with frequency 1
-            else
-            {
-                collection[timeStamp.State].Add(timeStamp.TimeDifferenceInSeconds, 1);
-            }
-        }
+
         private void AddCustomFrequencyToCollection(Dictionary<int, Dictionary<string, int>> collection, TimeStamp timeStamp)
         {
             // Find fitting range for current timestamp
