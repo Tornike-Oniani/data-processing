@@ -94,10 +94,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Classes\CalculatedData.cs" />
+    <Compile Include="Classes\Calculate\CalculatedData.cs" />
+    <Compile Include="Classes\Calculate\AnotherDataProcessor.cs" />
     <Compile Include="Classes\Calculate\CalculationOptions.cs" />
+    <Compile Include="Classes\Calculate\Calculator.cs" />
     <Compile Include="Classes\Calculate\UserSelectedOptions.cs" />
-    <Compile Include="Classes\DataProcessor.cs" />
+    <Compile Include="Classes\Calculate\DataProcessor.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />
     <Compile Include="Classes\Export\DuplicatesTable.cs" />
