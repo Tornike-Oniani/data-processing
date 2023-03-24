@@ -30,7 +30,7 @@ namespace DataProcessing.Classes.Calculate
         {
             // Init
             this.options = options;
-            calculatedData = new CalculatedData();
+            calculatedData = new CalculatedData();            
             calculator = new Calculator();
 
             // Extract all distinct states from excel file
@@ -47,8 +47,7 @@ namespace DataProcessing.Classes.Calculate
                 throw new Exception($"File contains more than {options.MaxStates} states!"); 
             }
 
-            // Map state numbers to phase strings (e.g 1 - PS, 2 - Sleep, 3 - Wakefulness)
-            CreatePhases();
+            calculatedData.CreatePhases(options.MaxStates);
         }
         #endregion
 
@@ -59,47 +58,23 @@ namespace DataProcessing.Classes.Calculate
             calculatedData.duplicatedTimes = calculator.generateDuplicatedTimeStamps(options.MarkedTimeStamps);
 
             // Calculate total
-            calculatedData.totalStats = CalculateStats(options.NonMarkedTimeStamps);
+            calculatedData.totalStats = calculator.CalculateStats(options.NonMarkedTimeStamps, calculatedData.GetStates(), options.Criterias);
 
-            // Calculate per hour
-            int time = 0;
-            int currentHour = 0;
-
-            // Hourly frequencies
-            Dictionary<int, SortedList<int, int>> hourFrequencies = new Dictionary<int, SortedList<int, int>>();
-
-            // Hourly custom frequncies
-            Dictionary<int, Dictionary<string, int>> hourCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
-
-            foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
-            {
-                // Create time and frequency dictionary for the state
-                hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
-
-                // Create the same for customs
-                hourCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
-            }
-
-            // Add ranges to each state for custom frequencies
-            foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in hourCustomFrequencies)
-            {
-                foreach (KeyValuePair<string, int[]> range in options.FrequencyRanges)
-                {
-                    stateRange.Value.Add(range.Key, 0);
-                }
-            }
 
             // Add total here so it will be on top of hourly frequencies
-            calculatedData.hourStateFrequencies.Add(calculator.calculateFrequencies(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray()));
-            calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges));
+            calculatedData.AddFrequency(calculator.calculateFrequencies(options.NonMarkedTimeStamps, calculatedData.GetStates()));
+            calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.GetStates(), options.FrequencyRanges));
 
             // Latency
             calculatedData.timeBeforeFirstSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Sleep").Key);
             if (options.MaxStates == 3)
             {
-                calculatedData.timeBeforeFirstSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Paradoxical sleep").Key);
+                calculatedData.timeBeforeFirstParadoxicalSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Paradoxical sleep").Key);
             }
 
+            // Calculate per hour
+            int time = 0;
+            int currentHour = 0;
             List<TimeStamp> hourRegion = new List<TimeStamp>();
             for (int i = 0; i < options.MarkedTimeStamps.Count; i++)
             {
@@ -113,34 +88,12 @@ namespace DataProcessing.Classes.Calculate
                 if (time == options.TimeMarkInSeconds)
                 {
                     currentHour++;
-                    calculatedData.hourAndStats.Add(currentHour, CalculateStats(hourRegion));
-                    calculatedData.hourStateFrequencies.Add(calculator.calculateFrequencies(hourRegion, calculatedData.stateAndPhases.Keys.ToArray()));
-                    calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(hourRegion, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges));
+                    calculatedData.hourAndStats.Add(currentHour, calculator.CalculateStats(hourRegion, calculatedData.GetStates(), options.Criterias));
+                    calculatedData.AddFrequency(calculator.calculateFrequencies(hourRegion, calculatedData.GetStates()));
+                    calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(hourRegion, calculatedData.GetStates(), options.FrequencyRanges));
 
                     time = 0;
                     hourRegion.Clear();
-
-                    // Reset hour frequency collection
-                    hourFrequencies = new Dictionary<int, SortedList<int, int>>();
-                    foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
-                    {
-                        // Create time and frequency dictionary for the state
-                        hourFrequencies.Add(stateAndPhase.Key, new SortedList<int, int>());
-                    }
-
-                    // Reset hour custom frequency collection
-                    hourCustomFrequencies = new Dictionary<int, Dictionary<string, int>>();
-                    foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.stateAndPhases)
-                    {
-                        hourCustomFrequencies.Add(stateAndPhase.Key, new Dictionary<string, int>());
-                    }
-                    foreach (KeyValuePair<int, Dictionary<string, int>> stateRange in hourCustomFrequencies)
-                    {
-                        foreach (KeyValuePair<string, int[]> range in options.FrequencyRanges)
-                        {
-                            stateRange.Value.Add(range.Key, 0);
-                        }
-                    }
                 }
             }
 
@@ -148,101 +101,22 @@ namespace DataProcessing.Classes.Calculate
             if (hourRegion.Count != 0)
             {
                 currentHour++;
-                calculatedData.hourAndStats.Add(currentHour, CalculateStats(hourRegion));
-                calculatedData.hourStateFrequencies.Add(hourFrequencies);
-                calculatedData.hourStateCustomFrequencies.Add(hourCustomFrequencies);
+                calculatedData.hourAndStats.Add(currentHour, calculator.CalculateStats(hourRegion, calculatedData.GetStates(), options.Criterias));
+                calculatedData.AddFrequency(calculator.calculateFrequencies(hourRegion, calculatedData.GetStates()));
+                calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(hourRegion, calculatedData.GetStates(), options.FrequencyRanges));
             }
 
             // Calculate stats for clusters
             if (options.ClusterSeparationTimeInSeconds > 0)
             {
-                CreateStatsForClusters();
+                calculatedData.clusterAndStats = calculator.CreateStatsForClusters(
+                    options.NonMarkedTimeStamps, 
+                    options.ClusterSeparationTimeInSeconds, 
+                    calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Wakefulness").Key, 
+                    calculatedData.GetStates(), options.Criterias);
             }
 
             return calculatedData;
-        }
-        #endregion
-
-        #region Private helpers
-        private void CreateStatsForClusters()
-        {
-            List<TimeStamp> clusterRegion = new List<TimeStamp>();
-            TimeStamp curTimeStamp;
-            int curClusterNumber = 1;
-            for (int i = 1; i < options.NonMarkedTimeStamps.Count; i++)
-            {
-                curTimeStamp = options.NonMarkedTimeStamps[i];
-
-                // If we found end of the cluster calculate its stats and add it to dictionary
-                if (curTimeStamp.TimeDifferenceInSeconds >= options.ClusterSeparationTimeInSeconds && curTimeStamp.State == options.MaxStates)
-                {
-                    // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it. This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end. We don't want to include blank clusters like this
-                    if (clusterRegion.Count == 0) { continue; }
-                    calculatedData.clusterAndStats.Add(curClusterNumber, CalculateStats(clusterRegion));
-                    curClusterNumber++;
-                    // After the stats of current cluster was calculated we reset it for the next one
-                    clusterRegion = new List<TimeStamp>();
-                    continue;
-                }
-
-                clusterRegion.Add(curTimeStamp);
-            }
-
-            // If we have remainder in the last cluster calculate its stats too (The list won't always end with wakefulness that is more than cluster separation time)
-            if (clusterRegion.Count > 0)
-            {
-                calculatedData.clusterAndStats.Add(curClusterNumber, CalculateStats(clusterRegion));
-            }
-        }
-        private void CreatePhases()
-        {
-            if (options.MaxStates == 2)
-            {
-                calculatedData.stateAndPhases = RecordingType.GetTwoStatesDictionary();
-            }
-            else if (options.MaxStates == 3)
-            {
-                calculatedData.stateAndPhases = RecordingType.GetThreeStatesDictionary();
-            }
-            else if (options.MaxStates == 7)
-            {
-                calculatedData.stateAndPhases = RecordingType.GetTwoStatesWithBehaviorDictionary();
-            }
-            else if (options.MaxStates == 4)
-            {
-                calculatedData.stateAndPhases = new Dictionary<int, string>();
-                calculatedData.stateAndPhases.Add(4, "Wakefulness");
-                calculatedData.stateAndPhases.Add(3, "Light sleep");
-                calculatedData.stateAndPhases.Add(2, "Deep sleep");
-                calculatedData.stateAndPhases.Add(1, "Paradoxical sleep");
-            }
-            else
-            {
-                throw new Exception("Max states can be either 2 or 3");
-            }
-        }
-        private Stats CalculateStats(List<TimeStamp> region)
-        {
-            Stats result = new Stats();
-            result.TotalTime = region.Sum((sample) => sample.TimeDifferenceInSeconds);
-
-            foreach (int state in calculatedData.stateAndPhases.Keys)
-            {
-                result.StateTimes.Add(state, calculator.calculateStateTime(region, state));
-                result.StateNumber.Add(state, calculator.calculateStateNumber(region, state));
-            }
-            result.CalculatePercentages();
-
-            foreach (SpecificCriteria criteria in options.Criterias)
-            {
-                // Skip nonexistent crietrias
-                if (criteria.Value == null) { continue; }
-
-                result.SpecificTimes.Add(criteria, calculator.calculateStateCriteriaTime(region, criteria));
-                result.SpecificNumbers.Add(criteria, calculator.calculateStateCriteriaNumber(region, criteria));
-            }
-
-            return result;
         }
         #endregion
     }

@@ -23,9 +23,9 @@ namespace DataProcessing.Constants
         {
             return new Dictionary<int, string>()
             {
-                { 1, "Paradoxical sleep" },
+                { 3, "Wakefulness" },
                 { 2, "Sleep" },
-                { 3, "Wakefulness" }
+                { 1, "Paradoxical sleep" }
             };
         }
         public static Dictionary<int, string> GetTwoStatesDictionary()

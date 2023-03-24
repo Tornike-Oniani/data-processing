@@ -11,35 +11,63 @@ namespace DataProcessing.Classes.Calculate
 {
     internal class Calculator
     {
-        public int calculateStateTime(List<TimeStamp> region, int state)
+        public Stats CalculateStats(List<TimeStamp> region, int[] states, List<SpecificCriteria> criterias)
         {
-            return region.Where((sample) => sample.State == state).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
-        }
-        public int calculateStateNumber(List<TimeStamp> region, int state)
-        {
-            return region.Count(sample => sample.State == state);
-        }
-        public int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria)
-        {
-            if (criteria.Operand == "Below")
+            Stats result = new Stats();
+            result.TotalTime = region.Sum((sample) => sample.TimeDifferenceInSeconds);
+
+            foreach (int state in states)
             {
-                return samples.Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
+                result.StateTimes.Add(state,calculateStateTime(region, state));
+                result.StateNumber.Add(state, calculateStateNumber(region, state));
+            }
+            result.CalculatePercentages();
+
+            foreach (SpecificCriteria criteria in criterias)
+            {
+                // Skip nonexistent crietrias
+                if (criteria.Value == null) { continue; }
+
+                result.SpecificTimes.Add(criteria, calculateStateCriteriaTime(region, criteria));
+                result.SpecificNumbers.Add(criteria, calculateStateCriteriaNumber(region, criteria));
             }
 
-            return samples
-                .Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value)
-                .Select((sample) => sample.TimeDifferenceInSeconds)
-                .Sum();
-
+            return result;
         }
-        public int calculateStateCriteriaNumber(List<TimeStamp> samples, SpecificCriteria criteria)
+        public Dictionary<int, Stats> CreateStatsForClusters(List<TimeStamp> region, int clusterSeparationTime, int wakefulnessState, int[] states, List<SpecificCriteria> criterias)
         {
-            if (criteria.Operand == "Below")
+            Dictionary<int, Stats> result = new Dictionary<int, Stats>();
+
+            List<TimeStamp> clusterRegion = new List<TimeStamp>();
+            TimeStamp curTimeStamp;
+            int curClusterNumber = 1;
+            for (int i = 1; i < region.Count; i++)
             {
-                return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value);
+                curTimeStamp = region[i];
+
+                // If we found end of the cluster calculate its stats and add it to dictionary
+                if (curTimeStamp.TimeDifferenceInSeconds >= clusterSeparationTime && curTimeStamp.State == wakefulnessState)
+                {
+                    // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it. This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end. We don't want to include blank clusters like this
+                    if (clusterRegion.Count == 0) { continue; }
+
+                    result.Add(curClusterNumber, CalculateStats(clusterRegion, states, criterias));
+                    curClusterNumber++;
+                    // After the stats of current cluster was calculated we reset it for the next one
+                    clusterRegion = new List<TimeStamp>();
+                    continue;
+                }
+
+                clusterRegion.Add(curTimeStamp);
             }
 
-            return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value);
+            // If we have remainder in the last cluster calculate its stats too (The list won't always end with wakefulness that is more than cluster separation time)
+            if (clusterRegion.Count > 0)
+            {
+                result.Add(curClusterNumber, CalculateStats(clusterRegion, states, criterias));
+            }
+
+            return result;
         }
         // We use this list for ladder-graph
         public List<Tuple<int, int>> generateDuplicatedTimeStamps(List<TimeStamp> timeStamps)
@@ -71,15 +99,10 @@ namespace DataProcessing.Classes.Calculate
             }
 
             // Calculate total frequencies with non marked original timestamps
-            for (int i = 1; i < region.Count; i++)
+            for (int i = region[0].State == 0 ? 1 : 0 ; i < region.Count; i++)
             {
                 TimeStamp currentTimeStamp = region[i];
-
-                // We don't want program added timestamps (marker and hour marks) to be added to total
-                if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)
-                {
-                    AddFrequencyToCollection(result, currentTimeStamp);
-                }
+                AddFrequencyToCollection(result, currentTimeStamp);
             }
 
             return result;
@@ -103,7 +126,7 @@ namespace DataProcessing.Classes.Calculate
                 }
             }
 
-            for (int i = 1; i < region.Count; i++)
+            for (int i = 0; i < region.Count; i++)
             {
                 TimeStamp currentTimeStamp = region[i];
 
@@ -139,6 +162,36 @@ namespace DataProcessing.Classes.Calculate
             {
                 collection[timeStamp.State].Add(timeStamp.TimeDifferenceInSeconds, 1);
             }
+        }
+        private int calculateStateTime(List<TimeStamp> region, int state)
+        {
+            return region.Where((sample) => sample.State == state).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
+        }
+        private int calculateStateNumber(List<TimeStamp> region, int state)
+        {
+            return region.Count(sample => sample.State == state);
+        }
+        private int calculateStateCriteriaTime(List<TimeStamp> samples, SpecificCriteria criteria)
+        {
+            if (criteria.Operand == "Below")
+            {
+                return samples.Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
+            }
+
+            return samples
+                .Where((sample) => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value)
+                .Select((sample) => sample.TimeDifferenceInSeconds)
+                .Sum();
+
+        }
+        private int calculateStateCriteriaNumber(List<TimeStamp> samples, SpecificCriteria criteria)
+        {
+            if (criteria.Operand == "Below")
+            {
+                return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds <= criteria.Value);
+            }
+
+            return samples.Count(sample => sample.State == criteria.State && sample.TimeDifferenceInSeconds >= criteria.Value);
         }
         #endregion
     }

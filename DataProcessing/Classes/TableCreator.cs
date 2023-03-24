@@ -140,7 +140,7 @@ namespace DataProcessing.Classes
             List<ExcelTable> tables = new List<ExcelTable>();
 
             int hour = 0;
-            foreach (Dictionary<int, SortedList<int, int>> stateTimeFrequency in calculatedData.hourStateFrequencies)
+            foreach (Dictionary<int, SortedList<int, int>> stateTimeFrequency in calculatedData.stateFrequencies)
             {
                 // First item will be total not hourly
                 if (hour == 0)
@@ -164,7 +164,7 @@ namespace DataProcessing.Classes
             List<ExcelTable> tables = new List<ExcelTable>();
 
             int hour = 0;
-            foreach (Dictionary<int, Dictionary<string, int>> stateTimeFrequency in calculatedData.hourStateCustomFrequencies)
+            foreach (Dictionary<int, Dictionary<string, int>> stateTimeFrequency in calculatedData.stateFrequencyRanges)
             {
                 // First item will be total not hourly
                 if (hour == 0)
