@@ -60,7 +60,7 @@ namespace DataProcessing.Classes.Calculate
 
             return result;
         }
-        public Dictionary<int, SortedList<int, int>> calculateTotalFrequencies(List<TimeStamp> nonMarkedRegion, int[] states)
+        public Dictionary<int, SortedList<int, int>> calculateFrequencies(List<TimeStamp> region, int[] states)
         {
             Dictionary<int, SortedList<int, int>> result = new Dictionary<int, SortedList<int, int>>();
 
@@ -71,9 +71,9 @@ namespace DataProcessing.Classes.Calculate
             }
 
             // Calculate total frequencies with non marked original timestamps
-            for (int i = 1; i < nonMarkedRegion.Count; i++)
+            for (int i = 1; i < region.Count; i++)
             {
-                TimeStamp currentTimeStamp = nonMarkedRegion[i];
+                TimeStamp currentTimeStamp = region[i];
 
                 // We don't want program added timestamps (marker and hour marks) to be added to total
                 if (!currentTimeStamp.IsTimeMarked && !currentTimeStamp.IsMarker)

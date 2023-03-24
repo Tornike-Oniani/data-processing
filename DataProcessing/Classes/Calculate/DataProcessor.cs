@@ -90,7 +90,7 @@ namespace DataProcessing.Classes.Calculate
             }
 
             // Add total here so it will be on top of hourly frequencies
-            calculatedData.hourStateFrequencies.Add(calculator.calculateTotalFrequencies(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray()));
+            calculatedData.hourStateFrequencies.Add(calculator.calculateFrequencies(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray()));
             calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges));
 
             // Latency
@@ -110,19 +110,12 @@ namespace DataProcessing.Classes.Calculate
 
                 hourRegion.Add(currentTimeStamp);
 
-                // Add frequencies, first timestamp doesn't have a state so we skip it
-                if (i > 0)
-                {
-                    AddFrequencyToCollection(hourFrequencies, currentTimeStamp);
-                    AddCustomFrequencyToCollection(hourCustomFrequencies, currentTimeStamp);
-                }
-
                 if (time == options.TimeMarkInSeconds)
                 {
                     currentHour++;
                     calculatedData.hourAndStats.Add(currentHour, CalculateStats(hourRegion));
-                    calculatedData.hourStateFrequencies.Add(hourFrequencies);
-                    calculatedData.hourStateCustomFrequencies.Add(hourCustomFrequencies);
+                    calculatedData.hourStateFrequencies.Add(calculator.calculateFrequencies(hourRegion, calculatedData.stateAndPhases.Keys.ToArray()));
+                    calculatedData.hourStateCustomFrequencies.Add(calculator.calculateFrequencyRanges(hourRegion, calculatedData.stateAndPhases.Keys.ToArray(), options.FrequencyRanges));
 
                     time = 0;
                     hourRegion.Clear();
@@ -250,20 +243,6 @@ namespace DataProcessing.Classes.Calculate
             }
 
             return result;
-        }
-
-        private void AddCustomFrequencyToCollection(Dictionary<int, Dictionary<string, int>> collection, TimeStamp timeStamp)
-        {
-            // Find fitting range for current timestamp
-            foreach (KeyValuePair<string, int[]> range in options.FrequencyRanges)
-            {
-                if (
-                    timeStamp.TimeDifferenceInSeconds >= range.Value[0] &&
-                    timeStamp.TimeDifferenceInSeconds <= range.Value[1])
-                {
-                    collection[timeStamp.State][range.Key] += 1;
-                }
-            }
         }
         #endregion
     }
