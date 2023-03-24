@@ -15,6 +15,7 @@ namespace DataProcessing.Classes.Calculate
         #region Public properties
         public int TimeMarkInSeconds { get; set; }
         public int MaxStates { get; set; }
+        public Dictionary<int, string> StateAndPhases { get; set; }
         public List<TimeStamp> MarkedTimeStamps { get; set; }
         public List<TimeStamp> NonMarkedTimeStamps { get; set; }
         // In behavior recording type we want a separated list that shows just sleep and wakefulness
@@ -25,17 +26,15 @@ namespace DataProcessing.Classes.Calculate
         public List<SpecificCriteria> Criterias { get; set; }
         #endregion
 
-        // Constructor
-        public CalculationOptions(
-            List<TimeStamp> region, 
-            UserSelectedOptions options            
-            )
+        #region Constructors
+        public CalculationOptions(List<TimeStamp> region, UserSelectedOptions options)
         {
             TimeMarkInSeconds = ConvertTimeMarkToSeconds(options.SelectedTimeMark);
             FrequencyRanges = options.FrequencyRanges;
             Criterias = options.Criterias;
             ClusterSeparationTimeInSeconds = options.ClusterSparationTime * 60;
             MaxStates = RecordingType.MaxStates[options.SelectedRecordingType];
+            MapStateToPhases(MaxStates);
             // We have switched assignment of normalized and regular!!!!!!!
             if (MaxStates == 7)
             {
@@ -56,6 +55,18 @@ namespace DataProcessing.Classes.Calculate
             CalculateSamples(NonMarkedNormalizedTimeStamps);
             CalculateSamples(MarkedNormalizedTimeStamps);
         }
+        #endregion
+
+        #region Public methods
+        public int GetState(string phase)
+        {
+            return StateAndPhases.FirstOrDefault(sap => sap.Value == phase).Key;
+        }
+        public int[] GetAllStates()
+        {
+            return StateAndPhases.Keys.ToArray();
+        }
+        #endregion
 
         #region Private helpers
         private List<TimeStamp> CloneAndNormalizeTimeStamps(List<TimeStamp> records)
@@ -185,6 +196,35 @@ namespace DataProcessing.Classes.Calculate
             }
 
             return result;
+        }
+        public void MapStateToPhases(int maxStates)
+        {
+            if (maxStates == 2)
+            {
+                StateAndPhases = RecordingType.GetTwoStatesDictionary();
+            }
+            else if (maxStates == 3)
+            {
+                StateAndPhases = RecordingType.GetThreeStatesDictionary();
+            }
+            else if (maxStates == 7)
+            {
+                StateAndPhases = RecordingType.GetTwoStatesWithBehaviorDictionary();
+            }
+            else if (maxStates == 4)
+            {
+                StateAndPhases = new Dictionary<int, string>()
+                {
+                    {4, "Wakefulness" },
+                    {3, "Light sleep" },
+                    {2, "Deep sleep" },
+                    {1, "Paradoxical sleep" }
+                };
+            }
+            else
+            {
+                throw new Exception("Max states can be either 2 or 3");
+            }
         }
         #endregion
     }

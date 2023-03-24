@@ -34,6 +34,36 @@ namespace DataProcessing.Classes.Calculate
 
             return result;
         }
+        public List<List<TimeStamp>> CreateClusters(List<TimeStamp> records, int clusterSeparationTime, int wakefulnessState)
+        {
+            List<List<TimeStamp>> result = new List<List<TimeStamp>>();
+
+            List<TimeStamp> cluster = new List<TimeStamp>();
+            TimeStamp curTimeStamp;
+            for (int i = 1; i < records.Count; i++)
+            {
+                curTimeStamp = records[i];
+                // If we found end of the cluster add it to clusters list
+                if (curTimeStamp.TimeDifferenceInSeconds >= clusterSeparationTime && curTimeStamp.State == wakefulnessState)
+                {
+                    // If we found end of cluster but it doesn't contain any timestamps we don't want to calculate stats for it. This can happen if recording starts with long wakefulness - firs record will be 0-0 and then essentialy a cluster end. We don't want to include blank clusters like this
+                    if (cluster.Count == 0) { continue; }
+
+                    result.Add(cluster);
+                    cluster = new List<TimeStamp>();
+                    continue;
+                }
+                cluster.Add(records[i]);
+            }
+
+            // If we have remainder in the last cluster add it to (The list won't always end with wakefulness that is more than cluster separation time)
+            if (cluster.Count > 0)
+            {
+                result.Add(cluster);
+            }
+
+            return result;
+        }
         public Dictionary<int, Stats> CreateStatsForClusters(List<TimeStamp> region, int clusterSeparationTime, int wakefulnessState, int[] states, List<SpecificCriteria> criterias)
         {
             Dictionary<int, Stats> result = new Dictionary<int, Stats>();

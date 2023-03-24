@@ -66,10 +66,10 @@ namespace DataProcessing.Classes.Calculate
             calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(options.NonMarkedTimeStamps, calculatedData.GetStates(), options.FrequencyRanges));
 
             // Latency
-            calculatedData.timeBeforeFirstSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Sleep").Key);
+            calculatedData.timeBeforeFirstSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, options.GetState("Sleep"));
             if (options.MaxStates == 3)
             {
-                calculatedData.timeBeforeFirstParadoxicalSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Paradoxical sleep").Key);
+                calculatedData.timeBeforeFirstParadoxicalSleep = calculator.calculateStateLatency(options.MarkedTimeStamps, options.GetState("Paradoxical sleep"));
             }
 
             // Calculate per hour
@@ -88,9 +88,9 @@ namespace DataProcessing.Classes.Calculate
                 if (time == options.TimeMarkInSeconds)
                 {
                     currentHour++;
-                    calculatedData.hourAndStats.Add(currentHour, calculator.CalculateStats(hourRegion, calculatedData.GetStates(), options.Criterias));
-                    calculatedData.AddFrequency(calculator.calculateFrequencies(hourRegion, calculatedData.GetStates()));
-                    calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(hourRegion, calculatedData.GetStates(), options.FrequencyRanges));
+                    calculatedData.hourAndStats.Add(currentHour, calculator.CalculateStats(hourRegion, options.GetAllStates(), options.Criterias));
+                    calculatedData.AddFrequency(calculator.calculateFrequencies(hourRegion, options.GetAllStates()));
+                    calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(hourRegion, options.GetAllStates(), options.FrequencyRanges));
 
                     time = 0;
                     hourRegion.Clear();
@@ -101,19 +101,20 @@ namespace DataProcessing.Classes.Calculate
             if (hourRegion.Count != 0)
             {
                 currentHour++;
-                calculatedData.hourAndStats.Add(currentHour, calculator.CalculateStats(hourRegion, calculatedData.GetStates(), options.Criterias));
-                calculatedData.AddFrequency(calculator.calculateFrequencies(hourRegion, calculatedData.GetStates()));
-                calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(hourRegion, calculatedData.GetStates(), options.FrequencyRanges));
+                calculatedData.hourAndStats.Add(currentHour, calculator.CalculateStats(hourRegion, options.GetAllStates(), options.Criterias));
+                calculatedData.AddFrequency(calculator.calculateFrequencies(hourRegion, options.GetAllStates()));
+                calculatedData.AddFrequencyRange(calculator.calculateFrequencyRanges(hourRegion, options.GetAllStates(), options.FrequencyRanges));
             }
 
             // Calculate stats for clusters
             if (options.ClusterSeparationTimeInSeconds > 0)
             {
-                calculatedData.clusterAndStats = calculator.CreateStatsForClusters(
-                    options.NonMarkedTimeStamps, 
-                    options.ClusterSeparationTimeInSeconds, 
-                    calculatedData.stateAndPhases.FirstOrDefault(s => s.Value == "Wakefulness").Key, 
-                    calculatedData.GetStates(), options.Criterias);
+                int curClusterNumber = 1;
+                foreach (List<TimeStamp> cluster in calculator.CreateClusters(options.NonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds, options.GetState("Wakefulness")))
+                {
+                    calculatedData.clusterAndStats.Add(curClusterNumber, calculator.CalculateStats(cluster, options.GetAllStates(), options.Criterias));
+                    curClusterNumber++;
+                }
             }
 
             return calculatedData;
