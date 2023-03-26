@@ -1,10 +1,15 @@
 ﻿using Microsoft.Office.Interop.Excel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DataProcessing.Classes.Export
 {
-    internal class StatTable : ExcelTable
+    internal class BehaviorStatTable : StatTable
     {
-        public StatTable(object[,] data) : base(data)
+        public BehaviorStatTable(object[,] data) : base(data)
         {
         }
 
@@ -16,7 +21,7 @@ namespace DataProcessing.Classes.Export
             return verticalPosition + _data.GetLength(0);
         }
 
-        protected virtual void WriteChart(_Worksheet sheet, int verticalPosition, int horizontalPosition)
+        protected override void WriteChart(_Worksheet sheet, int verticalPosition, int horizontalPosition)
         {
             // Set chart dimensions and positions
             ExcelResources excelResources = ExcelResources.GetInstance();
@@ -35,7 +40,7 @@ namespace DataProcessing.Classes.Export
                 sheet,
                 verticalPosition + 1,
                 horizontalPosition + 3,
-                verticalPosition + excelResources.MaxStates,
+                verticalPosition + 5,
                 horizontalPosition + 3
                 );
 
@@ -57,10 +62,9 @@ namespace DataProcessing.Classes.Export
                 sheet,
                 verticalPosition + 1,
                 1,
-                verticalPosition + excelResources.MaxStates,
+                verticalPosition + 5,
                 1);
             xAxis.CategoryNames = range;
         }
-
     }
 }

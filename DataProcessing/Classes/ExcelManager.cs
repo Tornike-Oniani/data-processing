@@ -326,10 +326,10 @@ namespace DataProcessing.Classes
                 CreateGraphSheet();
                 CreateDuplicatesSheet();
                 CreateFrequenciesSheet();
-                CreateBehaviorSheet();
                 // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
                 if (options.FrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
                 if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
+                CreateBehaviorSheet();
 
                 // Release excel to accesible state for user
                 wb.Sheets[1].Select(Type.Missing);

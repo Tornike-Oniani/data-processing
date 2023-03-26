@@ -103,6 +103,7 @@
     <Compile Include="Classes\Calculate\UserSelectedOptions.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />
+    <Compile Include="Classes\Export\BehaviorStatTable.cs" />
     <Compile Include="Classes\Export\DuplicatesTable.cs" />
     <Compile Include="Classes\Export\ExcelTable.cs" />
     <Compile Include="Classes\Export\FrequencyTableWithChart.cs" />

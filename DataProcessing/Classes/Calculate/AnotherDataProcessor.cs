@@ -68,9 +68,10 @@ namespace DataProcessing.Classes.Calculate
             int time = 0;
             int currentHour = 0;
             List<TimeStamp> hourRegion = new List<TimeStamp>();
+            TimeStamp currentTimeStamp;
             for (int i = 0; i < options.MarkedNormalizedTimeStamps.Count; i++)
             {
-                TimeStamp currentTimeStamp = options.MarkedNormalizedTimeStamps[i];
+                currentTimeStamp = options.MarkedNormalizedTimeStamps[i];
                 time += currentTimeStamp.TimeDifferenceInSeconds;
 
                 if (time > options.TimeMarkInSeconds) { throw new Exception("Invalid hour marks"); }
@@ -112,6 +113,37 @@ namespace DataProcessing.Classes.Calculate
             // Total behaviors
             int[] behaviorStates = new int[] { 3, 4, 5, 6, 7 };
             calculatedData.totalBehaviorStats = calculator.CalculateBehaviorStats(options.NonMarkedTimeStamps, behaviorStates, options.GetState("Wakefulness"));
+
+            // behaviors per hour
+            hourRegion = new List<TimeStamp>();
+            time = 0;
+            currentHour = 0;
+            for (int i = 0; i < options.MarkedTimeStamps.Count; i++)
+            {
+                currentTimeStamp = options.MarkedTimeStamps[i];
+                time += currentTimeStamp.TimeDifferenceInSeconds;
+
+                if (time > options.TimeMarkInSeconds) { throw new Exception("Invalid hour marks"); }
+
+                hourRegion.Add(currentTimeStamp);
+
+                if (time == options.TimeMarkInSeconds)
+                {
+                    currentHour++;
+                    calculatedData.hourAndBehaviorStats.Add(currentHour, calculator.CalculateBehaviorStats(hourRegion, behaviorStates, options.GetState("Wakefulness")));
+
+                    time = 0;
+                    hourRegion.Clear();
+                }
+
+            }
+
+            // Do last part (might be less than marked time)
+            if (hourRegion.Count != 0)
+            {
+                currentHour++;
+                calculatedData.hourAndBehaviorStats.Add(currentHour, calculator.CalculateBehaviorStats(hourRegion, behaviorStates, options.GetState("Wakefulness")));
+            }
 
             return calculatedData;
         }

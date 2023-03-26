@@ -6,23 +6,30 @@ namespace DataProcessing.Classes.Export
 {
     internal class ExcelTable : IExportable
     {
+        #region Private attributes
         // Table data that should be written on excel file
         protected object[,] _data;
         // Range where column names are set, used to right align
         private ExcelRange _headerRange;
+        #endregion
+
+        #region Public properties
         // List of all colors and ranges that will be used for decorating this table
         // in excel file. We keep here name of the color as key and value all the ranges
         // that should be colored with that color. Here the color is string but in excel
         // manager we will map it to actual Color class
         public Dictionary<string, List<ExcelRange>> ColorRanges { get; private set; }
+        #endregion
 
-        // Constructor
+        #region Constructors
         public ExcelTable(object[,] data)
         {
             this._data = data;
             this.ColorRanges = new Dictionary<string, List<ExcelRange>>();
         }
+        #endregion
 
+        #region Public methods
         public void AddColor(string colorName, ExcelRange range)
         {
             // If we have no range with color initialize it first
@@ -46,7 +53,9 @@ namespace DataProcessing.Classes.Export
             Decorate(sheet, verticalPosition, horizontalPosition);
             return verticalPosition + _data.GetLength(0);
         }
+        #endregion
 
+        #region Private helpers
         // Main export functions
         protected void WriteData(_Worksheet sheet, int verticalPosition, int horizontalPosition)
         {
@@ -105,5 +114,6 @@ namespace DataProcessing.Classes.Export
             Range end = sheet.Cells[endRow, endColumn];
             return sheet.Range[start, end];
         }
+        #endregion
     }
 }

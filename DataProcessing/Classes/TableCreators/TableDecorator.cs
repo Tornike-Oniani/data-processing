@@ -169,6 +169,34 @@ namespace DataProcessing.Classes
 
             return table;
         }
+        public ExcelTable DecorateBehaviorStatTable(object[,] data, int criteriaNumber)
+        {
+            // So far we have max states hardcoded as 7 in this case !!! WANT TO CHANGE IN THE FUTURE
+            BehaviorStatTable table = new BehaviorStatTable(data);
+
+            // Header
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, 4));
+            // Phases
+            table.AddColor("Blue", new ExcelRange(1, 0, 5, 0));
+
+            table.SetHeaderRange(0, 1, 0, 4);
+
+            return table;
+        }
+        public ExcelTable DecorateBehaviorStatTableTotal(object[,] data, int criteriaNumber)
+        {
+            // So far we have max states hardcoded as 7 in this case !!! WANT TO CHANGE IN THE FUTURE
+            BehaviorStatTable table = new BehaviorStatTable(data);
+
+            // Header
+            table.AddColor("DarkOrange", new ExcelRange(0, 0, 0, 4));
+            // Phases
+            table.AddColor("DarkBlue", new ExcelRange(1, 0, 5 + 1, 0));
+
+            table.SetHeaderRange(0, 1, 0, 4);
+
+            return table;
+        }
         #endregion
     }
 }

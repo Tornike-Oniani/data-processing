@@ -121,14 +121,6 @@ namespace DataProcessing.Classes
             // Decorate collection and return it
             return tables;
         }
-        public List<ExcelTable> CreateBehaviorStatTables()
-        {
-            List<ExcelTable> tables = new List<ExcelTable>();
-
-            tables.Add(CreateBehaviorStatTable("Total", calculatedData.totalBehaviorStats, true));
-
-            return tables;
-        }
         public List<ExcelTable> CreateGraphTables()
         {
             List<ExcelTable> tables = new List<ExcelTable>();
@@ -236,6 +228,26 @@ namespace DataProcessing.Classes
             // Decorate collection and return it
             return tables;
         }
+        public List<ExcelTable> CreateBehaviorStatTables()
+        {
+            List<ExcelTable> tables = new List<ExcelTable>();
+
+            // Create a total stat table and add it on top
+            tables.Add(CreateBehaviorStatTable("Total", calculatedData.totalBehaviorStats, true));
+
+            // Add table for each hour mark
+            int counter = 1;
+            string tableName;
+            foreach (KeyValuePair<int, Stats> hourAndStat in calculatedData.hourAndBehaviorStats)
+            {
+                tableName = $"episode {counter}";
+                tables.Add(CreateBehaviorStatTable(tableName, hourAndStat.Value, false));
+                counter++;
+            }
+
+            // Decorate collection and return it
+            return tables;
+        }
         #endregion
 
         #region Private helpers
@@ -335,8 +347,8 @@ namespace DataProcessing.Classes
                 data[rowIndex, 2] = Math.Round((double)stats.TotalTime / 60, 2);
             }
 
-            if (isTotal) { return decorator.DecorateStatTableTotal(data, _criteriaNumber); }
-            return decorator.DecorateStatTable(data, _criteriaNumber);
+            if (isTotal) { return decorator.DecorateBehaviorStatTableTotal(data, _criteriaNumber); }
+            return decorator.DecorateBehaviorStatTable(data, _criteriaNumber);
         }
         // Division can be either hourAndStats or clusterAndStats
         private ExcelTable CreateGraphTable(string name, GraphTableDataType dataType, bool isCluster, bool hasChart = false)
