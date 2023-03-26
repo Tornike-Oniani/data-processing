@@ -7,13 +7,18 @@ namespace DataProcessing.Classes
 {
     internal class TableDecorator
     {
-        private int _maxStates;
+        #region Private attributes
+        private readonly int _maxStates;
+        #endregion
 
+        #region Constructors
         public TableDecorator(int maxStates)
         {
             this._maxStates = maxStates;
         }
+        #endregion
 
+        #region Public methods
         public ExcelTable DecorateRawData(object[,] data, List<TimeStamp> timeStamps, int timeMarkInSeconds)
         {
             ExcelTable table = new ExcelTable(data);
@@ -164,5 +169,6 @@ namespace DataProcessing.Classes
 
             return table;
         }
+        #endregion
     }
 }

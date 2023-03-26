@@ -14,15 +14,19 @@ namespace DataProcessing.Classes
     /// </summary>
     internal class TableCreator
     {
+        #region Private attributes
         // Data that was calculated by DataProcessor
         private readonly CalculatedData calculatedData;
         // Exported options selected by user
         private readonly CalculationOptions options;
         private readonly int _criteriaNumber;
+        private readonly List<TimeStamp> markedTimeStamps;
+        private readonly List<TimeStamp> nonMarkedTimeStamp;
         // Table decorator for coloring
         private readonly TableDecorator decorator;
+        #endregion
 
-        // Constructor
+        #region Constructors
         public TableCreator(CalculationOptions calcOptions, CalculatedData data)
         {
             // Init
@@ -31,8 +35,9 @@ namespace DataProcessing.Classes
             _criteriaNumber = options.Criterias.Count(c => c.Value != null);
             decorator = new TableDecorator(options.MaxStates);
         }
+        #endregion
 
-        // Public table creators
+        #region Public methods
         public ExcelTable CreateRawDataTable()
         {
             int rowCount = options.MarkedTimeStamps.Count;
@@ -211,8 +216,9 @@ namespace DataProcessing.Classes
             // Decorate collection and return it
             return tables;
         }
+        #endregion
 
-        // Single table helper creators
+        #region Private helpers
         private ExcelTable CreateStatTable(string name, Stats stats, bool isTotal)
         {
             // Header + all the phases + optional criterias + total row if its total
@@ -451,5 +457,6 @@ namespace DataProcessing.Classes
 
             return decorator.DecorateCustomFrequencyTable(data, options.FrequencyRanges.Count, isTotal);
         }
+        #endregion
     }
 }

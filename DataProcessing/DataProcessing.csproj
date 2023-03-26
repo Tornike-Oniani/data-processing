@@ -99,6 +99,7 @@
     <Compile Include="Classes\Calculate\CalculationOptions.cs" />
     <Compile Include="Classes\Calculate\Calculator.cs" />
     <Compile Include="Classes\Calculate\DataProcessor.cs" />
+    <Compile Include="Classes\Calculate\IDataProcessor.cs" />
     <Compile Include="Classes\Calculate\UserSelectedOptions.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />

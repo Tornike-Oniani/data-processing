@@ -1,6 +1,8 @@
 ﻿using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +24,14 @@ namespace DataProcessing.Models
             {
                 double percentage = Math.Round((double)entry.Value * 100 / TotalTime, 2);
                 StatePercentages.Add(entry.Key, percentage);
+            }
+        }
+        public void CalculateBehavioralPercentages(int[] states, int wakefulnessState)
+        {
+            foreach (int state in states)
+            {
+                double percentage = Math.Round((double)StateTimes[state] / StateTimes[wakefulnessState], 2);
+                StatePercentages[state] = percentage;
             }
         }
     }

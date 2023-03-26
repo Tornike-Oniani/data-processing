@@ -15,6 +15,7 @@ namespace DataProcessing.Classes
 {
     internal class ExcelManager
     {
+        #region Private attributes
         // Vertical distance between tables in each collection
         private const int DISTANCE_BETWEEN_TABLES = 2;
 
@@ -34,21 +35,23 @@ namespace DataProcessing.Classes
         private _Worksheet sheet;
         private int sheetNumber;
         private Range formatRange;
+        #endregion
 
+        #region Constructor
         // Constructor for importing
         public ExcelManager()
         {
 
         }
         // Constructor for exporting
-        public ExcelManager(
-            CalculationOptions calcOptions,
-            CalculatedData data)
+        public ExcelManager(CalculationOptions calcOptions, CalculatedData data)
         {
             this.options = calcOptions;
             this._tableCreator = new TableCreator(calcOptions, data);
         }
+        #endregion
 
+        #region Public methods
         public async Task<List<int>> CheckExcelFile(string filePath)
         {
             services.SetWorkStatus(true);
@@ -307,7 +310,6 @@ namespace DataProcessing.Classes
 
             services.SetWorkStatus(false);
         }
-
         public async Task ExportToExcelC()
         {
             services.SetWorkStatus(true);
@@ -335,7 +337,9 @@ namespace DataProcessing.Classes
             });
             services.SetWorkStatus(false);
         }
+        #endregion
 
+        #region Private helpers
         // Methods for creating each sheet (may include additional formatting and chart creating)
         private void CreateRawDataSheet()
         {
@@ -498,5 +502,6 @@ namespace DataProcessing.Classes
             GetWindowThreadProcessId(excelApp.Hwnd, out id);
             return Process.GetProcessById(id);
         }
+        #endregion
     }
 }

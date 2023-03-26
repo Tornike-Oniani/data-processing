@@ -40,7 +40,7 @@ namespace DataProcessing.ViewModels
         public ICommand PrevCommand { get; set; }
         #endregion
 
-        // Constructor
+        #region Constructors
         public WorkfileEditorViewModel()
         {
             // Init
@@ -53,6 +53,7 @@ namespace DataProcessing.ViewModels
             NextCommand = new RelayCommand(Next, CanNext);
             PrevCommand = new RelayCommand(Prev, CanPrev);
         }
+        #endregion
 
         #region Command actions
         public void Next(object input = null)

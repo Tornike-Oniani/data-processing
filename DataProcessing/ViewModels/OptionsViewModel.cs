@@ -87,7 +87,7 @@ namespace DataProcessing.ViewModels
         public ICommand CalculateCommand { get; set; }
         #endregion
 
-        // Constructor
+        #region Constructors
         public OptionsViewModel()
         {
             // Init
@@ -104,6 +104,7 @@ namespace DataProcessing.ViewModels
             // Set up commands
             CalculateCommand = new RelayCommand(Calculate);
         }
+        #endregion
 
         #region Command actions
         public async void Calculate(object input = null)
@@ -160,7 +161,15 @@ namespace DataProcessing.ViewModels
                     FrequencyRanges = getDictionaryofFrequencyRanges(),
                     Criterias = criterias
                 });
-            DataProcessor dataProcessor = new DataProcessor(calcOptions);
+            IDataProcessor dataProcessor;
+            if (SelectedRecordingType == RecordingType.TwoStatesWithBehavior)
+            {
+                dataProcessor = new AnotherDataProcessor(calcOptions);
+            }
+            else
+            {
+                dataProcessor = new DataProcessor(calcOptions);
+            }
             await new ExcelManager(
                 calcOptions,
                 dataProcessor.Calculate()

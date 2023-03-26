@@ -17,7 +17,7 @@ namespace DataProcessing.Classes.Calculate
         Numbers
     }
 
-    internal class DataProcessor
+    internal class DataProcessor : IDataProcessor
     {
         #region Private attributes
         private readonly CalculationOptions options;

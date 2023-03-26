@@ -36,7 +36,7 @@ namespace DataProcessing.Classes.Calculate
             MaxStates = RecordingType.MaxStates[options.SelectedRecordingType];
             MapStateToPhases(MaxStates);
             // We have switched assignment of normalized and regular!!!!!!!
-            if (MaxStates == 7)
+            if (MaxStates == 8)
             {
                 NonMarkedTimeStamps = CloneAndNormalizeTimeStamps(region);
                 NonMarkedNormalizedTimeStamps =  CloneTimeStamps(region);
