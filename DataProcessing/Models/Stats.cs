@@ -26,12 +26,12 @@ namespace DataProcessing.Models
                 StatePercentages.Add(entry.Key, percentage);
             }
         }
-        public void CalculateBehavioralPercentages(int[] states, int wakefulnessState)
+        public void CalculateBehavioralPercentages(int[] states, int wakefulnessTime)
         {
             foreach (int state in states)
             {
-                double percentage = Math.Round((double)StateTimes[state] / StateTimes[wakefulnessState], 2);
-                StatePercentages[state] = percentage;
+                double percentage = Math.Round((double)StateTimes[state] / wakefulnessTime, 2);
+                StatePercentages.Add(state, percentage);
             }
         }
     }

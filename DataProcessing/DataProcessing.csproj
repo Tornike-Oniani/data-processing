@@ -112,8 +112,8 @@
     <Compile Include="Classes\FrequencyRangeTemplateManager.cs" />
     <Compile Include="Classes\Services.cs" />
     <Compile Include="Classes\TableCollection.cs" />
-    <Compile Include="Classes\TableCreator.cs" />
-    <Compile Include="Classes\TableDecorator.cs" />
+    <Compile Include="Classes\TableCreators\TableCreator.cs" />
+    <Compile Include="Classes\TableCreators\TableDecorator.cs" />
     <Compile Include="Constants\RecordingType.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />

@@ -42,12 +42,13 @@ namespace DataProcessing.Classes.Calculate
             states.Sort();
 
             // If number of extracted states doesn't match number of selected states throw error.
-            if (states.Count > options.MaxStates) 
+            int actualMaxStates = options.SelectedRecordingType == RecordingType.TwoStatesWithBehavior ? 7 : RecordingType.MaxStates[options.SelectedRecordingType];
+            if (states.Count > actualMaxStates) 
             { 
-                throw new Exception($"File contains more than {options.MaxStates} states!"); 
+                throw new Exception($"File contains more than {actualMaxStates} states!"); 
             }
 
-            calculatedData.CreatePhases(options.MaxStates);
+            calculatedData.MapStateToPhases(options.SelectedRecordingType);
         }
         #endregion
 

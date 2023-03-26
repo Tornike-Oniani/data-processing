@@ -1,5 +1,6 @@
 ﻿using DataProcessing.Classes.Calculate;
 using DataProcessing.Classes.Export;
+using DataProcessing.Constants;
 using DataProcessing.Models;
 using DataProcessing.Utils;
 using System;
@@ -21,7 +22,7 @@ namespace DataProcessing.Classes
         private readonly CalculationOptions options;
         private readonly int _criteriaNumber;
         private readonly List<TimeStamp> markedTimeStamps;
-        private readonly List<TimeStamp> nonMarkedTimeStamp;
+        private readonly List<TimeStamp> nonMarkedTimeStamps;
         // Table decorator for coloring
         private readonly TableDecorator decorator;
         #endregion
@@ -33,20 +34,31 @@ namespace DataProcessing.Classes
             calculatedData = data;
             options = calcOptions;
             _criteriaNumber = options.Criterias.Count(c => c.Value != null);
+            // If we are working with behaviors our max state will be 7, but since we normalize the list we will have 2 states in most sheets and tables
             decorator = new TableDecorator(options.MaxStates);
+            if (options.SelectedRecordingType == RecordingType.TwoStatesWithBehavior)
+            {
+                markedTimeStamps = options.MarkedNormalizedTimeStamps;
+                nonMarkedTimeStamps = options.NonMarkedNormalizedTimeStamps;
+            }
+            else
+            {
+                markedTimeStamps = options.MarkedTimeStamps;
+                nonMarkedTimeStamps = options.NonMarkedTimeStamps;
+            }
         }
         #endregion
 
         #region Public methods
         public ExcelTable CreateRawDataTable()
         {
-            int rowCount = options.MarkedTimeStamps.Count;
+            int rowCount = markedTimeStamps.Count;
             int colCount = 5;
             object[,] data = new object[rowCount, colCount];
 
             // Fill in data
             int rowIndex = 0;
-            foreach (TimeStamp timeStamp in options.MarkedTimeStamps)
+            foreach (TimeStamp timeStamp in markedTimeStamps)
             {
                 // We convert time into string other wise setting range value in excel won't work
                 data[rowIndex, 0] = timeStamp.Time.ToString();
@@ -58,7 +70,7 @@ namespace DataProcessing.Classes
             }
 
             // Decorate collection and return it
-            return decorator.DecorateRawData(data, options.MarkedTimeStamps, options.TimeMarkInSeconds);
+            return decorator.DecorateRawData(data, markedTimeStamps, options.TimeMarkInSeconds);
         }
         public ExcelTable CreateLatencyTable()
         {
@@ -107,6 +119,14 @@ namespace DataProcessing.Classes
             }
 
             // Decorate collection and return it
+            return tables;
+        }
+        public List<ExcelTable> CreateBehaviorStatTables()
+        {
+            List<ExcelTable> tables = new List<ExcelTable>();
+
+            tables.Add(CreateBehaviorStatTable("Total", calculatedData.totalBehaviorStats, true));
+
             return tables;
         }
         public List<ExcelTable> CreateGraphTables()
@@ -187,13 +207,13 @@ namespace DataProcessing.Classes
         }
         public ExcelTable CreateClusterDataTable()
         {
-            int rowCount = options.NonMarkedTimeStamps.Count;
+            int rowCount = nonMarkedTimeStamps.Count;
             int colCount = 2;
             object[,] data = new object[rowCount, colCount];
 
             // Fill in data
             int rowIndex = 0;
-            foreach (TimeStamp timeStamp in options.NonMarkedTimeStamps)
+            foreach (TimeStamp timeStamp in nonMarkedTimeStamps)
             {
                 data[rowIndex, 0] = timeStamp.TimeDifferenceInSeconds;
                 data[rowIndex, 1] = timeStamp.State;
@@ -201,7 +221,7 @@ namespace DataProcessing.Classes
             }
 
             // Decorate collection and return it
-            return decorator.DecorateClusterDataTable(data, options.NonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
+            return decorator.DecorateClusterDataTable(data, nonMarkedTimeStamps, options.ClusterSeparationTimeInSeconds);
         }
         public List<ExcelTable> CreateGraphTablesForClusters()
         {
@@ -271,6 +291,48 @@ namespace DataProcessing.Classes
                 data[rowIndex, 2] = Math.Round((double)stats.SpecificTimes[criteria] / 60, 2);
                 data[rowIndex, 4] = stats.SpecificNumbers[criteria];
                 rowIndex++;
+            }
+
+            if (isTotal) { return decorator.DecorateStatTableTotal(data, _criteriaNumber); }
+            return decorator.DecorateStatTable(data, _criteriaNumber);
+        }
+        private ExcelTable CreateBehaviorStatTable(string name, Stats stats, bool isTotal)
+        {
+            // Header + all the phases + optional criterias + total row if its total
+            int rowCount =
+                calculatedData.behaviorStateAndPhases.Count +
+                1 +
+                (isTotal ? 1 : 0);
+            object[,] data = new object[rowCount, 5];
+
+            // Set title
+            data[0, 0] = name;
+
+            // Add columns
+            data[0, 1] = "sec";
+            data[0, 2] = "min";
+            data[0, 3] = "%";
+            data[0, 4] = "num";
+
+            // Fill in essential data
+            // We start from 1 because 0 is set to header
+            int rowIndex = 1;
+            foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.behaviorStateAndPhases)
+            {
+                data[rowIndex, 0] = stateAndPhase.Value;
+                data[rowIndex, 1] = stats.StateTimes[stateAndPhase.Key];
+                data[rowIndex, 2] = Math.Round((double)stats.StateTimes[stateAndPhase.Key] / 60, 2);
+                data[rowIndex, 3] = stats.StatePercentages[stateAndPhase.Key];
+                data[rowIndex, 4] = stats.StateNumber[stateAndPhase.Key];
+                rowIndex++;
+            }
+
+            // If table is total add one more row for summed up stats
+            if (isTotal)
+            {
+                data[rowIndex, 0] = "Total";
+                data[rowIndex, 1] = stats.TotalTime;
+                data[rowIndex, 2] = Math.Round((double)stats.TotalTime / 60, 2);
             }
 
             if (isTotal) { return decorator.DecorateStatTableTotal(data, _criteriaNumber); }

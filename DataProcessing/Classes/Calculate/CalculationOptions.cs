@@ -15,7 +15,9 @@ namespace DataProcessing.Classes.Calculate
         #region Public properties
         public int TimeMarkInSeconds { get; set; }
         public int MaxStates { get; set; }
+        public string SelectedRecordingType { get; set; }
         public Dictionary<int, string> StateAndPhases { get; set; }
+        public Dictionary<int, string> BehaviorStateAndPhases { get; set; }
         public List<TimeStamp> MarkedTimeStamps { get; set; }
         public List<TimeStamp> NonMarkedTimeStamps { get; set; }
         // In behavior recording type we want a separated list that shows just sleep and wakefulness
@@ -33,23 +35,13 @@ namespace DataProcessing.Classes.Calculate
             FrequencyRanges = options.FrequencyRanges;
             Criterias = options.Criterias;
             ClusterSeparationTimeInSeconds = options.ClusterSparationTime * 60;
+            SelectedRecordingType = options.SelectedRecordingType;
             MaxStates = RecordingType.MaxStates[options.SelectedRecordingType];
-            MapStateToPhases(MaxStates);
-            // We have switched assignment of normalized and regular!!!!!!!
-            if (MaxStates == 8)
-            {
-                NonMarkedTimeStamps = CloneAndNormalizeTimeStamps(region);
-                NonMarkedNormalizedTimeStamps =  CloneTimeStamps(region);
-                MarkedTimeStamps = AddTimeMarksToSamples(CloneAndNormalizeTimeStamps(region));
-                MarkedNormalizedTimeStamps = AddTimeMarksToSamples(region);
-            }
-            else
-            {
-                NonMarkedTimeStamps = CloneTimeStamps(region);
-                NonMarkedNormalizedTimeStamps = CloneAndNormalizeTimeStamps(region);
-                MarkedNormalizedTimeStamps = AddTimeMarksToSamples(CloneAndNormalizeTimeStamps(region));
-                MarkedTimeStamps = AddTimeMarksToSamples(region);
-            }
+            MapStateToPhases(SelectedRecordingType);
+            NonMarkedTimeStamps = CloneTimeStamps(region);
+            NonMarkedNormalizedTimeStamps = CloneAndNormalizeTimeStamps(region);
+            MarkedNormalizedTimeStamps = AddTimeMarksToSamples(CloneAndNormalizeTimeStamps(region));
+            MarkedTimeStamps = AddTimeMarksToSamples(region);
             CalculateSamples(NonMarkedTimeStamps);
             CalculateSamples(MarkedTimeStamps);
             CalculateSamples(NonMarkedNormalizedTimeStamps);
@@ -197,33 +189,24 @@ namespace DataProcessing.Classes.Calculate
 
             return result;
         }
-        public void MapStateToPhases(int maxStates)
+        public void MapStateToPhases(string recordingType)
         {
-            if (maxStates == 2)
+            if (recordingType == RecordingType.TwoStates)
             {
                 StateAndPhases = RecordingType.GetTwoStatesDictionary();
             }
-            else if (maxStates == 3)
+            else if (recordingType == RecordingType.ThreeStates)
             {
                 StateAndPhases = RecordingType.GetThreeStatesDictionary();
             }
-            else if (maxStates == 7)
+            else if (recordingType == RecordingType.TwoStatesWithBehavior)
             {
-                StateAndPhases = RecordingType.GetTwoStatesWithBehaviorDictionary();
-            }
-            else if (maxStates == 4)
-            {
-                StateAndPhases = new Dictionary<int, string>()
-                {
-                    {4, "Wakefulness" },
-                    {3, "Light sleep" },
-                    {2, "Deep sleep" },
-                    {1, "Paradoxical sleep" }
-                };
+                StateAndPhases = RecordingType.GetTwoStatesDictionary();
+                BehaviorStateAndPhases = RecordingType.GetBehaviorStatesDictionary();
             }
             else
             {
-                throw new Exception("Max states can be either 2 or 3");
+                throw new Exception("Selected recording type is not supported.");
             }
         }
         #endregion

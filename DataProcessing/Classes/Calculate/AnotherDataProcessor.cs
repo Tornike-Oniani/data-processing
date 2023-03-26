@@ -1,4 +1,5 @@
-﻿using DataProcessing.Models;
+﻿using DataProcessing.Constants;
+using DataProcessing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,12 +33,14 @@ namespace DataProcessing.Classes.Calculate
             states.Sort();
 
             // If number of extracted states doesn't match number of selected states throw error.
-            if (states.Count > options.MaxStates)
+            // Here we are checking the actual max state in file, so if user selected behavior recording type our 'working' max state will be 2, since we are dealing with only sleep and wakefulness, but actual physical max state will be 7 since the file contains up to 7 states describing the behavior.
+            int actualMaxStates = options.SelectedRecordingType == RecordingType.TwoStatesWithBehavior ? 7 : RecordingType.MaxStates[options.SelectedRecordingType];
+            if (states.Count > actualMaxStates)
             {
-                throw new Exception($"File contains more than {options.MaxStates} states!");
+                throw new Exception($"File contains more than {actualMaxStates} states!");
             }
 
-            calculatedData.CreatePhases(options.MaxStates);
+            calculatedData.MapStateToPhases(options.SelectedRecordingType);
         }
         #endregion
 
@@ -108,7 +111,7 @@ namespace DataProcessing.Classes.Calculate
             // Calculate behaviors
             // Total behaviors
             int[] behaviorStates = new int[] { 3, 4, 5, 6, 7 };
-            calculator.CalculateAndAppendBehavioralStats(options.NonMarkedTimeStamps, calculatedData.totalStats, behaviorStates, options.GetState("Wakefulness"));
+            calculatedData.totalBehaviorStats = calculator.CalculateBehaviorStats(options.NonMarkedTimeStamps, behaviorStates, options.GetState("Wakefulness"));
 
             return calculatedData;
         }

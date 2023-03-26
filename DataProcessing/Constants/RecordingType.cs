@@ -16,7 +16,7 @@ namespace DataProcessing.Constants
         {
             {ThreeStates, 3},
             {TwoStates, 2},
-            {TwoStatesWithBehavior, 7}
+            {TwoStatesWithBehavior, 2}
         };
 
         public static Dictionary<int, string> GetThreeStatesDictionary()
@@ -36,12 +36,10 @@ namespace DataProcessing.Constants
                 {2, "Wakefulness" }
             };
         }
-        public static Dictionary<int, string> GetTwoStatesWithBehaviorDictionary()
+        public static Dictionary<int, string> GetBehaviorStatesDictionary()
         {
             return new Dictionary<int, string>()
             {
-                {1, "Sleep" },
-                {2, "Wakefulness" },
                 {3, "Active" },
                 {4, "Passive" },
                 {5, "Grooming" },

@@ -34,14 +34,20 @@ namespace DataProcessing.Classes.Calculate
 
             return result;
         }
-        public void CalculateAndAppendBehavioralStats(List<TimeStamp> region, Stats stats, int[] states, int wakefulnessState)
+        public Stats CalculateBehaviorStats(List<TimeStamp> region, int[] states, int wakefulnessState)
         {
+            Stats result = new Stats();
+            // Calculate wakefulness time and set it as total
+            result.TotalTime = region.Where((sample) => sample.State >= wakefulnessState).Select((sample) => sample.TimeDifferenceInSeconds).Sum();
+
             foreach (int state in states)
             {
-                stats.StateTimes[state] = calculateStateTime(region, state);
-                stats.StateNumber[state] = calculateStateNumber(region, state);
+                result.StateTimes.Add(state, calculateStateTime(region, state));
+                result.StateNumber.Add(state, calculateStateNumber(region, state));
             }
-            stats.CalculateBehavioralPercentages(states, wakefulnessState);
+            result.CalculatePercentages();
+
+            return result;
         }
         public List<List<TimeStamp>> CreateClusters(List<TimeStamp> records, int clusterSeparationTime, int wakefulnessState)
         {

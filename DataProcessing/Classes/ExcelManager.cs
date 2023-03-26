@@ -326,6 +326,7 @@ namespace DataProcessing.Classes
                 CreateGraphSheet();
                 CreateDuplicatesSheet();
                 CreateFrequenciesSheet();
+                CreateBehaviorSheet();
                 // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
                 if (options.FrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
                 if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
@@ -458,6 +459,31 @@ namespace DataProcessing.Classes
             }
 
             formatRange = sheet.Range["E1:E1"];
+            formatRange.EntireColumn.AutoFit();
+
+            sheetNumber++;
+        }
+        private void CreateBehaviorSheet()
+        {
+            // Stat tables
+            services.UpdateWorkStatus("Exporting stat tables");
+            sheet = CreateNewSheet(wb, "Behavior", sheetNumber);
+            int vPos = 1;
+            // Since all stat table has a chart beside it we have to add additional
+            // distance between them, because the chart height is longer than the table
+            // but if table has specific criterias (which will make the table longer)
+            // than the additional increment will be smaller or sometimes nonexistent
+            int criteriaNumber = options.Criterias.Count(c => c.Value != null);
+            int additionaDistance = criteriaNumber >= 3 ? 0 : 3 - criteriaNumber;
+
+            foreach (IExportable table in _tableCreator.CreateBehaviorStatTables())
+            {
+                vPos = table.ExportToSheet(sheet, vPos, 1);
+                vPos += DISTANCE_BETWEEN_TABLES + additionaDistance;
+            }
+
+            // Autofit first column
+            formatRange = sheet.Range["A1:A1"];
             formatRange.EntireColumn.AutoFit();
 
             sheetNumber++;

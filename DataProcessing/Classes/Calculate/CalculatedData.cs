@@ -16,8 +16,11 @@ namespace DataProcessing.Classes
     {
         #region Public properties
         public Dictionary<int, string> stateAndPhases { get; set; }
+        public Dictionary<int, string> behaviorStateAndPhases { get; set; }
         public Stats totalStats { get; set; }
+        public Stats totalBehaviorStats { get; set; }
         public Dictionary<int, Stats> hourAndStats { get; set; }
+        public Dictionary<int, Stats> hourAndBehaviorStats { get; set; }
         public Dictionary<int, Stats> clusterAndStats { get; set; }
         // State frequencies total + each hour
         public List<Dictionary<int, SortedList<int, int>>> stateFrequencies { get; set; }
@@ -33,7 +36,10 @@ namespace DataProcessing.Classes
         {
             // Init
             stateAndPhases = new Dictionary<int, string>();
+            totalBehaviorStats = new Stats();
+            behaviorStateAndPhases = new Dictionary<int, string>();
             hourAndStats = new Dictionary<int, Stats>();
+            hourAndBehaviorStats = new Dictionary<int, Stats>();
             clusterAndStats = new Dictionary<int, Stats>();
             stateFrequencies = new List<Dictionary<int, SortedList<int, int>>>();
             stateFrequencyRanges= new List<Dictionary<int, Dictionary<string, int>>>();
@@ -44,31 +50,24 @@ namespace DataProcessing.Classes
         #endregion
 
         #region Public methods
-        public void CreatePhases(int maxStates)
+        public void MapStateToPhases(string recordingType)
         {
-            if (maxStates == 2)
+            if (recordingType == RecordingType.TwoStates)
             {
                 stateAndPhases = RecordingType.GetTwoStatesDictionary();
             }
-            else if (maxStates == 3)
+            else if (recordingType == RecordingType.ThreeStates)
             {
                 stateAndPhases = RecordingType.GetThreeStatesDictionary();
             }
-            else if (maxStates == 7)
+            else if (recordingType == RecordingType.TwoStatesWithBehavior)
             {
-                stateAndPhases = RecordingType.GetTwoStatesWithBehaviorDictionary();
-            }
-            else if (maxStates == 4)
-            {
-                stateAndPhases = new Dictionary<int, string>();
-                stateAndPhases.Add(4, "Wakefulness");
-                stateAndPhases.Add(3, "Light sleep");
-                stateAndPhases.Add(2, "Deep sleep");
-                stateAndPhases.Add(1, "Paradoxical sleep");
+                stateAndPhases = RecordingType.GetTwoStatesDictionary();
+                behaviorStateAndPhases = RecordingType.GetBehaviorStatesDictionary();
             }
             else
             {
-                throw new Exception("Max states can be either 2 or 3");
+                throw new Exception("Selected recording type is not supported.");
             }
         }
         public int[] GetStates()
