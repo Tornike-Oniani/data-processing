@@ -22,7 +22,15 @@ namespace DataProcessing.Models
         {
             foreach (KeyValuePair<int, int> entry in StateTimes)
             {
-                double percentage = Math.Round((double)entry.Value * 100 / TotalTime, 2);
+                double percentage;
+                if (TotalTime == 0)
+                {
+                    percentage = 0;
+                }
+                else 
+                { 
+                    percentage = Math.Round((double)entry.Value * 100 / TotalTime, 2);
+                }
                 StatePercentages.Add(entry.Key, percentage);
             }
         }

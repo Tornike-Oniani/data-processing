@@ -25,8 +25,8 @@ namespace DataProcessing.Classes.Export
         {
             // Set chart dimensions and positions
             ExcelResources excelResources = ExcelResources.GetInstance();
-            double chartWidth = excelResources.CellWidth * 5;
-            double chartHeight = excelResources.CellHeight * 8;
+            double chartWidth = excelResources.CellWidth * 8;
+            double chartHeight = excelResources.CellHeight * 12;
             double leftPos = excelResources.CellWidth * 7;
             double topPos = (verticalPosition - 1) * excelResources.CellHeight;
 
@@ -57,7 +57,7 @@ namespace DataProcessing.Classes.Export
             chart.HasLegend = false;
             Axis xAxis = chart.Axes(XlAxisType.xlCategory, XlAxisGroup.xlPrimary);
 
-            // Get relatice phases range
+            // Get relative phases range
             range = GetRange(
                 sheet,
                 verticalPosition + 1,

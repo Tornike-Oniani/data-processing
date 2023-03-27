@@ -474,7 +474,7 @@ namespace DataProcessing.Classes
             // but if table has specific criterias (which will make the table longer)
             // than the additional increment will be smaller or sometimes nonexistent
             int criteriaNumber = options.Criterias.Count(c => c.Value != null);
-            int additionaDistance = criteriaNumber >= 3 ? 0 : 3 - criteriaNumber;
+            int additionaDistance = 7;
 
             foreach (IExportable table in _tableCreator.CreateBehaviorStatTables())
             {
