@@ -18,6 +18,45 @@
         <converters:BoolToThicknessConverter x:Key="BoolToThickness" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:StateToVisibilityConverter x:Key="StateToVisibility" />
+
+        <Style x:Key="SheetList" TargetType="{x:Type ListView}">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="BorderThickness" Value="0 0 1 0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGrayBorder}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListView}">
+                        <Border 
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            >
+                            <ScrollViewer>
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="Padding" Value="6" />
+                        <Setter Property="FontSize" Value="14" />
+                        <Setter Property="BorderThickness" Value="1 1 0 1" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGrayBorder}" />
+                        <Setter Property="Background" Value="{StaticResource ColorBrushWhite}" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style> 
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -30,14 +69,19 @@
                 Tag="1"
                 Style="{StaticResource TabItemFirst}"
                 >
-                <DataGrid 
-                    x:Name="myDataGrid" 
-                    ItemsSource="{Binding DisplayManager.Items}"
-                    utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
-                    Style="{StaticResource MainDataGrid}"
-                    MouseUp="DataGrid_MouseUp"
-                    Grid.Column="0"
-                    >
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DataGrid 
+                        x:Name="myDataGrid" 
+                        ItemsSource="{Binding DisplayManager.Items}"
+                        utils:SelectionExtension.SelectedItems="{Binding DisplayManager.SelectedRows}"
+                        Style="{StaticResource MainDataGrid}"
+                        MouseUp="DataGrid_MouseUp"
+                        Grid.Row="0"
+                        >
                     <!-- Columns -->
                     <DataGrid.Columns>
                         <!-- Title column -->
@@ -60,6 +104,15 @@
                         <DataGridTextColumn Header="State" MinWidth="95" Binding="{Binding State}" />
                     </DataGrid.Columns>
                 </DataGrid>
+                    <ListView
+                        ItemsSource="{Binding DisplayManager.Sheets}"
+                        SelectedItem="{Binding DisplayManager.SelectedSheet}"
+                        Style="{StaticResource SheetList}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        Grid.Row="1"
+                        />
+                </Grid>
             </TabItem>
             <TabItem 
                 Header="Set frequencies"

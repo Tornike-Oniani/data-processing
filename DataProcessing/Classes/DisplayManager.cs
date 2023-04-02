@@ -1,5 +1,6 @@
 ﻿using DataProcessing.Models;
 using DataProcessing.Utils;
+using DataProcessing.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,14 +11,28 @@ using System.Windows.Input;
 
 namespace DataProcessing.Classes
 {
-    class DisplayManager
+    class DisplayManager : BaseViewModel
     {
+        #region Property fields
+        private string _selectedSheet;
+        #endregion
+
         #region Properties
         public ObservableCollection<TimeStamp> Items { get; set; }
         public TimeStamp SelectedRow { get; set; }
         public List<TimeStamp> SelectedRows { get; set; }
         public List<string> Sheets { get; set; }
-        public string SelectedSheet { get; set; }
+
+        public string SelectedSheet
+        {
+            get { return _selectedSheet; }
+            set 
+            { 
+                _selectedSheet = value; 
+                OnPropertyChanged("SelectedSheet");
+                PopulateCommand.Execute(null);
+            }
+        }
         #endregion
 
         #region Commands
@@ -35,11 +50,12 @@ namespace DataProcessing.Classes
             {
                 Sheets.Add("Sheet" + (i + 1));
             }
-            SelectedSheet = Sheets[0];
 
             // Command initialization
             PopulateCommand = new RelayCommand(Populate);
-            PopulateCommand.Execute(null);
+
+            // We set the seet after initializing PopulateCommand because in setter we invoke it
+            SelectedSheet = Sheets[0];
         }
         #endregion
 
