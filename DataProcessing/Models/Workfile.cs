@@ -13,5 +13,6 @@ namespace DataProcessing.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string ImportDate { get; set; }
+        public int Sheets { get; set; }
     }
 }

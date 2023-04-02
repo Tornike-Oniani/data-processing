@@ -52,13 +52,13 @@ namespace DataProcessing.Classes
         #endregion
 
         #region Public methods
-        public async Task<List<int>> CheckExcelFile(string filePath)
+        public async Task<Dictionary<int, List<int>>> CheckExcelFile(string filePath)
         {
+            Dictionary<int, List<int>> errorsInSheets = new Dictionary<int, List<int>>();
+
             services.SetWorkStatus(true);
 
-            List<int> errorRows = new List<int>();
-
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 // 1. Open excel
                 services.UpdateWorkStatus("Opening excel...");
@@ -66,76 +66,33 @@ namespace DataProcessing.Classes
                 Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);
                 Worksheet worksheet = workbook.Sheets[1];
 
-                Range firstRow = worksheet.Cells[1, 1];
-                if (firstRow.Value == null)
-                {
-                    Marshal.ReleaseComObject(worksheet);
-                    Marshal.ReleaseComObject(workbook);
-                    excel.Workbooks.Close();
-                    excel.Quit();
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                    throw new Exception("First row can not be blank in excel file!");
-                }
-
-                // 2. Count nonblank rows
-                services.UpdateWorkStatus("Counting rows...");
-                Range targetCells = worksheet.UsedRange;
-                Range allCells = targetCells.Cells;
-                Range allRows = targetCells.Rows;
-                object[,] allValues = (object[,])allCells.Value;
-                int rowCount = 0;
-
-                for (int i = 1; i <= allRows.Count; i++)
-                {
-                    if (allValues[i, 1] == null) { break; }
-                    rowCount++;
-                }
-
-                // Create array of raw data
-                Range rangeData = worksheet.Range[$"A1:B{rowCount}"];
-                Range rangeCells = rangeData.Cells;
-                object[,] dataValues = rangeCells.Value;
-                List<Tuple<TimeSpan, int>> timeData = new List<Tuple<TimeSpan, int>>();
-                int iteration = 0;
                 try
                 {
-                    for (int i = 1; i <= dataValues.Length / 2; i++)
+                    int currentSheetNumber = 1;
+                    List<int> errors;
+                    foreach (Worksheet curSheet in workbook.Sheets)
                     {
-                        iteration = i;
-                        string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
-                        int[] nTimeData = new int[3] {
-                        int.Parse(sTimeSpan.Split(':')[0]),
-                        int.Parse(sTimeSpan.Split(':')[1]),
-                        int.Parse(sTimeSpan.Split(':')[2])
-                    };
-                        string val = "";
-                        if (dataValues[i, 2] != null)
-                            val = dataValues[i, 2].ToString().Trim();
-                        int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
-                        TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
-
-                        Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
-                        timeData.Add(tuple);
+                        errors = await CheckExcelSheet(curSheet);
+                        if (errors.Count > 0)
+                        {
+                            errorsInSheets.Add(currentSheetNumber, await CheckExcelSheet(curSheet));
+                        }
+                        currentSheetNumber++;
                     }
                 }
-                // If parsing data from importing file failed (for example corrupted time entry) then we want to throw arrow on which row the parse failed
-                catch (Exception e)
+                catch(Exception e)
                 {
-                    Exception myException = new Exception(e.Message);
-                    myException.Data.Add("Iteration", iteration);
-                    GetExcelProcess(excel).Kill();
-                    services.SetWorkStatus(false);
-                    throw myException;
-                }
-
-
-                // Check time integrity
-                for (int i = 1; i < timeData.Count - 2; i++)
-                {
-                    if (!isBetweenTimeInterval(timeData[i - 1].Item1, timeData[i + 1].Item1, timeData[i].Item1))
+                    if (e.Message == "First row can not be blank in excel file!")
                     {
-                        errorRows.Add(i + 1);
+                        Marshal.ReleaseComObject(worksheet);
+                        Marshal.ReleaseComObject(workbook);
+                        excel.Workbooks.Close();
+                        excel.Quit();
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        GetExcelProcess(excel).Kill();
+                        services.SetWorkStatus(false);
+                        throw e;
                     }
                 }
 
@@ -152,9 +109,9 @@ namespace DataProcessing.Classes
 
             services.SetWorkStatus(false);
 
-            return errorRows;
+            return errorsInSheets;
         }
-        public async Task HighlightExcelFileErrors(string filePath, List<int> errorRows)
+        public async Task HighlightExcelFileErrors(string filePath, Dictionary<int, List<int>> errorsInSheet)
         {
             services.SetWorkStatus(true);
 
@@ -163,16 +120,20 @@ namespace DataProcessing.Classes
                 // 1. Open excel
                 services.UpdateWorkStatus("Opening excel...");
                 Application excel = new Application();
-                Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);
-                Worksheet worksheet = workbook.Sheets[1];
+                Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);                
 
+                Worksheet worksheet;
                 Range errorRange;
                 Interior interior;
-                foreach (int errorRow in errorRows)
+                foreach (KeyValuePair<int, List<int>> sheetAndErrors in errorsInSheet)
                 {
-                    errorRange = worksheet.Range[$"A{errorRow}:B{errorRow}"];
-                    interior = errorRange.Interior;
-                    interior.Color = ExcelResources.GetInstance().Colors["DarkRed"];
+                    worksheet = workbook.Sheets[sheetAndErrors.Key];
+                    foreach (int errorRow in sheetAndErrors.Value)
+                    {
+                        errorRange = worksheet.Range[$"A{errorRow}:B{errorRow}"];
+                        interior = errorRange.Interior;
+                        interior.Color = ExcelResources.GetInstance().Colors["DarkRed"];
+                    }
                 }
 
                 excel.Visible = true;
@@ -191,78 +152,33 @@ namespace DataProcessing.Classes
                 services.UpdateWorkStatus("Starting import...");
                 Application excel = new Application();
                 Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);
-                Worksheet worksheet = workbook.Sheets[1];
 
-                if (worksheet.Cells[1, 1].Value == null)
+                List<TimeStamp> dataToImport;
+                int currentSheetNumber = 1;
+                try
                 {
-                    Marshal.ReleaseComObject(worksheet);
+                    foreach (Worksheet worksheet in workbook.Sheets)
+                    {
+                        dataToImport = GetImportableDataFromExcelSheet(worksheet);
+                        // Persist to database
+                        Services.GetInstance().UpdateWorkStatus($"Persisting data");
+                        TimeStamp.SaveMany(dataToImport, currentSheetNumber);
+                        currentSheetNumber++;
+                    }
+                }
+                catch(Exception e)
+                {
                     Marshal.ReleaseComObject(workbook);
                     excel.Workbooks.Close();
                     excel.Quit();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GetExcelProcess(excel).Kill();
-                    throw new Exception("First row can not be blank in excel file!");
-                }
-
-                // 2. Count nonblank rows
-                services.UpdateWorkStatus("Counting rows...");
-                Range targetRange = worksheet.UsedRange;
-                Range targetCells = targetRange.Cells;
-                Range allRows = targetCells.Rows;
-                object[,] allValues = (object[,])targetCells.Value;
-                int rowCount = 0;
-
-                for (int i = 1; i <= allRows.Count; i++)
-                {
-                    if (allValues[i, 1] == null) { break; }
-                    rowCount++;
-                }
-
-                // Create array of raw data
-                targetRange = worksheet.Range[$"A1:B{rowCount}"];
-                targetCells = targetRange.Cells;
-                object[,] dataValues = (object[,])targetCells.Value;
-                List<Tuple<TimeSpan, int>> timeData = new List<Tuple<TimeSpan, int>>();
-                for (int i = 1; i <= dataValues.Length / 2; i++)
-                {
-                    string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
-                    int[] nTimeData = new int[3] {
-                        int.Parse(sTimeSpan.Split(':')[0]),
-                        int.Parse(sTimeSpan.Split(':')[1]),
-                        int.Parse(sTimeSpan.Split(':')[2])
-                    };
-                    string val = "";
-                    if (dataValues[i, 2] != null)
-                        val = dataValues[i, 2].ToString().Trim();
-                    int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
-                    TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
-
-                    Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
-                    timeData.Add(tuple);
-                }
-
-                List<TimeStamp> samples = new List<TimeStamp>();
-
-                for (int i = 0; i < timeData.Count; i++)
-                {
-                    updateStatus("Importing data", i + 1, rowCount);
-                    TimeSpan span = timeData[i].Item1;
-                    int state = timeData[i].Item2;
-                    TimeStamp sample = new TimeStamp() { Time = span, State = state };
-                    samples.Add(sample);
+                    throw e;
                 }
 
                 // Supposed to clean excel from memory but fails miserably
                 Process excelProcess = GetExcelProcess(excel);
-                while (Marshal.ReleaseComObject(allRows) > 0) ;
-                while (Marshal.ReleaseComObject(targetCells) > 0) ;
-                while (Marshal.ReleaseComObject(targetRange) > 0) ;
-                allRows = null;
-                targetCells = null;
-                targetRange = null;
-                while (Marshal.ReleaseComObject(worksheet) > 0) ;
-                worksheet = null;
                 excel.Workbooks.Close();
                 while (Marshal.ReleaseComObject(workbook) > 0) ;
                 workbook = null;
@@ -272,40 +188,6 @@ namespace DataProcessing.Classes
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 excelProcess.Kill();
-
-                // Add markers
-                services.UpdateWorkStatus("Adding markers...");
-                bool hasLightMarker = false;
-                bool hasDarkMarker = false;
-                TimeSpan lightMarker = new TimeSpan(10, 0, 0);
-                TimeSpan darkMarker = new TimeSpan(22, 0, 0);
-                List<TimeStamp> markAddedSamples = new List<TimeStamp>();
-                if (samples[0].Time == lightMarker) { hasLightMarker = true; }
-                if (samples[1].Time == darkMarker) { hasDarkMarker = true; }
-                markAddedSamples.Add(samples[0]);
-                for (int i = 1; i < samples.Count; i++)
-                {
-                    TimeStamp curSample = samples[i];
-                    TimeStamp prevSample = samples[i - 1];
-                    if (curSample.Time == lightMarker) { hasLightMarker = true; curSample.IsMarker = true; }
-                    if (curSample.Time == darkMarker) { hasDarkMarker = true; curSample.IsMarker = true; }
-
-                    if (!hasLightMarker && isBetweenTimeInterval(prevSample.Time, curSample.Time, lightMarker))
-                    {
-                        markAddedSamples.Add(new TimeStamp() { Time = lightMarker, State = curSample.State, IsMarker = true });
-                    }
-
-                    if (!hasDarkMarker && isBetweenTimeInterval(prevSample.Time, curSample.Time, darkMarker))
-                    {
-                        markAddedSamples.Add(new TimeStamp() { Time = darkMarker, State = curSample.State, IsMarker = true });
-                    }
-
-                    markAddedSamples.Add(curSample);
-                }
-
-                // Persist to database
-                Services.GetInstance().UpdateWorkStatus($"Persisting data");
-                TimeStamp.SaveMany(markAddedSamples);
             });
 
             services.SetWorkStatus(false);
@@ -338,9 +220,193 @@ namespace DataProcessing.Classes
             });
             services.SetWorkStatus(false);
         }
+        public async Task<int> CountSheets(string filePath)
+        {
+            int result = 0;
+
+            await Task.Run(() =>
+            {
+                Application excel = new Application();
+                Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: true);
+                result = workbook.Sheets.Count;
+                GetExcelProcess(excel).Kill();
+            });
+
+            return result;
+        }
         #endregion
 
         #region Private helpers
+        private async Task<List<int>> CheckExcelSheet(Worksheet sheet)
+        {
+            List<int> errorRows = new List<int>();
+
+            await Task.Run(() =>
+            {
+                Range firstRow = sheet.Cells[1, 1];
+                if (firstRow.Value == null)
+                {
+                    throw new Exception("First row can not be blank in excel file!");
+                }
+
+                // 2. Count nonblank rows
+                services.UpdateWorkStatus("Counting rows...");
+                Range targetCells = sheet.UsedRange;
+                Range allCells = targetCells.Cells;
+                Range allRows = targetCells.Rows;
+                object[,] allValues = (object[,])allCells.Value;
+                int rowCount = 0;
+
+                for (int i = 1; i <= allRows.Count; i++)
+                {
+                    if (allValues[i, 1] == null) { break; }
+                    rowCount++;
+                }
+
+                // Create array of raw data
+                Range rangeData = sheet.Range[$"A1:B{rowCount}"];
+                Range rangeCells = rangeData.Cells;
+                object[,] dataValues = rangeCells.Value;
+                List<Tuple<TimeSpan, int>> timeData = new List<Tuple<TimeSpan, int>>();
+                int iteration = 0;
+                try
+                {
+                    for (int i = 1; i <= dataValues.Length / 2; i++)
+                    {
+                        iteration = i;
+                        string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
+                        int[] nTimeData = new int[3] {
+                            int.Parse(sTimeSpan.Split(':')[0]),
+                            int.Parse(sTimeSpan.Split(':')[1]),
+                            int.Parse(sTimeSpan.Split(':')[2])
+                        };
+                        string val = "";
+                        if (dataValues[i, 2] != null)
+                            val = dataValues[i, 2].ToString().Trim();
+                        int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
+                        TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
+
+                        Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
+                        timeData.Add(tuple);
+                    }
+                }
+                // If parsing data from importing file failed (for example corrupted time entry) then we want to throw arrow on which row the parse failed
+                catch (Exception e)
+                {
+                    Exception myException = new Exception(e.Message);
+                    myException.Data.Add("Iteration", iteration);
+                    throw myException;
+                }
+
+                // Check time integrity
+                for (int i = 1; i < timeData.Count - 2; i++)
+                {
+                    if (!isBetweenTimeInterval(timeData[i - 1].Item1, timeData[i + 1].Item1, timeData[i].Item1))
+                    {
+                        errorRows.Add(i + 1);
+                    }
+                }
+            });
+
+            return errorRows;
+        }
+        private List<TimeStamp> GetImportableDataFromExcelSheet(Worksheet sheet)
+        {
+            if (sheet.Cells[1, 1].Value == null)
+            {
+                throw new Exception("First row can not be blank in excel file!");
+            }
+
+            // 2. Count nonblank rows
+            services.UpdateWorkStatus("Counting rows...");
+            Range targetRange = sheet.UsedRange;
+            Range targetCells = targetRange.Cells;
+            Range allRows = targetCells.Rows;
+            object[,] allValues = (object[,])targetCells.Value;
+            int rowCount = 0;
+
+            for (int i = 1; i <= allRows.Count; i++)
+            {
+                if (allValues[i, 1] == null) { break; }
+                rowCount++;
+            }
+
+            // Create array of raw data
+            targetRange = sheet.Range[$"A1:B{rowCount}"];
+            targetCells = targetRange.Cells;
+            object[,] dataValues = (object[,])targetCells.Value;
+            List<Tuple<TimeSpan, int>> timeData = new List<Tuple<TimeSpan, int>>();
+            for (int i = 1; i <= dataValues.Length / 2; i++)
+            {
+                string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
+                int[] nTimeData = new int[3] {
+                        int.Parse(sTimeSpan.Split(':')[0]),
+                        int.Parse(sTimeSpan.Split(':')[1]),
+                        int.Parse(sTimeSpan.Split(':')[2])
+                    };
+                string val = "";
+                if (dataValues[i, 2] != null)
+                    val = dataValues[i, 2].ToString().Trim();
+                int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
+                TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
+
+                Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
+                timeData.Add(tuple);
+            }
+
+            List<TimeStamp> samples = new List<TimeStamp>();
+
+            for (int i = 0; i < timeData.Count; i++)
+            {
+                updateStatus("Importing data", i + 1, rowCount);
+                TimeSpan span = timeData[i].Item1;
+                int state = timeData[i].Item2;
+                TimeStamp sample = new TimeStamp() { Time = span, State = state };
+                samples.Add(sample);
+            }
+
+            // Add markers
+            services.UpdateWorkStatus("Adding markers...");
+            bool hasLightMarker = false;
+            bool hasDarkMarker = false;
+            TimeSpan lightMarker = new TimeSpan(10, 0, 0);
+            TimeSpan darkMarker = new TimeSpan(22, 0, 0);
+            List<TimeStamp> markAddedSamples = new List<TimeStamp>();
+            if (samples[0].Time == lightMarker) { hasLightMarker = true; }
+            if (samples[1].Time == darkMarker) { hasDarkMarker = true; }
+            markAddedSamples.Add(samples[0]);
+            for (int i = 1; i < samples.Count; i++)
+            {
+                TimeStamp curSample = samples[i];
+                TimeStamp prevSample = samples[i - 1];
+                if (curSample.Time == lightMarker) { hasLightMarker = true; curSample.IsMarker = true; }
+                if (curSample.Time == darkMarker) { hasDarkMarker = true; curSample.IsMarker = true; }
+
+                if (!hasLightMarker && isBetweenTimeInterval(prevSample.Time, curSample.Time, lightMarker))
+                {
+                    markAddedSamples.Add(new TimeStamp() { Time = lightMarker, State = curSample.State, IsMarker = true });
+                }
+
+                if (!hasDarkMarker && isBetweenTimeInterval(prevSample.Time, curSample.Time, darkMarker))
+                {
+                    markAddedSamples.Add(new TimeStamp() { Time = darkMarker, State = curSample.State, IsMarker = true });
+                }
+
+                markAddedSamples.Add(curSample);
+            }
+
+            // Supposed to clean excel from memory but fails miserably
+            while (Marshal.ReleaseComObject(allRows) > 0) ;
+            while (Marshal.ReleaseComObject(targetCells) > 0) ;
+            while (Marshal.ReleaseComObject(targetRange) > 0) ;
+            allRows = null;
+            targetCells = null;
+            targetRange = null;
+            while (Marshal.ReleaseComObject(sheet) > 0) ;
+            sheet = null;
+
+            return markAddedSamples;
+        }
         // Methods for creating each sheet (may include additional formatting and chart creating)
         private void CreateRawDataSheet()
         {

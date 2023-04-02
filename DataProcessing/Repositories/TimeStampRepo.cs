@@ -20,7 +20,7 @@ namespace DataProcessing.Repositories
         {
             if (WorkfileManager.GetInstance().SelectedWorkFile == null) throw new Exception("Can not operate data without active workfile");
 
-            table = $"'{WorkfileManager.GetInstance().SelectedWorkFile.Name}'";
+            table = $"{WorkfileManager.GetInstance().SelectedWorkFile.Name}";
         }
 
         // CRUD operations
@@ -34,7 +34,7 @@ namespace DataProcessing.Repositories
                     new { Time = ticks, State = record.State, IsMarker = record.IsMarker });
             }
         }
-        public void CreateMany(List<TimeStamp> records)
+        public void CreateMany(List<TimeStamp> records, int sheetNumber)
         {
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
@@ -45,7 +45,7 @@ namespace DataProcessing.Repositories
                     foreach (TimeStamp record in records)
                     {
                         ticks = record.Time.Ticks;
-                        conn.Execute($"INSERT INTO {table} (Time, State, IsMarker) VALUES (@Time, @State, @IsMarker);",
+                        conn.Execute($"INSERT INTO '{table}_Sheet{sheetNumber}' (Time, State, IsMarker) VALUES (@Time, @State, @IsMarker);",
                             new { Time = ticks, State = record.State, IsMarker = record.IsMarker }, transaction: transaction);
                     }
                     transaction.Commit();
@@ -62,12 +62,12 @@ namespace DataProcessing.Repositories
                     new { Time = ticks, State = record.State, Id = record.Id });
             }
         }
-        public List<TimeStamp> Find()
+        public List<TimeStamp> Find(int sheetNumber)
         {
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                string query = $@"SELECT Id, Time AS TimeTicks, State, IsMarker FROM {table};";
+                string query = $@"SELECT Id, Time AS TimeTicks, State, IsMarker FROM '{table}_Sheet{sheetNumber}';";
                 return conn.Query<TimeStamp>(query).ToList();
             }
         }

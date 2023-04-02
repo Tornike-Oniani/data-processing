@@ -47,17 +47,17 @@ namespace DataProcessing.Models
         {
             repo.Create(this);
         }
-        public static void SaveMany(List<TimeStamp> records)
+        public static void SaveMany(List<TimeStamp> records, int sheetNumber)
         {
-            new TimeStampRepo().CreateMany(records);
+            new TimeStampRepo().CreateMany(records, sheetNumber);
         }
         public void Update()
         {
             repo.Update(this);
         }
-        public static List<TimeStamp> Find()
+        public static List<TimeStamp> Find(int sheetNumber)
         {
-            return new TimeStampRepo().Find();
+            return new TimeStampRepo().Find(sheetNumber);
         }
 
         // Private helpers

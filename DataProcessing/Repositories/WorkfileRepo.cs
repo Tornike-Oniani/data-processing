@@ -28,8 +28,11 @@ CREATE TABLE ""TimeStampBlueprint"" (
                 conn.Open();
                 using (SQLiteTransaction transaction = conn.BeginTransaction())
                 {
-                    string tableQuery = $@"
-CREATE TABLE ""{workfile.Name}"" (
+                    string tableQuery;
+                    for (int i = 0; i < workfile.Sheets; i++)
+                    {
+                        tableQuery = $@"
+CREATE TABLE ""{workfile.Name}_Sheet{i + 1}"" (
 	""Id""	INTEGER NOT NULL UNIQUE,
 	""Time""	NUMERIC NOT NULL,
 	""State""	NUMERIC NOT NULL,
@@ -37,8 +40,10 @@ CREATE TABLE ""{workfile.Name}"" (
 	PRIMARY KEY(""Id"" AUTOINCREMENT)
 );
 ";
-                    conn.Execute(tableQuery, transaction: transaction);
-                    conn.Execute("INSERT INTO Workfile (Name, ImportDate) VALUES (@Name, @ImportDate)", new { Name = workfile.Name, ImportDate = workfile.ImportDate }, transaction: transaction);
+                        conn.Execute(tableQuery, transaction: transaction);
+                    }
+
+                    conn.Execute("INSERT INTO Workfile (Name, ImportDate, Sheets) VALUES (@Name, @ImportDate, @Sheets)", new { Name = workfile.Name, ImportDate = workfile.ImportDate, Sheets = workfile.Sheets }, transaction: transaction);
                     transaction.Commit();
                 }
             }
@@ -48,7 +53,7 @@ CREATE TABLE ""{workfile.Name}"" (
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                return conn.Query<Workfile>("SELECT Id, Name, ImportDate FROM Workfile ORDER BY date(ImportDate) ASC;").ToList();
+                return conn.Query<Workfile>("SELECT Id, Name, ImportDate, Sheets FROM Workfile ORDER BY date(ImportDate) ASC;").ToList();
             }
         }
         public Workfile FindByName(string name)

@@ -15,12 +15,13 @@ namespace DataProcessing.ViewModels
 {
     class HomeViewModel : BaseViewModel
     {
-        // Private attributes
+        #region Private attributes
         private ICommand updateViewCommand;
         private Workfile _selectedWorkfile;
         private string _search;
+        #endregion
 
-        // Public properties
+        #region Public properties
         public ObservableCollection<Workfile> Workfiles { get; set; }
         public CollectionViewSource _workfilesCollection { get; set; }
         public ICollectionView WorkfilesCollection { get { return _workfilesCollection.View; } }
@@ -39,16 +40,17 @@ namespace DataProcessing.ViewModels
                 OnPropertyChanged("Search");
             }
         }
+        #endregion
 
-
-        // Commands
+        #region Commands
         public ICommand ImportExcelCommand { get; set; }
         public ICommand OpenWorkfileCommand { get; set; }
         public ICommand DeleteWorkfileCommand { get; set; }
         public ICommand RenameWorkfileCommand { get; set; }
         public ICommand ClearSearchCommand { get; set; }
+        #endregion
 
-        // Constuctor
+        #region Constructors
         public HomeViewModel(UpdateViewCommand updateViewCommand)
         {
             // Init
@@ -66,25 +68,9 @@ namespace DataProcessing.ViewModels
             RenameWorkfileCommand = new RelayCommand(RenameWorkfile);
             ClearSearchCommand = new RelayCommand(ClearSearch);
         }
+        #endregion
 
-        private void OnSearch(object sender, FilterEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(Search))
-            {
-                e.Accepted = true;
-                return;
-            }
-
-            e.Accepted = false;
-
-            Workfile current = e.Item as Workfile;
-            if (current.Name.ToUpper().Contains(Search.ToUpper()))
-            {
-                e.Accepted = true;
-            }
-        }
-
-        // Command actions
+        #region Command actions
         public async void ImportExcel(object input = null)
         {
             WorkfileManager workfileManager = WorkfileManager.GetInstance();
@@ -97,37 +83,36 @@ namespace DataProcessing.ViewModels
             string name = Services.GetInstance().DialogService.OpenTextDialog("Name:", Path.GetFileNameWithoutExtension(file));
             if (name == null) { return; }
 
-            WorkfileManager.GetInstance().CreateWorkfile(new Workfile() { Name = name, ImportDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") });
-            // TEMPORARY (MAYBE FIXED?)
-            workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
-
             // 3. Check file for errors
             ExcelManager excelManager = new ExcelManager();
-            List<int> errorRows = new List<int>();
+            Dictionary<int, List<int>> errorsInSheet;
             try
             {
-
-                errorRows = await excelManager.CheckExcelFile(file);
+                errorsInSheet = await excelManager.CheckExcelFile(file);
             }
             catch (Exception e)
             {
-                Workfile wf = WorkfileManager.GetInstance().GetWorkfileByName(name);
-                WorkfileManager.GetInstance().DeleteWorkfile(wf);
+                //Workfile wf = WorkfileManager.GetInstance().GetWorkfileByName(name);
+                //WorkfileManager.GetInstance().DeleteWorkfile(wf);
                 throw e;
             }
 
-            if (errorRows.Count > 0)
+            if (errorsInSheet.Count > 0)
             {
                 MessageBoxResult result = MessageBox.Show("There might be erorrs in the excel file, do you want to stop importing and highlight possible errors?\nYes - Stop import and highlight errors\nNo - import file", "Excel file check", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result == MessageBoxResult.Yes)
                 {
-                    await excelManager.HighlightExcelFileErrors(file, errorRows);
-                    workfileManager.DeleteWorkfile(workfileManager.SelectedWorkFile);
+                    await excelManager.HighlightExcelFileErrors(file, errorsInSheet);
+                    //workfileManager.DeleteWorkfile(workfileManager.SelectedWorkFile);
                     return;
                 }
             }
 
             // 4. Import data
+            int sheetNumber = await excelManager.CountSheets(file);
+            WorkfileManager.GetInstance().CreateWorkfile(new Workfile() { Name = name, ImportDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"), Sheets = sheetNumber });
+            // TEMPORARY (MAYBE FIXED?)
+            workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
             await excelManager.ImportFromExcel(file);
 
             // 5. Refresh Workfile list
@@ -136,8 +121,8 @@ namespace DataProcessing.ViewModels
         public void OpenWorkfile(object input = null)
         {
             if (SelectedWorkfile == null) { return; }
-            updateViewCommand.Execute(ViewType.WorkfileEditor);
             WorkfileManager.GetInstance().SelectedWorkFile = SelectedWorkfile;
+            updateViewCommand.Execute(ViewType.WorkfileEditor);
         }
         public void DeleteWorkfile(object input = null)
         {
@@ -162,8 +147,25 @@ namespace DataProcessing.ViewModels
         {
             Search = null;
         }
+        #endregion
 
-        // Private helpers
+        #region Private helpers
+        private void OnSearch(object sender, FilterEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(Search))
+            {
+                e.Accepted = true;
+                return;
+            }
+
+            e.Accepted = false;
+
+            Workfile current = e.Item as Workfile;
+            if (current.Name.ToUpper().Contains(Search.ToUpper()))
+            {
+                e.Accepted = true;
+            }
+        }
         private void PopulateWorkfiles(List<Workfile> workfiles)
         {
             Workfiles.Clear();
@@ -172,5 +174,6 @@ namespace DataProcessing.ViewModels
                 Workfiles.Add(workfile);
             }
         }
+        #endregion
     }
 }
