@@ -31,7 +31,9 @@
                                 <ColumnDefinition Width="Auto" />
                                 <!-- Name column -->
                                 <ColumnDefinition Width="*" />
-                                <!-- Books count column -->
+                                <!-- Sheet numer column -->
+                                <ColumnDefinition Width="Auto" />
+                                <!-- Date imported column -->
                                 <ColumnDefinition Width=".5*" />
                             </Grid.ColumnDefinitions>
 
@@ -50,16 +52,25 @@
                                 Text="Name"
                                 Style="{StaticResource LabelDefault}"
                                 VerticalAlignment="Center"
-                                Margin="15 0 0 0"
+                                Margin="12 0 0 0"
                                 Grid.Column="1" 
                                 />
 
                             <!-- Name label -->
                             <TextBlock 
+                                Text="Sheets"
+                                Style="{StaticResource LabelDefault}"
+                                VerticalAlignment="Center"
+                                Margin="0 0 32 0"
+                                Grid.Column="2" 
+                                />
+                            
+                            <!-- Name label -->
+                            <TextBlock 
                                 Text="Date Imported"
                                 Style="{StaticResource LabelDefault}"
                                 VerticalAlignment="Center"
-                                Grid.Column="2" 
+                                Grid.Column="3" 
                                 />
                         </Grid>
                     </Border>
@@ -94,13 +105,15 @@
         </ControlTemplate>
         <!-- ListItem data template (Workfile template)-->
         <DataTemplate x:Key="DataView">
-            <Grid Margin="0 5 0 5">
+            <Grid Margin="0 6 0 6">
                 <Grid.ColumnDefinitions>
                     <!-- Icon column -->
-                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="24" />
                     <!-- Name column -->
                     <ColumnDefinition Width="*" />
-                    <!-- Date modified column -->
+                    <!-- Sheet number column -->
+                    <ColumnDefinition Width="Auto" />
+                    <!-- Date imported column -->
                     <ColumnDefinition Width=".5*" />
                 </Grid.ColumnDefinitions>
 
@@ -108,8 +121,8 @@
                 <iconPacks:PackIconBootstrapIcons 
                     Kind="FileBarGraph" 
                     Foreground="{StaticResource BlueColorBrush}"
-                    Width="30"
-                    Height="30"
+                    Width="24"
+                    Height="24"
                     HorizontalAlignment="Center"
                     Grid.Column="0" 
                     />
@@ -120,8 +133,17 @@
                     Text="{Binding Name}"
                     Style="{StaticResource LabelDefault}"
                     VerticalAlignment="Center"
-                    Margin="10 0 0 0"
+                    Margin="12 0 0 0"
                     Grid.Column="1" 
+                    />
+
+                <!-- Name -->
+                <TextBlock 
+                    Text="{Binding Sheets}"
+                    Style="{StaticResource LabelDefault}"
+                    VerticalAlignment="Center"
+                    Margin="0 0 24 0"
+                    Grid.Column="2" 
                     />
 
                 <!-- Date modified -->
@@ -130,7 +152,8 @@
                     Text="{Binding ImportDate}"
                     Style="{StaticResource LabelDefault}"
                     VerticalAlignment="Center"
-                    Grid.Column="2" 
+                    Margin="18 0 0 0"
+                    Grid.Column="3" 
                     />
             </Grid>
         </DataTemplate>

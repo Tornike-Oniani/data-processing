@@ -107,14 +107,10 @@ namespace DataProcessing.Classes
                 GetExcelProcess(excel).Kill();
             });
 
-            services.SetWorkStatus(false);
-
             return errorsInSheets;
         }
         public async Task HighlightExcelFileErrors(string filePath, Dictionary<int, List<int>> errorsInSheet)
         {
-            services.SetWorkStatus(true);
-
             await Task.Run(() =>
             {
                 // 1. Open excel
@@ -139,13 +135,9 @@ namespace DataProcessing.Classes
                 excel.Visible = true;
                 excel.UserControl = true;
             });
-
-            services.SetWorkStatus(false);
         }
         public async Task ImportFromExcel(string filePath)
         {
-            services.SetWorkStatus(true);
-
             await Task.Run(() =>
             {
                 // 1. Open excel
@@ -174,6 +166,7 @@ namespace DataProcessing.Classes
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GetExcelProcess(excel).Kill();
+                    services.SetWorkStatus(false);
                     throw e;
                 }
 
@@ -189,8 +182,6 @@ namespace DataProcessing.Classes
                 GC.WaitForPendingFinalizers();
                 excelProcess.Kill();
             });
-
-            services.SetWorkStatus(false);
         }
         public async Task ExportToExcelC()
         {

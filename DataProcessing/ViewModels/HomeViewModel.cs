@@ -16,9 +16,10 @@ namespace DataProcessing.ViewModels
     class HomeViewModel : BaseViewModel
     {
         #region Private attributes
-        private ICommand updateViewCommand;
+        private readonly ICommand updateViewCommand;
         private Workfile _selectedWorkfile;
         private string _search;
+        private readonly Services services;
         #endregion
 
         #region Public properties
@@ -60,6 +61,7 @@ namespace DataProcessing.ViewModels
             _workfilesCollection.Source = Workfiles;
             _workfilesCollection.Filter += OnSearch;
             PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());
+            services = Services.GetInstance();
 
             // Initialize commands
             ImportExcelCommand = new RelayCommand(ImportExcel);
@@ -84,6 +86,7 @@ namespace DataProcessing.ViewModels
             if (name == null) { return; }
 
             // 3. Check file for errors
+            services.SetWorkStatus(true);
             ExcelManager excelManager = new ExcelManager();
             Dictionary<int, List<int>> errorsInSheet;
             try
@@ -109,11 +112,14 @@ namespace DataProcessing.ViewModels
             }
 
             // 4. Import data
+            Services.GetInstance().UpdateWorkStatus("Importing data...");
             int sheetNumber = await excelManager.CountSheets(file);
             WorkfileManager.GetInstance().CreateWorkfile(new Workfile() { Name = name, ImportDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"), Sheets = sheetNumber });
             // TEMPORARY (MAYBE FIXED?)
             workfileManager.SelectedWorkFile = workfileManager.GetWorkfileByName(name);
             await excelManager.ImportFromExcel(file);
+
+            services.SetWorkStatus(false);
 
             // 5. Refresh Workfile list
             PopulateWorkfiles(WorkfileManager.GetInstance().GetWorkfiles());

@@ -96,7 +96,10 @@ CREATE TABLE ""{workfile.Name}_Sheet{i + 1}"" (
                 conn.Open();
                 using (SQLiteTransaction transaction = conn.BeginTransaction())
                 {
-                    conn.Execute($"DROP TABLE '{workfile.Name}'", transaction: transaction);
+                    for (int i = 0; i < workfile.Sheets; i++)
+                    {
+                        conn.Execute($"DROP TABLE '{workfile.Name}_Sheet{i + 1}'", transaction: transaction);
+                    }                    
                     conn.Execute("DELETE FROM Workfile WHERE Id=@Id", new { Id = workfile.Id }, transaction: transaction);
                     transaction.Commit();
                 }
