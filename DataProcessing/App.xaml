@@ -16,6 +16,7 @@
                 <ResourceDictionary Source="Styles/DataGridStyle.xaml" />
                 <ResourceDictionary Source="Styles/TextBoxStyle.xaml" />
                 <ResourceDictionary Source="Styles/ButtonStyle.xaml" />
+                <ResourceDictionary Source="Styles/CheckboxStyle.xaml" />
                 <ResourceDictionary Source="Styles/NavigationStyle.xaml" />
                 <ResourceDictionary Source="Styles/TabControl.xaml" />
 

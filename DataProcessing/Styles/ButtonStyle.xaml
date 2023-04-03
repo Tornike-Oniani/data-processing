@@ -2,67 +2,191 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:DataProcessing.Styles">
 
-    <ControlTemplate x:Key="MainButtonControlTemplate" TargetType="{x:Type Button}">
-        <Border Background="{TemplateBinding Background}"
-                CornerRadius="4"
-                Padding="{TemplateBinding Padding}">
-            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
-        </Border>
-    </ControlTemplate>
-
     <Style x:Key="MainButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="Padding" Value="10 7 10 7" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="FontSize" Value="16" />
-        <Setter Property="Background" Value="{StaticResource PrimaryColorBrush}" />
-        <Setter Property="Foreground" Value="#ffffff" />
-        <Setter Property="Template" Value="{StaticResource MainButtonControlTemplate}" />
+        <Setter Property="Padding" Value="12 6 12 6" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource DarkBlueColorBrush}" />
+        <Setter Property="RenderOptions.EdgeMode" Value="Aliased" />
+        <Setter Property="FontSize" Value="{StaticResource DefaultFontSize}" />
+        <Setter Property="FontFamily" Value="{StaticResource FiraSans}" />
+        <Setter Property="Background" Value="{StaticResource BlueColorBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ColorBrushWhite}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        Padding="{TemplateBinding Padding}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        Background="{TemplateBinding Background}"
+                        >
+                        <ContentPresenter 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource PrimaryColorDarkBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource PrimaryColorDeepBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
+                                To="{StaticResource DarkBlueColor}"
+                                Duration="0:0:0.3"
+                                />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
+                                To="{StaticResource BlueColor}"
+                                Duration="0:0:0.3"
+                                />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{StaticResource PrimaryColorHighlightBrush}" />
+                <Setter Property="Opacity" Value="0.5" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style x:Key="SecondaryButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="Padding" Value="0 0 0 5" />
-        <Setter Property="Background" Value="#ffffff" />
-        <Setter Property="Foreground" Value="{StaticResource PrimaryColorBrush}" />
-        <Setter Property="BorderThickness" Value="0 0 0 2" />
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryColorBrush}" />
-        <Setter Property="FontSize" Value="16" />
-        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="12 6 12 6" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource DarkBlueColorBrush}" />
+        <Setter Property="RenderOptions.EdgeMode" Value="Aliased" />
+        <Setter Property="FontSize" Value="{StaticResource DefaultFontSize}" />
+        <Setter Property="FontFamily" Value="{StaticResource FiraSans}" />
+        <Setter Property="Background" Value="{StaticResource ColorBrushWhite}" />
+        <Setter Property="Foreground" Value="{StaticResource BlueColorBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            Padding="{TemplateBinding Padding}">
-                        <ContentPresenter />
+                    <Border
+                        Padding="{TemplateBinding Padding}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        Background="{TemplateBinding Background}"
+                        >
+                        <ContentPresenter 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Foreground" Value="{StaticResource PrimaryColorDarkBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryColorDarkBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Foreground" Value="{StaticResource PrimaryColorDeepBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryColorDeepBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
+                                To="{StaticResource DarkBlueColor}"
+                                Duration="0:0:0.3"
+                                />
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Foreground.(SolidColorBrush.Color)"
+                                To="{StaticResource ColorWhite}"
+                                Duration="0:0:0.3"
+                                />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
+                                To="{StaticResource ColorWhite}"
+                                Duration="0:0:0.3"
+                                />
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Foreground.(SolidColorBrush.Color)"
+                                To="{StaticResource BlueColor}"
+                                Duration="0:0:0.3"
+                                />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{StaticResource PrimaryColorHighlightBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryColorHighlightBrush}" />
+                <Setter Property="Opacity" Value="0.3" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="SecondaryButtonStyleLeftAlign" TargetType="{x:Type Button}">
+        <Setter Property="Padding" Value="12 6 12 6" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{StaticResource DarkBlueColorBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource DefaultFontSize}" />
+        <Setter Property="FontFamily" Value="{StaticResource FiraSans}" />
+        <Setter Property="Background" Value="{StaticResource ColorBrushWhite}" />
+        <Setter Property="Foreground" Value="{StaticResource BlueColorBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        Padding="{TemplateBinding Padding}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        Background="{TemplateBinding Background}"
+                        >
+                        <ContentPresenter 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
+                                To="{StaticResource DarkBlueColor}"
+                                Duration="0:0:0.3"
+                                />
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Foreground.(SolidColorBrush.Color)"
+                                To="{StaticResource ColorWhite}"
+                                Duration="0:0:0.3"
+                                />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Background.(SolidColorBrush.Color)"
+                                To="{StaticResource ColorWhite}"
+                                Duration="0:0:0.3"
+                                />
+                            <ColorAnimation                         
+                                Storyboard.TargetProperty="Foreground.(SolidColorBrush.Color)"
+                                To="{StaticResource BlueColor}"
+                                Duration="0:0:0.3"
+                                />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.3" />
             </Trigger>
         </Style.Triggers>
     </Style>

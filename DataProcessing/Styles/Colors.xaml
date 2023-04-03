@@ -2,6 +2,27 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:DataProcessing.Styles">
 
+    <Color x:Key="BlueColor">#007ac3</Color>
+    <SolidColorBrush x:Key="BlueColorBrush" Color="{StaticResource BlueColor}" />
+    <Color x:Key="DarkBlueColor">#005a92</Color>
+    <SolidColorBrush x:Key="DarkBlueColorBrush" Color="{StaticResource DarkBlueColor}" />
+    <Color x:Key="DarkBlueBorderColor">#003d61</Color>
+    <SolidColorBrush x:Key="DarkBlueColorBorderBrush" Color="{StaticResource DarkBlueBorderColor}" />
+    <Color x:Key="LightBlueColor">#e6f2f9</Color>
+    <SolidColorBrush x:Key="LightBlueColorBrush" Color="{StaticResource LightBlueColor}" />
+
+    <Color x:Key="BlackColor">#353535</Color>
+    <SolidColorBrush x:Key="BlackColorBrush" Color="{StaticResource BlackColor}" />
+    <Color x:Key="GrayColor">#ededed</Color>
+    <SolidColorBrush x:Key="GrayColorBrush" Color="{StaticResource GrayColor}" />
+    <Color x:Key="LightGrayColor">#f5f5f5f5</Color>
+    <SolidColorBrush x:Key="LightGrayColorBrush" Color="{StaticResource LightGrayColor}" />
+
+    <Color x:Key="LabelColor">#2b2b2b</Color>
+    <SolidColorBrush x:Key="LabelColorBrush" Color="{StaticResource LabelColor}" />
+    <Color x:Key="LightLabelColor">#757575</Color>
+    <SolidColorBrush x:Key="LightLabelColorBrush" Color="{StaticResource LightLabelColor}" />
+
     <Color x:Key="PrimaryColor">#5f94cc</Color>
     <Color x:Key="PrimaryColorDark">#4776b0</Color>
     <Color x:Key="PrimaryColorLight">#a7cae4</Color>
@@ -9,7 +30,7 @@
     <Color x:Key="PrimaryColorHighLight">#d6e7f3</Color>
     <Color x:Key="LabelTextColor">#bfc1c2</Color>
     <Color x:Key="DarkGrayColor">#7d7f80</Color>
-    <Color x:Key="LightGrayColor">#e6e6e6</Color>
+    <!--<Color x:Key="LightGrayColor">#e6e6e6</Color>-->
     <Color x:Key="VeryLightGrayColor">#f3f3f3</Color>
 
     <SolidColorBrush x:Key="PrimaryColorBrush" Color="{StaticResource PrimaryColor}" />
@@ -19,7 +40,7 @@
     <SolidColorBrush x:Key="PrimaryColorHighlightBrush" Color="{StaticResource PrimaryColorHighLight}" />
     <SolidColorBrush x:Key="LabelTextColorBrush" Color="{StaticResource LabelTextColor}" />
     <SolidColorBrush x:Key="DarkGrayColorBrush" Color="{StaticResource DarkGrayColor}" />
-    <SolidColorBrush x:Key="LightGrayColorBrush" Color="{StaticResource LightGrayColor}" />
+    <!--<SolidColorBrush x:Key="LightGrayColorBrush" Color="{StaticResource LightGrayColor}" />-->
     <SolidColorBrush x:Key="VeryLightGrayColorBrush" Color="{StaticResource VeryLightGrayColor}" />
 
     <!-- Revamped -->
@@ -41,11 +62,14 @@
     <Color x:Key="ColorGrayTextboxBorder">#d9d9d9</Color>
     <Color x:Key="ColorGrayPanelBackground">#e8e8e8</Color>
     <Color x:Key="ColorGrayPanelBorder">#e8e8e8</Color>
-    <DropShadowEffect x:Key="ShadowPanel" BlurRadius="1"
-                                          Color="#5a5a5a"
-                                          Opacity=".1"
-                                          Direction="270"
-                                          ShadowDepth="1" />
+    <DropShadowEffect 
+        x:Key="ShadowPanel" 
+        BlurRadius="1"
+        Color="#5a5a5a"
+        Opacity=".1"
+        Direction="270"
+        ShadowDepth="1" 
+        />
 
     <SolidColorBrush x:Key="ColorBrushWhite" Color="{StaticResource ColorWhite}" />
     <SolidColorBrush x:Key="ColorBrushGrayText" Color="{StaticResource ColorGrayText}" />

@@ -59,7 +59,7 @@
         </Style> 
     </UserControl.Resources>
 
-    <Grid Margin="10">
+    <Grid Margin="12 12 12 12">
         <TabControl 
             Style="{StaticResource StepTabControl}"                   
             SelectedIndex="{Binding SelectedTabIndex}"
@@ -139,6 +139,7 @@
                         <CheckBox 
                             IsChecked="{Binding CustomRangesEnabled}" 
                             Content="Enable custom frequency ranges" 
+                            Style="{StaticResource FlatCheckbox}"
                             />
                     </Border>
 
@@ -166,20 +167,25 @@
                             >
                             <StackPanel Width="200" HorizontalAlignment="Left">
                                 <!--Label-->
-                                <TextBlock Text="Selected template:" Style="{StaticResource LabelDefault}" FontSize="14" />
+                                <TextBlock 
+                                    Text="Selected template:" 
+                                    Style="{StaticResource LabelDefault}" 
+                                    />
                                 <!--Frequency range templates list-->
                                 <ComboBox 
                                     ItemsSource="{Binding FrequencyRangeTemplates}"
                                     SelectedItem="{Binding SelectedFrequencyRangeTemplate}"
                                     DisplayMemberPath="Name"
-                                    Margin="0 5 0 0" 
+                                    FontSize="{StaticResource DefaultFontSize}"
+                                    FontFamily="{StaticResource FiraSans}"
+                                    Margin="0 6 0 0" 
                                     />
                                 <!-- Buttons -->
                                 <StackPanel Margin="0 10 0 0" HorizontalAlignment="Stretch">
                                     <!--New button-->
                                     <Button 
                                         Command="{Binding NewTemplateCommand}"
-                                        Style="{StaticResource ButtonDefaultLeftAlign}"
+                                        Style="{StaticResource SecondaryButtonStyleLeftAlign}"
                                         Margin="0 0 0 5"
                                         >
                                         <Button.Content>
@@ -206,7 +212,7 @@
                                     <!--Save button-->
                                     <Button 
                                         Command="{Binding SaveTemplateCommand}"
-                                        Style="{StaticResource ButtonDefaultLeftAlign}"
+                                        Style="{StaticResource SecondaryButtonStyleLeftAlign}"
                                         IsEnabled="{Binding IsTemplateSelected}"
                                         HorizontalContentAlignment="Stretch"
                                         Margin="0 0 0 5"
@@ -235,7 +241,7 @@
                                     <!--Delete button-->
                                     <Button 
                                         Command="{Binding DeleteTemplateCommand}"
-                                        Style="{StaticResource ButtonDefaultLeftAlign}"
+                                        Style="{StaticResource SecondaryButtonStyleLeftAlign}"
                                         IsEnabled="{Binding IsTemplateSelected}"
                                         >
                                         <Button.Content>
@@ -293,7 +299,7 @@
                                         Style="{StaticResource WatermarkTextBox}"
                                         Tag="e. g. 20-25"
                                         Width="85"
-                                        Margin="0 0 5 0"
+                                        Margin="0 0 6 0"
                                         >
                                         <TextBox.InputBindings>
                                             <KeyBinding 
@@ -306,18 +312,22 @@
                                     <ComboBox 
                                         ItemsSource="{Binding FrequencyTimeUnits}"
                                         SelectedItem="{Binding SelectedFrequencyTimeUnit}"
-                                        Margin="0 0 5 0"
+                                        FontSize="{StaticResource DefaultFontSize}"
+                                        FontFamily="{StaticResource FiraSans}"
+                                        VerticalAlignment="Center"
+                                        Margin="0 0 6 0"
                                         >
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Converter={StaticResource SecondsToUnit}}"/>
+                                                <TextBlock Text="{Binding Converter={StaticResource SecondsToUnit}}" />
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
                                     <!--Add button-->
                                     <Button 
                                         Command="{Binding AddRangeCommand}"
-                                        Style="{StaticResource ButtonMain}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        RenderOptions.EdgeMode="Unspecified"
                                         >
                                         <Button.Content>
                                             <iconPacks:BootstrapIcons Kind="Plus" />
@@ -345,10 +355,10 @@
                                     <!--Frequency label-->
                                     <TextBlock 
                                         Text="Custom frequency ranges:"
-                                        FontSize="14"
                                         Style="{StaticResource LabelDefault}"
-                                        Margin="0 10 0 0"
-                                        Grid.Row="0" Grid.ColumnSpan="2" 
+                                        Margin="0 12 0 0"
+                                        Grid.Row="0" 
+                                        Grid.ColumnSpan="2" 
                                         />
 
                                     <!--Frequency range list-->
@@ -439,32 +449,29 @@
                                 Grid.Row="0"
                                 >
                                 <Border
-                                    BorderThickness="0"
-                                    BorderBrush="{StaticResource PrimaryColorBrush}"
                                     CornerRadius="100"
-                                    Background="{StaticResource PrimaryColorBrush}"
-                                    Padding="6"
+                                    Background="{StaticResource BlueColorBrush}"
+                                    Padding="6 6 6 6"
                                     >
                                     <iconPacks:PackIconBootstrapIcons 
                                         Kind="Question"
                                         Foreground="{StaticResource ColorBrushWhite}"
-                                        Width="20"
-                                        Height="20"
+                                        Width="12"
+                                        Height="12"
                                         />
                                 </Border>
                                 <TextBlock 
                                     Text="Help" 
                                     VerticalAlignment="Center"
+                                    Style="{StaticResource LabelSemiBold}"
                                     Margin="6 0 0 0"
-                                    FontSize="16"
-                                    FontWeight="Bold"
                                     />
                             </StackPanel>
                             <!-- Text -->
                             <TextBlock
                                 TextWrapping="Wrap"
                                 TextAlignment="Justify"
-                                FontSize="15"
+                                FontSize="14"
                                 Grid.Row="1"
                                 >
                                 დიაპაზონი იწერება შემდეგნაირად x-y, რაც ნიშნავს x-წამიდან y-ის ჩათვლით. მაგალითად თუ გვაქვს 1-5, 6-10 პირველში შევა სტადიები რომლების ხანგრძლივობაც იყო (1, ან 2, 3, 4, 5) და მეორეში შევა რომლების ხანგრძლივობაც იყო (6, 7, 8, 9, 10). ასევე იმის მიხედვით ბოლო რა დიაპაზონს შეიყვან ავტომატურად ემატება დამატებითი ბოლო დიაპაზონი რომელიც მეტია ყველაზე მაღალ წამზე. ჩვენ მაგალითზე მესამე დიაპაზონი იქნება 10-ზე მეტი ყველა ხანგრძლივობა ანუ >10.
@@ -490,15 +497,16 @@
                             <!-- Shadow-->
                             <Border 
                                 BorderThickness="1 1 1 1"
-                                BorderBrush="{StaticResource ColorBrushWhite}"
                                 Background="{StaticResource ColorBrushWhite}"
                                 >
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="5"
-                                          Color="#5a5a5a"
-                                          Opacity=".1"
-                                          Direction="0"
-                                          ShadowDepth="1" />
+                                    <DropShadowEffect 
+                                        BlurRadius="5"
+                                        Color="#5a5a5a"
+                                        Opacity=".1"
+                                        Direction="0"
+                                        ShadowDepth="1" 
+                                        />
                                 </Border.Effect>
                             </Border>
                             <!-- Time config panel -->
@@ -511,9 +519,7 @@
                                     >
                                     <TextBlock 
                                         Text="Time configuration"
-                                        Style="{StaticResource LabelDefault}"
-                                        FontSize="14"
-                                        FontWeight="Bold" 
+                                        Style="{StaticResource LabelSemiBold}"
                                         />
                                 </Border>
                                 <!-- Hour mark -->
@@ -526,13 +532,15 @@
                                         <TextBlock 
                                             Text="Hour mark:" 
                                             Style="{StaticResource LabelDefault}"
-                                            FontWeight="Bold" 
-                                            Margin="0 0 5 0" 
+                                            VerticalAlignment="Center"
+                                            Margin="0 0 6 0" 
                                             />
                                         <ComboBox 
                                             ItemsSource="{Binding TimeMarks}"
                                             SelectedValue="{Binding SelectedTimeMark}"
                                             MinWidth="35" 
+                                            FontSize="{StaticResource DefaultFontSize}"
+                                            FontFamily="{StaticResource FiraSans}"
                                             />
                                     </StackPanel>
                                 </Border>
@@ -546,12 +554,11 @@
                                         <Border 
                                             BorderThickness="0 0 0 1"
                                             BorderBrush="{StaticResource ColorBrushGrayPanelBorder}"
-                                            Padding="7"
+                                            Padding="6 6 6 6"
                                             >
                                             <CheckBox 
                                                 Content="Export selected period?"
                                                 IsChecked="{Binding ExportSelectedPeriod}"
-                                                FontWeight="Bold" 
                                                 />
                                         </Border>
                                         <!-- Selected timestamps-->
@@ -568,7 +575,11 @@
                                                 Grid.Column="0"
                                                 >
                                                 <StackPanel>
-                                                    <Label Content="From:" />
+                                                    <TextBlock 
+                                                        Text="From:" 
+                                                        Style="{StaticResource LabelSmall}"
+                                                        Margin="0 0 0 3"
+                                                        />
                                                     <TextBox 
                                                         Text="{Binding From, Converter={StaticResource TimeSpanToString}}"
                                                         Width="100"
@@ -584,7 +595,11 @@
                                                 Grid.Column="1"
                                                 >
                                                 <StackPanel>
-                                                    <Label Content="Until:" />
+                                                    <TextBlock 
+                                                        Text="Until:" 
+                                                        Style="{StaticResource LabelSmall}"
+                                                        Margin="0 0 0 3"
+                                                        />
                                                     <TextBox 
                                                         Text="{Binding Till, Converter={StaticResource TimeSpanToString}}"
                                                         Width="100"
@@ -605,19 +620,14 @@
                                         <TextBlock 
                                             Text="Recording type: " 
                                             Style="{StaticResource LabelDefault}"
-                                            FontWeight="Bold" 
                                             VerticalAlignment="Center" 
                                             />
-                                        <!--<TextBox 
-                                                Text="{Binding ExportSettingsManager.MaxStates}"
-                                                Style="{StaticResource SmallTextBox}"
-                                                IsReadOnly="True"
-                                                Width="20" 
-                                                />-->
                                         <ComboBox 
                                             ItemsSource="{Binding RecordingTypes}"
                                             SelectedItem="{Binding SelectedRecordingType}"
-                                            MinWidth="20" 
+                                            MinWidth="20"
+                                            FontSize="{StaticResource DefaultFontSize}"
+                                            FontFamily="{StaticResource FiraSans}"
                                             />
                                     </StackPanel>
                                 </Border>
@@ -631,7 +641,6 @@
                                         <TextBlock 
                                             Text="Cluster separation time: " 
                                             Style="{StaticResource LabelDefault}"
-                                            FontWeight="Bold" 
                                             VerticalAlignment="Center" 
                                             />
                                         <TextBox 
@@ -640,8 +649,10 @@
                                             Width="30" 
                                             />
                                         <TextBlock 
-                                            Text="min"
+                                            Text="(min)"
+                                            Style="{StaticResource LabelSmall}"
                                             VerticalAlignment="Bottom" 
+                                            Margin="3 0 0 0"
                                             />
                                     </StackPanel>
                                 </Border>
@@ -684,9 +695,7 @@
                                 >
                                 <TextBlock 
                                     Text="Specific criteria" 
-                                    Style="{StaticResource LabelDefault}"
-                                    FontSize="14"
-                                    FontWeight="Bold"
+                                    Style="{StaticResource LabelSemiBold}"
                                     Grid.Row="0" 
                                     />
                             </Border>
@@ -896,7 +905,8 @@
                         <CheckBox 
                             IsChecked="{Binding SetNameToClipboard}"
                             Content="Set file name to clipboard"
-                            Margin="0 20 0 20" 
+                            Style="{StaticResource FlatCheckbox}"
+                            Margin="0 18 0 18" 
                             />
 
                         <!-- Buttons -->
@@ -904,7 +914,7 @@
                             <Button 
                                 Content="Calculate"
                                 Command="{Binding CalculateCommand}"
-                                Style="{StaticResource ButtonMain}"
+                                Style="{StaticResource MainButtonStyle}"
                                 Width="200"
                                 Margin="0 0 10 0" 
                                 />
@@ -916,18 +926,18 @@
         <Button 
             Content="Prev"
             Command="{Binding PrevCommand}"
-            Style="{StaticResource ButtonMain}"
+            Style="{StaticResource MainButtonStyle}"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
-            Margin="0 1 70 0" 
+            Margin="0 5 72 0" 
             />
         <Button 
             Content="Next"
             Command="{Binding NextCommand}"
-            Style="{StaticResource ButtonMain}"
+            Style="{StaticResource MainButtonStyle}"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
-            Margin="0 1 5 0" 
+            Margin="0 5 6 0" 
             />
     </Grid>
 

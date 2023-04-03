@@ -22,7 +22,7 @@
                     </Grid.RowDefinitions>
                     <!-- Labels -->
                     <Border BorderBrush="{StaticResource LabelTextColorBrush}"
-                            Background="{StaticResource VeryLightGrayColorBrush}"
+                            Background="{StaticResource LightGrayColorBrush}"
                             BorderThickness="0 0 0 1"
                             Grid.Row="0">
                         <Grid Margin="20 15 15 15">
@@ -36,27 +36,31 @@
                             </Grid.ColumnDefinitions>
 
                             <!-- Icon #555555 -->
-                            <iconPacks:PackIconBootstrapIcons Kind="FileEarmark"
-                                                              Width="20"
-                                                              Height="20"
-                                                              Foreground="{StaticResource ColorBrushGrayText}"
-                                                              HorizontalAlignment="Center"
-                                                              Grid.Column="0" />
+                            <iconPacks:PackIconBootstrapIcons 
+                                Kind="FileEarmark"
+                                Width="18"
+                                Height="18"
+                                Foreground="{StaticResource BlackColorBrush}"
+                                HorizontalAlignment="Center"
+                                Grid.Column="0" 
+                                />
 
                             <!-- Name label -->
-                            <TextBlock Text="Name"
-                                       FontSize="16"
-                                       Foreground="{StaticResource ColorBrushGrayText}"
-                                       VerticalAlignment="Center"
-                                       Margin="15 0 0 0"
-                                       Grid.Column="1" />
+                            <TextBlock 
+                                Text="Name"
+                                Style="{StaticResource LabelDefault}"
+                                VerticalAlignment="Center"
+                                Margin="15 0 0 0"
+                                Grid.Column="1" 
+                                />
 
                             <!-- Name label -->
-                            <TextBlock Text="Date Imported"
-                                       FontSize="16"
-                                       VerticalAlignment="Center"
-                                       Foreground="{StaticResource ColorBrushGrayText}"
-                                       Grid.Column="2" />
+                            <TextBlock 
+                                Text="Date Imported"
+                                Style="{StaticResource LabelDefault}"
+                                VerticalAlignment="Center"
+                                Grid.Column="2" 
+                                />
                         </Grid>
                     </Border>
 
@@ -67,7 +71,6 @@
                 </Grid>
             </Border>
         </ControlTemplate>
-        
         <!-- ListItem Tempalte -->
         <ControlTemplate x:Key="ItemView" TargetType="{x:Type ListViewItem}">
             <Border x:Name="wrapper"
@@ -82,14 +85,13 @@
 
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightGrayColorBrush}" />
+                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightBlueColorBrush}" />
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightGrayColorBrush}" />
+                    <Setter TargetName="wrapper" Property="Background" Value="{StaticResource LightBlueColorBrush}" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
-
         <!-- ListItem data template (Workfile template)-->
         <DataTemplate x:Key="DataView">
             <Grid Margin="0 5 0 5">
@@ -103,32 +105,35 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Icon -->
-                <iconPacks:PackIconBootstrapIcons Kind="FileBarGraph" 
-                                                  Foreground="{StaticResource ColorBrushCyan}"
-                                                  Width="30"
-                                                  Height="30"
-                                                  HorizontalAlignment="Center"
-                                                  Grid.Column="0" />
-                
+                <iconPacks:PackIconBootstrapIcons 
+                    Kind="FileBarGraph" 
+                    Foreground="{StaticResource BlueColorBrush}"
+                    Width="30"
+                    Height="30"
+                    HorizontalAlignment="Center"
+                    Grid.Column="0" 
+                    />
+
                 <!-- Name -->
-                <TextBlock x:Name="FileTitle"
-                           Text="{Binding Name}"
-                           FontSize="14"
-                           Foreground="#2e3e4e"
-                           VerticalAlignment="Center"
-                           Margin="10 0 0 0"
-                           Grid.Column="1" />
+                <TextBlock 
+                    x:Name="FileTitle"
+                    Text="{Binding Name}"
+                    Style="{StaticResource LabelDefault}"
+                    VerticalAlignment="Center"
+                    Margin="10 0 0 0"
+                    Grid.Column="1" 
+                    />
 
                 <!-- Date modified -->
-                <TextBlock x:Name="FileDateModified"
-                           Text="{Binding ImportDate}"
-                           Foreground="#2e3e4e"
-                           FontSize="14"
-                           VerticalAlignment="Center"
-                           Grid.Column="2" />
+                <TextBlock 
+                    x:Name="FileDateModified"
+                    Text="{Binding ImportDate}"
+                    Style="{StaticResource LabelDefault}"
+                    VerticalAlignment="Center"
+                    Grid.Column="2" 
+                    />
             </Grid>
         </DataTemplate>
-
         <Style x:Key="ItemStyle" TargetType="{x:Type ListViewItem}">
             <Setter Property="Foreground" Value="Red" />
             <Setter Property="Template" Value="{StaticResource ItemView}" />
@@ -145,28 +150,33 @@
         </Grid.RowDefinitions>
         
         <!-- Header -->
-        <Grid Grid.Row="0"
-              Margin="0 0 0 0">
+        <Grid 
+            Grid.Row="0"
+            Margin="0 0 0 0"
+            >
             <!-- Shadow -->
-            <Border Background="#ffffff"
-                    BorderThickness="0">
+            <Border 
+                Background="{StaticResource ColorBrushWhite}"
+                >
                 <Border.Effect>
-                    <DropShadowEffect Opacity="0.3" 
-                                      ShadowDepth="1" 
-                                      Direction="270"
-                                      BlurRadius="4" />
+                    <DropShadowEffect 
+                        Opacity="0.3" 
+                        ShadowDepth="1" 
+                        Direction="270"
+                        BlurRadius="4" 
+                        />
                 </Border.Effect>
             </Border>
-            <Border BorderBrush="{StaticResource LabelTextColorBrush}"
-                BorderThickness="0 0 0 0"
-                Background="#ffffff"
-                Padding="20 0 20 0"
-                Grid.Row="0">
-                <TextBlock Text="Home"
-                           Style="{StaticResource LabelDefault}"
-                           FontWeight="Bold"
-                           FontSize="22"
-                           VerticalAlignment="Center" />
+            <Border 
+                Background="{StaticResource ColorBrushWhite}"
+                Padding="18 0 18 0"
+                Grid.Row="0"
+                >
+                <TextBlock 
+                    Text="Home"
+                    Style="{StaticResource Header}"
+                    VerticalAlignment="Center" 
+                    />
             </Border>
         </Grid>
 
@@ -184,22 +194,27 @@
                     Grid.Row="0">
                 <Grid>
                     <!-- Import button -->
-                    <Button Content="Import excel file"
-                            Command="{Binding ImportExcelCommand}"
-                            Style="{StaticResource ButtonMain}"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="left"/>
+                    <Button 
+                        Content="Import excel file"
+                        Command="{Binding ImportExcelCommand}"
+                        Style="{StaticResource MainButtonStyle}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="left" 
+                        />
                     
                     <!-- Search box -->
                     <StackPanel Orientation="Horizontal" 
                         VerticalAlignment="Center" 
                         HorizontalAlignment="Right"
                         Margin="0 0 1 0">
-                        <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" 
-                                 Tag="Search..."
-                                 Style="{StaticResource WatermarkTextBox}"
-                                 BorderThickness="1.5"
-                                 Width="135">
+                        <TextBox 
+                            Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" 
+                            Tag="Search..."
+                            Style="{StaticResource WatermarkTextBox}"
+                            BorderThickness="1"
+                            Width="135"
+                            VerticalAlignment="Center"
+                            >
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Esc" Command="{Binding ClearSearchCommand}" />
                             </TextBox.InputBindings>
@@ -209,8 +224,10 @@
             </Border>
 
             <!-- File list -->
-            <Border Padding="20 0 20 10"
-                    Grid.Row="1">
+            <Border 
+                Padding="18 0 18 12"
+                Grid.Row="1"
+                >
                 <ListView ItemsSource="{Binding WorkfilesCollection}"
                       SelectedItem="{Binding SelectedWorkfile}"
                       Template="{StaticResource ListViewTemplate}"

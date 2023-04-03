@@ -2,35 +2,53 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:DataProcessing.Styles">
     <Style x:Key="TabItemFirst" TargetType="{x:Type TabItem}">
-        <Setter Property="Padding" Value="10 0 0 0" />
+        <Setter Property="Padding" Value="12 0 0 0" />
         <Setter Property="Background" Value="#f5f5f5" />
-        <Setter Property="Margin" Value="0" />
+        <Setter Property="Margin" Value="0 0 0 0" />
+        <Setter Property="FontSize" Value="{StaticResource SmallerFontSize}" />
+        <Setter Property="FontFamily" Value="{StaticResource FiraSans}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TabItem}">
-
                     <Grid Cursor="Hand">
-                        <Path x:Name="ArrowShape" 
-                                  Data="M0,0 L100,0 L110,20 L100,40 L0,40 L0,0 " 
-                                  Stretch="None"
-	                              Stroke="#e8e8e8" 
-                                  StrokeThickness="1"
-	                              Fill="{TemplateBinding Background}"
-	                              Margin="0 0 0 0"/>
-                        <Border x:Name="PART_Border" 
+                        <Path 
+                            x:Name="ArrowShape" 
+                            Data="M0,0 L100,0 L110,20 L100,40 L0,40 L0,0 " 
+                            Stretch="None"
+	                        Stroke="#e8e8e8" 
+                            StrokeThickness="1"
+	                        Fill="{TemplateBinding Background}"
+	                        Margin="0 0 0 0" 
+                            />
+                        <Border 
+                            x:Name="PART_Border" 
                             Padding="{TemplateBinding Padding}"
                             Background="Transparent" 
-                            BorderBrush="LightGray">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            >
+                            <StackPanel 
+                                Orientation="Horizontal" 
+                                VerticalAlignment="Center"
+                                >
                                 <Grid>
-                                    <Ellipse x:Name="TagCircle" Width="15" Height="15" Fill="{StaticResource ColorBrushGrayDark}"
-                                                 HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{TemplateBinding Tag}"
-                                                   Foreground="{StaticResource ColorBrushWhite}"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0 -1 0 0"/>
+                                    <Ellipse 
+                                        x:Name="TagCircle" 
+                                        Width="15" 
+                                        Height="15" 
+                                        Fill="{StaticResource ColorBrushGrayDark}"
+                                        HorizontalAlignment="Center" 
+                                        />
+                                    <TextBlock 
+                                        Text="{TemplateBinding Tag}"
+                                        Foreground="{StaticResource ColorBrushWhite}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        />
                                 </Grid>
-                                <ContentPresenter ContentSource="Header" Margin="5 -1 0 0"/>
+                                <ContentPresenter 
+                                    ContentSource="Header" 
+                                    VerticalAlignment="Center"
+                                    Margin="6 0 0 0" 
+                                    />
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -39,7 +57,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="ArrowShape" Property="Fill" Value="{StaticResource ColorBrushWhite}" />
-                            <Setter TargetName="TagCircle" Property="Fill" Value="{StaticResource ColorBrushCyan}" />
+                            <Setter TargetName="TagCircle" Property="Fill" Value="{StaticResource BlueColorBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -47,35 +65,55 @@
         </Setter>
     </Style>
     <Style x:Key="TabItemMiddle" TargetType="{x:Type TabItem}">
-        <Setter Property="Padding" Value="10 0 0 0" />
+        <Setter Property="Padding" Value="12 0 0 0" />
         <Setter Property="Background" Value="#f5f5f5" />
-        <Setter Property="Margin" Value="0" />
+        <Setter Property="Margin" Value="0 0 0 0" />
+        <Setter Property="FontSize" Value="{StaticResource SmallerFontSize}" />
+        <Setter Property="FontFamily" Value="{StaticResource FiraSans}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TabItem}">
-
                     <Grid Cursor="Hand">
-                        <Path x:Name="ArrowShape" 
-                                  Data="M0,0 L130,0 L140,20 L130,40 L0,40 L10,20 L0,0 " 
-                                  Stretch="None"
-	                              Stroke="#e8e8e8" 
-                                  StrokeThickness="1"
-	                              Fill="{TemplateBinding Background}"
-	                              Margin="-11 0 0 0"/>
-                        <Border x:Name="PART_Border" 
+                        <Path 
+                            x:Name="ArrowShape" 
+                            Data="M0,0 L130,0 L140,20 L130,40 L0,40 L10,20 L0,0 " 
+                            Stretch="None"
+	                        Stroke="#e8e8e8" 
+                            StrokeThickness="1"
+	                        Fill="{TemplateBinding Background}"
+	                        Margin="-11 0 0 0" 
+                            />
+                        <Border 
+                            x:Name="PART_Border" 
                             Padding="{TemplateBinding Padding}"
                             Background="Transparent" 
-                            BorderBrush="LightGray">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            BorderBrush="LightGray"
+                            >
+                            <StackPanel 
+                                Orientation="Horizontal" 
+                                VerticalAlignment="Center"
+                                >
                                 <Grid>
-                                    <Ellipse x:Name="TagCircle" Width="15" Height="15" Fill="{StaticResource ColorBrushGrayDark}"
-                                                 HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{TemplateBinding Tag}"
-                                                   Foreground="{StaticResource ColorBrushWhite}"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0 -1 0 0"/>
+                                    <Ellipse 
+                                        x:Name="TagCircle" 
+                                        Width="15" 
+                                        Height="15" 
+                                        Fill="{StaticResource ColorBrushGrayDark}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        />
+                                    <TextBlock 
+                                        Text="{TemplateBinding Tag}"
+                                        Foreground="{StaticResource ColorBrushWhite}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        />
                                 </Grid>
-                                <ContentPresenter ContentSource="Header" Margin="5 -1 0 0" />
+                                <ContentPresenter 
+                                    ContentSource="Header" 
+                                    VerticalAlignment="Center"
+                                    Margin="6 0 0 0" 
+                                    />
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -83,8 +121,8 @@
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="ArrowShape" Property="Fill" Value="#ffffff" />
-                            <Setter TargetName="TagCircle" Property="Fill" Value="{StaticResource ColorBrushCyan}" />
+                            <Setter TargetName="ArrowShape" Property="Fill" Value="{StaticResource ColorBrushWhite}" />
+                            <Setter TargetName="TagCircle" Property="Fill" Value="{StaticResource BlueColorBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
