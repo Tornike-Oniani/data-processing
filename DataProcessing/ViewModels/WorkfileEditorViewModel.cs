@@ -92,7 +92,6 @@ namespace DataProcessing.ViewModels
                 from = DisplayManager.SelectedRows[0].Time;
                 till = DisplayManager.SelectedRows[DisplayManager.SelectedRows.Count - 1].Time;
             }
-            //ExportSettingsManager.SetSettings(DisplayManager.Items.ToList(), from, till, FrequencyRangesViewModel.FrequencyRangesToArray());
             OptionsViewModel.SetSelectedParams(samples, from, till, FrequencyRangesViewModel.FrequencyRangesToArray);
 
         }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataProcessing.Models
 {
-    class Stats
+    internal class Stats
     {
         public int TotalTime { get; set; }
         public Dictionary<int, int> StateTimes { get; set; } = new Dictionary<int, int>();

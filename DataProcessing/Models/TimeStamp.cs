@@ -7,13 +7,18 @@ using System.Threading.Tasks;
 
 namespace DataProcessing.Models
 {
-    class TimeStamp
+    internal class TimeStamp
     {
-        private TimeStampRepo repo = new TimeStampRepo();
+        #region Property fields
         private long TimeTicks;
         private long _timeDifference;
+        #endregion
 
-        // Properties
+        #region Private attributes
+        private TimeStampRepo repo = new TimeStampRepo();
+        #endregion
+
+        #region Public properties
         public int Id { get; set; }
         public TimeSpan Time { get { return new TimeSpan(TimeTicks); } set { TimeTicks = value.Ticks; } }
         public TimeSpan TimeDifference { get { return new TimeSpan(_timeDifference); } set { _timeDifference = value.Ticks; } }
@@ -22,13 +27,16 @@ namespace DataProcessing.Models
         public int State { get; set; }
         public bool IsMarker { get; set; }
         public bool IsTimeMarked { get; set; }
+        #endregion
 
-        // Blank constructor
+        #region Constructors
         public TimeStamp()
         {
 
         }
+        #endregion
 
+        #region Public methods
         // For cloning purposes (violates encapsulation though)
         public void SetTicks(long timeTicks)
         {
@@ -41,7 +49,12 @@ namespace DataProcessing.Models
             cloned.State = this.State;
             return cloned;
         }
-
+        public void CalculateStatsWhenMany(TimeStamp previous)
+        {
+            CalculateB(previous);
+            CalculateC();
+            CalculateD();
+        }
         // Database functions
         public void Save()
         {
@@ -59,14 +72,9 @@ namespace DataProcessing.Models
         {
             return new TimeStampRepo().Find(sheetNumber);
         }
+        #endregion
 
-        // Private helpers
-        public void CalculateStatsWhenMany(TimeStamp previous)
-        {
-            CalculateB(previous);
-            CalculateC();
-            CalculateD();
-        }
+        #region Private helpers        
         private void CalculateB(TimeStamp previous)
         {
             if (Time < previous.Time)
@@ -85,5 +93,6 @@ namespace DataProcessing.Models
         {
             TimeDifferenceInSeconds = (int)Math.Round(TimeDifferenceInDouble * 86400);
         }
+        #endregion
     }
 }

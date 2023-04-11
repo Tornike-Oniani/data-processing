@@ -144,17 +144,23 @@ namespace DataProcessing.Classes
                 services.UpdateWorkStatus("Starting import...");
                 Application excel = new Application();
                 Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);
+                Worksheet worksheet;
 
                 List<TimeStamp> dataToImport;
+                List<TimeStamp> transformedDataWithBehaviours;
                 int currentSheetNumber = 1;
                 try
-                {
-                    foreach (Worksheet worksheet in workbook.Sheets)
+                {                    
+                    for (int i = 1; i <= workbook.Sheets.Count; i++)
                     {
+                        worksheet = workbook.Sheets[i];
                         dataToImport = GetImportableDataFromExcelSheet(worksheet);
+                        Behaviours beh = GetBehaviorsFromExcelSheet(worksheet);
+                        transformedDataWithBehaviours = AppendBehaviorsToData(dataToImport, beh);
+
                         // Persist to database
                         Services.GetInstance().UpdateWorkStatus($"Persisting data");
-                        TimeStamp.SaveMany(dataToImport, currentSheetNumber);
+                        TimeStamp.SaveMany(transformedDataWithBehaviours, currentSheetNumber);
                         currentSheetNumber++;
                     }
                 }
@@ -393,10 +399,79 @@ namespace DataProcessing.Classes
             allRows = null;
             targetCells = null;
             targetRange = null;
-            while (Marshal.ReleaseComObject(sheet) > 0) ;
             sheet = null;
 
             return markAddedSamples;
+        }
+        private Behaviours GetBehaviorsFromExcelSheet(Worksheet sheet)
+        {
+            services.UpdateWorkStatus("Importing behaviours...");
+            Behaviours behaviours = new Behaviours();
+            int rowNumber;
+            string curRowData;
+            string[] times;
+            int[] timeUnits;
+            TimeInterval curInterval;
+            object curRowRawData;
+            for (int i = 1; i <= 5; i++)
+            {
+                rowNumber = 2;
+                while (true) 
+                {
+                    curRowRawData = sheet.Cells[rowNumber, i + 3].Value;
+                    curRowData = Convert.ToString(curRowRawData);
+                    if (String.IsNullOrEmpty(curRowData))
+                    {
+                        break;
+                    }
+                    times = curRowData.Split('-');
+                    timeUnits = times[0].Split(':').Select(Int32.Parse).ToArray();
+                    curInterval = new TimeInterval();
+                    curInterval.From = new TimeSpan(timeUnits[0], timeUnits[1], timeUnits[2]);
+                    timeUnits = times[1].Split(':').Select(Int32.Parse).ToArray();
+                    curInterval.Till = new TimeSpan(timeUnits[0], timeUnits[1], timeUnits[2]);
+                    behaviours.AddTimeIntervalOfBehaviour(curInterval, i + 2);
+                    rowNumber++;
+                }                        
+            }
+
+            return behaviours;
+        }
+        private List<TimeStamp> AppendBehaviorsToData(List<TimeStamp> data, Behaviours behaviours) 
+        {
+            List<TimeStamp> result = new List<TimeStamp>();
+
+            TimeStamp prevStamp = data[0];
+            result.Add(prevStamp);
+            TimeStamp curStamp;
+            int state;
+            TimeInterval curInterval;
+            List<Tuple<int, TimeInterval>> intervalsWithinWakefulness;
+            TimeStamp behaviourStamp;
+            for (int i = 1; i < data.Count; i++)
+            {
+                curStamp = data[i];
+                state = curStamp.State;
+                // Might not want to hard code it here!!!!!!
+                if (state != 2)
+                {
+                    result.Add(curStamp);
+                    prevStamp = curStamp;
+                    continue;
+                }
+                curInterval = new TimeInterval();
+                curInterval.From = prevStamp.Time;
+                curInterval.Till = curStamp.Time;
+                intervalsWithinWakefulness = behaviours.GetIntervalsWithinInvterval(curInterval);
+                foreach (Tuple<int, TimeInterval> behaviourInterval in intervalsWithinWakefulness)
+                {
+                    behaviourStamp = new TimeStamp() { Time = behaviourInterval.Item2.Till, State = behaviourInterval.Item1 };
+                    result.Add(behaviourStamp);
+                }
+                prevStamp = curStamp;
+            }
+
+            return result;
         }
         // Methods for creating each sheet (may include additional formatting and chart creating)
         private void CreateRawDataSheet()

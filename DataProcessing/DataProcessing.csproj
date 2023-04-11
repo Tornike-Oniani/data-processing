@@ -94,6 +94,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\Behaviours.cs" />
     <Compile Include="Classes\Calculate\AnotherDataProcessor.cs" />
     <Compile Include="Classes\Calculate\CalculatedData.cs" />
     <Compile Include="Classes\Calculate\CalculationOptions.cs" />
@@ -115,6 +116,7 @@
     <Compile Include="Classes\TableCollection.cs" />
     <Compile Include="Classes\TableCreators\TableCreator.cs" />
     <Compile Include="Classes\TableCreators\TableDecorator.cs" />
+    <Compile Include="Classes\TimeInterval.cs" />
     <Compile Include="Constants\RecordingType.cs" />
     <Compile Include="Models\FrequencyRange.cs" />
     <Compile Include="Models\FrequencyRangeTemplate.cs" />
