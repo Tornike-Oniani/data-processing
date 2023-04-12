@@ -55,6 +55,10 @@ namespace DataProcessing.Classes
                 .Where(bi => bi.Item2.From >= interval.From && bi.Item2.Till <= interval.Till)
                 .ToList();
         }
+        public int Count()
+        {
+            return behaviourTimeIntervals.Count;
+        }
         #endregion
     }
 }

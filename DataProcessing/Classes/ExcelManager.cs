@@ -147,7 +147,6 @@ namespace DataProcessing.Classes
                 Worksheet worksheet;
 
                 List<TimeStamp> dataToImport;
-                List<TimeStamp> transformedDataWithBehaviours;
                 int currentSheetNumber = 1;
                 try
                 {                    
@@ -155,12 +154,16 @@ namespace DataProcessing.Classes
                     {
                         worksheet = workbook.Sheets[i];
                         dataToImport = GetImportableDataFromExcelSheet(worksheet);
-                        Behaviours beh = GetBehaviorsFromExcelSheet(worksheet);
-                        transformedDataWithBehaviours = AppendBehaviorsToData(dataToImport, beh);
+                        Behaviours behaviours = GetBehaviorsFromExcelSheet(worksheet);
+                        // If sheet also contains behaviour data append it to data
+                        if (behaviours.Count() > 0)
+                        {
+                            dataToImport = AppendBehaviorsToData(dataToImport, behaviours);
+                        }
 
                         // Persist to database
                         Services.GetInstance().UpdateWorkStatus($"Persisting data");
-                        TimeStamp.SaveMany(transformedDataWithBehaviours, currentSheetNumber);
+                        TimeStamp.SaveMany(dataToImport, currentSheetNumber);
                         currentSheetNumber++;
                     }
                 }
