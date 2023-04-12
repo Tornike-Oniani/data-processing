@@ -53,9 +53,10 @@ namespace DataProcessing.Classes
         }
         public Dictionary<int, List<int>> GetErrorRowIndexes()
         {
+            Dictionary<int, List<int>> result = new Dictionary<int, List<int>>();
+
             for (int i = 3; i <= 7; i++)
             {
-
 
             }
         }
