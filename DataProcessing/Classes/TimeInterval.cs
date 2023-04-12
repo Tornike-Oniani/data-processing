@@ -15,6 +15,10 @@ namespace DataProcessing.Classes
         #endregion
 
         #region Public methods
+        public bool IsCorrect()
+        {
+            return From < Till;
+        }
         public static bool IsBetweenTimeInterval(TimeInterval interval, TimeSpan from, TimeSpan to)
         {
             return interval.From >= from && interval.Till <= to;

@@ -29,14 +29,6 @@ namespace DataProcessing.Classes
         {
             return behaviourTimeIntervals.OrderBy(bi => bi.Item2.From).ToList();
         }
-        // There should be no overlap between behaviour intervals, because animal can be doing one activity at a time
-        public bool CheckBehaviourOverlap()
-        {
-            bool isOverlap = false;
-            List<Tuple<int, TimeInterval>> intervals = GetSortedBehaviorTimeIntervals();
-            return isOverlap;
-
-        }
         public List<Tuple<int, TimeInterval>> GetIntervalsWithinInvterval(TimeInterval interval)
         {
             List<Tuple<int, TimeInterval>> intervals = GetSortedBehaviorTimeIntervals();
@@ -58,6 +50,59 @@ namespace DataProcessing.Classes
         public int Count()
         {
             return behaviourTimeIntervals.Count;
+        }
+        public Dictionary<int, List<int>> GetErrorRowIndexes()
+        {
+            for (int i = 3; i <= 7; i++)
+            {
+
+
+            }
+        }
+        #endregion
+
+        #region Private helpers
+        // There should be no overlap between behaviour intervals, because animal can be doing one activity at a time
+        private List<int> CheckBehaviourOverlap(List<TimeSpan> sleepTimes, int behaviour)
+        {
+            List<int> result = new List<int>();
+
+            TimeInterval[] intervals = behaviourTimeIntervals
+                                .Where(bi => bi.Item1 == behaviour)
+                                .Select(bi => bi.Item2)
+                                .ToArray();
+            TimeInterval curInterval;
+            for (int i = 0; i < intervals.Length; i++)
+            {
+                curInterval = intervals[i];
+                // If the end of the interval doesn't match the start of any behavior or sleep then its an error
+                if (behaviourTimeIntervals.Any(bi => bi.Item2.From == curInterval.Till) &&
+                    sleepTimes.Any(w => w == curInterval.Till))
+                {
+                    result.Add(i + 1);
+                }
+            }
+
+            return result;
+        }
+        private List<int> GetCorruptedIntervalIndexes(int behaviour)
+        {
+            List<int> result = new List<int>();
+            TimeInterval[] intervals = behaviourTimeIntervals
+                                            .Where(bi => bi.Item1 == behaviour)
+                                            .Select(bi => bi.Item2)
+                                            .ToArray();
+
+            for (int i = 0; i < intervals.Length - 1; i++)
+            {
+                if (!intervals[i].IsCorrect())
+                {
+                    // We add i + 1 because this will be row indexes in excel sheet where indexing starts with 1 and not 0
+                    result.Add(i + 1);
+                }
+            }
+
+            return result;
         }
         #endregion
     }

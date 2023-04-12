@@ -237,9 +237,9 @@ namespace DataProcessing.Classes
         #endregion
 
         #region Private helpers
-        private async Task<List<int>> CheckExcelSheet(Worksheet sheet)
+        private async Task<ExcelSheetErrors> CheckExcelSheet(Worksheet sheet)
         {
-            List<int> errorRows = new List<int>();
+            ExcelSheetErrors result = new ExcelSheetErrors();
 
             await Task.Run(() =>
             {
@@ -290,7 +290,7 @@ namespace DataProcessing.Classes
                         timeData.Add(tuple);
                     }
                 }
-                // If parsing data from importing file failed (for example corrupted time entry) then we want to throw arrow on which row the parse failed
+                // If parsing data from importing file failed (for example corrupted time entry) then we want to throw error on which row the parse failed
                 catch (Exception e)
                 {
                     Exception myException = new Exception(e.Message);
@@ -303,12 +303,18 @@ namespace DataProcessing.Classes
                 {
                     if (!isBetweenTimeInterval(timeData[i - 1].Item1, timeData[i + 1].Item1, timeData[i].Item1))
                     {
-                        errorRows.Add(i + 1);
+                        result.AddMainDataErrorRow(i + 1);
                     }
                 }
+
+                // Check behavior integrity
+                // We need two checks for behaviors, first in each interval the first time span has to be lower than the second. The other check is that the end of each behavior needs to be the start of another behavior or sleep.
+
+                // 1. Check if there is any behaviors
+                Behaviours behaviours = GetBehaviorsFromExcelSheet(sheet);
             });
 
-            return errorRows;
+            return result;
         }
         private List<TimeStamp> GetImportableDataFromExcelSheet(Worksheet sheet)
         {
