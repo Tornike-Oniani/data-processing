@@ -102,6 +102,7 @@
     <Compile Include="Classes\Calculate\DataProcessor.cs" />
     <Compile Include="Classes\Calculate\IDataProcessor.cs" />
     <Compile Include="Classes\Calculate\UserSelectedOptions.cs" />
+    <Compile Include="Classes\ExcelSheetErrors.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />
     <Compile Include="Classes\Export\BehaviorStatTable.cs" />
