@@ -88,7 +88,7 @@ namespace DataProcessing.ViewModels
             // 3. Check file for errors
             services.SetWorkStatus(true);
             ExcelManager excelManager = new ExcelManager();
-            Dictionary<int, List<int>> errorsInSheet;
+            Dictionary<int, ExcelSheetErrors> errorsInSheet;
             try
             {
                 errorsInSheet = await excelManager.CheckExcelFile(file);
@@ -100,7 +100,12 @@ namespace DataProcessing.ViewModels
                 throw e;
             }
 
-            if (errorsInSheet.Count > 0)
+            int errorCount = 0;
+            foreach (ExcelSheetErrors errors in errorsInSheet.Values)
+            {
+                errorCount += errors.Count();
+            }
+            if (errorCount > 0)
             {
                 MessageBoxResult result = MessageBox.Show("There might be erorrs in the excel file, do you want to stop importing and highlight possible errors?\nYes - Stop import and highlight errors\nNo - import file", "Excel file check", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result == MessageBoxResult.Yes)

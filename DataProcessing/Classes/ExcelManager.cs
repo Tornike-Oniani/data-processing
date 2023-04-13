@@ -6,9 +6,11 @@ using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Classes
@@ -52,9 +54,9 @@ namespace DataProcessing.Classes
         #endregion
 
         #region Public methods
-        public async Task<Dictionary<int, List<int>>> CheckExcelFile(string filePath)
+        public async Task<Dictionary<int, ExcelSheetErrors>> CheckExcelFile(string filePath)
         {
-            Dictionary<int, List<int>> errorsInSheets = new Dictionary<int, List<int>>();
+            Dictionary<int, ExcelSheetErrors> errorsInSheets = new Dictionary<int, ExcelSheetErrors>();
 
             services.SetWorkStatus(true);
 
@@ -69,13 +71,13 @@ namespace DataProcessing.Classes
                 try
                 {
                     int currentSheetNumber = 1;
-                    List<int> errors;
+                    ExcelSheetErrors errors;
                     foreach (Worksheet curSheet in workbook.Sheets)
                     {
                         errors = await CheckExcelSheet(curSheet);
-                        if (errors.Count > 0)
+                        if (errors.Count() > 0)
                         {
-                            errorsInSheets.Add(currentSheetNumber, await CheckExcelSheet(curSheet));
+                            errorsInSheets.Add(currentSheetNumber, errors);
                         }
                         currentSheetNumber++;
                     }
@@ -109,31 +111,56 @@ namespace DataProcessing.Classes
 
             return errorsInSheets;
         }
-        public async Task HighlightExcelFileErrors(string filePath, Dictionary<int, List<int>> errorsInSheet)
+        public async Task HighlightExcelFileErrors(string filePath, Dictionary<int, ExcelSheetErrors> errorsInSheet)
         {
             await Task.Run(() =>
             {
                 // 1. Open excel
                 services.UpdateWorkStatus("Opening excel...");
                 Application excel = new Application();
-                Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);                
+                Workbook workbook = excel.Workbooks.Open(filePath, ReadOnly: false);
+                string errorsLogPath = Path.Combine(Path.GetDirectoryName(filePath), "errors.txt");
+                File.WriteAllText(errorsLogPath, String.Empty);
 
                 Worksheet worksheet;
                 Range errorRange;
                 Interior interior;
-                foreach (KeyValuePair<int, List<int>> sheetAndErrors in errorsInSheet)
+                // 1. Highlight main data errors
+                foreach (KeyValuePair<int, ExcelSheetErrors> sheetAndErrors in errorsInSheet)
                 {
                     worksheet = workbook.Sheets[sheetAndErrors.Key];
-                    foreach (int errorRow in sheetAndErrors.Value)
+                    // 1. Highlight main data errors
+                    foreach (int errorRow in sheetAndErrors.Value.MainDataErrorRows)
                     {
                         errorRange = worksheet.Range[$"A{errorRow}:B{errorRow}"];
                         interior = errorRange.Interior;
                         interior.Color = ExcelResources.GetInstance().Colors["DarkRed"];
                     }
+
+                    // 2. Highlight behavior data errors
+                    foreach (KeyValuePair<int, List<int>> entry in sheetAndErrors.Value.BehaviorErrorRows)
+                    {
+                        foreach (int errorRow in entry.Value)
+                        {
+                            errorRange = worksheet.Cells[errorRow + 1, entry.Key + 1];
+                            interior = errorRange.Interior;
+                            interior.Color = ExcelResources.GetInstance().Colors["DarkRed"];
+                        }
+                    }
+
+                    
+                    using (StreamWriter sw = File.AppendText(errorsLogPath))
+                    {
+                        sw.WriteLine(sheetAndErrors.Value.ErrorLog);
+                    }
+
                 }
+
+                Process.Start("notepad.exe", errorsLogPath);
 
                 excel.Visible = true;
                 excel.UserControl = true;
+                services.SetWorkStatus(false);
             });
         }
         public async Task ImportFromExcel(string filePath)
@@ -312,6 +339,16 @@ namespace DataProcessing.Classes
 
                 // 1. Check if there is any behaviors
                 Behaviours behaviours = GetBehaviorsFromExcelSheet(sheet);
+
+                if (behaviours.Count() == 0)
+                {
+                    return;
+                }
+
+                List<TimeSpan> sleepTimes = timeData.Where(ts => ts.Item2 == 2).Select(ts => ts.Item1).ToList();
+                string errorLog;
+                result.BehaviorErrorRows = behaviours.GetErrorRowIndexes(sleepTimes, out errorLog);
+                result.ErrorLog = sheet.Name + "\n" + errorLog;
             });
 
             return result;
@@ -610,11 +647,6 @@ namespace DataProcessing.Classes
             services.UpdateWorkStatus("Exporting stat tables");
             sheet = CreateNewSheet(wb, "Behavior", sheetNumber);
             int vPos = 1;
-            // Since all stat table has a chart beside it we have to add additional
-            // distance between them, because the chart height is longer than the table
-            // but if table has specific criterias (which will make the table longer)
-            // than the additional increment will be smaller or sometimes nonexistent
-            int criteriaNumber = options.Criterias.Count(c => c.Value != null);
             int additionaDistance = 7;
 
             foreach (IExportable table in _tableCreator.CreateBehaviorStatTables())
@@ -646,6 +678,7 @@ namespace DataProcessing.Classes
         // Checks if timespan is in given interval
         private bool isBetweenTimeInterval(TimeSpan from, TimeSpan till, TimeSpan time)
         {
+            return from <= time && time <= till;
             if (from < till)
             {
                 return from <= time && time <= till;

@@ -11,6 +11,15 @@ namespace DataProcessing.Classes
         #region Public properties
         public List<int> MainDataErrorRows { get; set; }
         public Dictionary<int, List<int>> BehaviorErrorRows { get; set; }
+        public string ErrorLog { get; set; }
+        #endregion
+
+        #region Constructors
+        public ExcelSheetErrors()
+        {
+            MainDataErrorRows = new List<int>();
+            BehaviorErrorRows = new Dictionary<int, List<int>>();
+        }
         #endregion
 
         #region Public methods
@@ -27,6 +36,10 @@ namespace DataProcessing.Classes
             }
 
             BehaviorErrorRows[behavior].Add(rowIndex);
+        }
+        public int Count()
+        {
+            return MainDataErrorRows.Count + BehaviorErrorRows.Count;
         }
         #endregion
     }
