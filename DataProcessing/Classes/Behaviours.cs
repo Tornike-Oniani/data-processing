@@ -52,40 +52,50 @@ namespace DataProcessing.Classes
         {
             return behaviourTimeIntervals.Count;
         }
-        public Dictionary<int, List<int>> GetErrorRowIndexes(List<TimeSpan> sleepTimes, out string errorLog)
+        public Dictionary<int, List<int>> GetErrorRowIndexes(List<TimeSpan> sleepTimes, List<TimeSpan> wakefulnessTimes, out string errorLog)
         {
             Dictionary<int, List<int>> result = new Dictionary<int, List<int>>();
             string log = "Behavior errors:\n";
-            string corruptedLogFull = "";
-            string overlapLogFull = "";
             string corruptedLog = "";
+            string voidLog = "";
+            string duplicateLog = "";
             string overlapLog = "";
+            string corruptedLogFull = "";
+            string voidLogFull = "";
+            string duplicateLogFull = "";
+            string overlapLogFull = "";
 
             List<int> corrupts;
+            List<int> voids;
+            List<int> duplicates;
             List<int> overlaps;
             List<int> indexes;
             for (int i = 3; i <= 7; i++)
             {
                 corrupts = GetCorruptedIntervalIndexes(i, out corruptedLog);
                 corruptedLogFull += corruptedLog;
-                overlaps = GetOverlapIntervalIndexes(i, sleepTimes, out overlapLog);
+                voids = GetVoidIntervalIndexes(i, sleepTimes, wakefulnessTimes, out voidLog);
+                voidLogFull += voidLog;
+                duplicates = GetDuplicateIntervalIndexes(i, out duplicateLog);
+                duplicateLogFull += duplicateLog;
+                overlaps = GetOverLapIntervalIndexes(i, out overlapLog);
                 overlapLogFull += overlapLog;
-                indexes = corrupts.Concat(overlaps).Distinct().ToList();
+                indexes = corrupts.Concat(voids).Concat(duplicates).Concat(overlaps).Distinct().ToList();
                 if (indexes.Count > 0)
                 {
                     result.Add(i, indexes);
                 }
             }
 
-            log += corruptedLogFull + overlapLogFull;
+            log += corruptedLogFull + voidLogFull + overlapLogFull + duplicateLogFull;
             errorLog = log;
             return result;
         }
         #endregion
 
         #region Private helpers
-        // There should be no overlap between behaviour intervals, because animal can be doing one activity at a time
-        private List<int> GetOverlapIntervalIndexes(int behaviour, List<TimeSpan> sleepTimes, out string errorLog)
+        // The end of each behavior should be a start of another or sleep AND each start of the behavior should be another's end or wakefulness (except for the first one). There should be no blanks.
+        private List<int> GetVoidIntervalIndexes(int behaviour, List<TimeSpan> sleepTimes, List<TimeSpan> wakefulnessTimes, out string errorLog)
         {
             List<int> result = new List<int>();
             string log = "";
@@ -102,7 +112,14 @@ namespace DataProcessing.Classes
                 if (!behaviourTimeIntervals.Any(bi => bi.Item2.From == curInterval.Till) &&
                     !sleepTimes.Any(w => w == curInterval.Till))
                 {
-                    log += "\t- " + curInterval.From + "-" + curInterval.Till + " no overlap\n";
+                    log += "\t- " + curInterval.From + "-" + curInterval.Till + " void interval at end\n";
+                    result.Add(i + 1);
+                    continue;
+                }
+                // If the start of the interval doesn't match the end of any behavior or wakefulness its an error (except for the first one which starts at 00:00:00)
+                if (curInterval.From != new TimeSpan(0, 0, 0) && !behaviourTimeIntervals.Any(bi => bi.Item2.Till == curInterval.From) && !wakefulnessTimes.Any(w => w == curInterval.From))
+                {
+                    log += "\t- " + curInterval.From + "-" + curInterval.Till + " void interval at start\n";
                     result.Add(i + 1);
                 }
             }
@@ -134,6 +151,73 @@ namespace DataProcessing.Classes
 
             errorLog = log;
             return result;
+        }
+        private List<int> GetDuplicateIntervalIndexes(int behaviour, out string errorLog)
+        {
+            List<int> result = new List<int>();
+            string log = "";
+
+            TimeInterval[] intervals = behaviourTimeIntervals
+                                .Where(bi => bi.Item1 == behaviour)
+                                .Select(bi => bi.Item2)
+                                .ToArray();
+
+            TimeInterval curInterval;
+            for (int i = 0; i < intervals.Length; i++)
+            {
+                curInterval = intervals[i];
+                // If an interval is used more than once its an error
+                if (behaviourTimeIntervals.Count(bi => bi.Item2.From == curInterval.From && bi.Item2.Till == curInterval.Till) > 1)
+                {
+                    log += "\t- " + curInterval.From + "-" + curInterval.Till + " used more than once (duplicate)\n";
+                    result.Add(i + 1);
+                }
+            }
+
+            errorLog = log;
+            return result;
+        }
+        private List<int> GetOverLapIntervalIndexes(int behaviour, out string errorLog)
+        {
+            List<int> result = new List<int>();
+            string log = "";
+
+            TimeInterval[] intervals = behaviourTimeIntervals
+                                .Where(bi => bi.Item1 == behaviour)
+                                .Select(bi => bi.Item2)
+                                .ToArray();
+
+            TimeInterval curInterval;
+            for (int i = 0; i < intervals.Length; i++)
+            {
+                curInterval = intervals[i];
+                // If an interval overlaps with any other its an error
+                if (CheckOverlap(behaviourTimeIntervals.Select(bi => bi.Item2).ToList(), curInterval))
+                {
+                    log += "\t- " + curInterval.From + "-" + curInterval.Till + " overlaps with other intervals\n";
+                    result.Add(i + 1);
+                }
+            }
+
+            errorLog = log;
+            return result;
+        }
+
+        private bool CheckOverlap(List<TimeInterval> intervals, TimeInterval sample)
+        {
+            foreach (TimeInterval interval in intervals)
+            {
+                // Since we are checking interval overalp in a list which also contains said interval we want to skip the check on itself. We are interested if it overlaps with other ones.
+                if (sample.From == interval.From && sample.Till == interval.Till)
+                {
+                    continue;
+                }
+                if (sample.From < interval.Till && sample.Till > interval.From)
+                {
+                    return true; // Overlapping interval found
+                }
+            }
+            return false; // No overlapping intervals found
         }
         #endregion
     }

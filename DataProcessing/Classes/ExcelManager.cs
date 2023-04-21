@@ -359,8 +359,9 @@ namespace DataProcessing.Classes
 
                 // We need all sleep times because we use it to check the overlaps in behavior intervals
                 List<TimeSpan> sleepTimes = timeData.Where(ts => ts.Item2 == 2).Select(ts => ts.Item1).ToList();
+                List<TimeSpan> wakefulnessTimes = timeData.Where(ts => ts.Item2 == 1).Select(ts => ts.Item1).ToList();
                 string errorLog;
-                result.BehaviorErrorRows = behaviours.GetErrorRowIndexes(sleepTimes, out errorLog);
+                result.BehaviorErrorRows = behaviours.GetErrorRowIndexes(sleepTimes, wakefulnessTimes, out errorLog);
                 result.ErrorLog = sheet.Name + "\n" + errorLog;
             });
 
