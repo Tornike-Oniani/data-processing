@@ -156,10 +156,9 @@ namespace DataProcessing.Classes
 
                 }
 
-                Process.Start("notepad.exe", errorsLogPath);
-
                 excel.Visible = true;
                 excel.UserControl = true;
+                Process.Start("notepad.exe", errorsLogPath);
                 services.SetWorkStatus(false);
             });
         }
@@ -175,13 +174,14 @@ namespace DataProcessing.Classes
 
                 List<TimeStamp> dataToImport;
                 int currentSheetNumber = 1;
+                bool dataIsValid = true;
                 try
                 {                    
                     for (int i = 1; i <= workbook.Sheets.Count; i++)
                     {
                         worksheet = workbook.Sheets[i];
                         dataToImport = GetImportableDataFromExcelSheet(worksheet);
-                        Behaviours behaviours = GetBehaviorsFromExcelSheet(worksheet);
+                        Behaviours behaviours = GetBehaviorsFromExcelSheet(worksheet, ref dataIsValid, null);
                         // If sheet also contains behaviour data append it to data
                         if (behaviours.Count() > 0)
                         {
@@ -273,17 +273,20 @@ namespace DataProcessing.Classes
                 Range firstRow = sheet.Cells[1, 1];
                 if (firstRow.Value == null)
                 {
+                    return;
+                    // There is a bug where sometimes the excel has only one sheet, but it still counts multiple
                     throw new Exception("First row can not be blank in excel file!");
                 }
-
-                // 2. Count nonblank rows
+                
                 services.UpdateWorkStatus("Counting rows...");
                 Range targetCells = sheet.UsedRange;
                 Range allCells = targetCells.Cells;
                 Range allRows = targetCells.Rows;
+                // We take and transform all value from used cells into 2 dimensional array, since working on array is much faster than going through excel cells. The less times we access the excel file the better.
                 object[,] allValues = (object[,])allCells.Value;
                 int rowCount = 0;
 
+                // Count nonblank rows
                 for (int i = 1; i <= allRows.Count; i++)
                 {
                     if (allValues[i, 1] == null) { break; }
@@ -295,34 +298,45 @@ namespace DataProcessing.Classes
                 Range rangeCells = rangeData.Cells;
                 object[,] dataValues = rangeCells.Value;
                 List<Tuple<TimeSpan, int>> timeData = new List<Tuple<TimeSpan, int>>();
-                int iteration = 0;
-                try
+                bool isDataValid = true;
+                for (int i = 1; i <= dataValues.Length / 2; i++)
                 {
-                    for (int i = 1; i <= dataValues.Length / 2; i++)
+                    // Try to parse data from the row (if it can't be parsed we will add its index into errors for highlighting)
+                    try
                     {
-                        iteration = i;
+                        // Fetch raw value into date format
                         string sTimeSpan = DateTime.FromOADate((double)dataValues[i, 1]).ToString("HH:mm:ss");
+                        // Split time into hours, minutes and seconds
                         int[] nTimeData = new int[3] {
-                            int.Parse(sTimeSpan.Split(':')[0]),
-                            int.Parse(sTimeSpan.Split(':')[1]),
-                            int.Parse(sTimeSpan.Split(':')[2])
-                        };
-                        string val = "";
-                        if (dataValues[i, 2] != null)
-                            val = dataValues[i, 2].ToString().Trim();
+                                int.Parse(sTimeSpan.Split(':')[0]),
+                                int.Parse(sTimeSpan.Split(':')[1]),
+                                int.Parse(sTimeSpan.Split(':')[2])
+                            };
+                        // If state is blank handle it as 0 otherwise extract the state
                         int thisState = dataValues[i, 2] == null ? 0 : int.Parse(dataValues[i, 2].ToString().Trim());
                         TimeSpan span = new TimeSpan(nTimeData[0], nTimeData[1], nTimeData[2]);
 
+                        // Create tuple of time and state and add it to the list
                         Tuple<TimeSpan, int> tuple = new Tuple<TimeSpan, int>(span, thisState);
                         timeData.Add(tuple);
                     }
+                    // If parse failed add current index into rows
+                    catch
+                    {
+                        result.AddMainDataErrorRow(i);
+                        // Check that data has one or more corrupted format
+                        isDataValid = false;                        
+                    }
                 }
-                // If parsing data from importing file failed (for example corrupted time entry) then we want to throw error on which row the parse failed
-                catch (Exception e)
+
+                // Get behaviors and also check if any of them is in corrpted format
+                Behaviours behaviours = GetBehaviorsFromExcelSheet(sheet, ref isDataValid, result);
+
+                // If even one row had corrupted format we want to stop further checks and highlight them, since other checks are meaningless if we don't have the full data to begin with
+                if (!isDataValid)
                 {
-                    Exception myException = new Exception(e.Message);
-                    myException.Data.Add("Iteration", iteration);
-                    throw myException;
+                    result.ErrorLog = sheet.Name + "\n" + "Highlighted data is in incorrect format";
+                    return;
                 }
 
                 // Check time integrity
@@ -337,14 +351,13 @@ namespace DataProcessing.Classes
                 // Check behavior integrity
                 // We need two checks for behaviors, first in each interval the first time span has to be lower than the second. The other check is that the end of each behavior needs to be the start of another behavior or sleep.
 
-                // 1. Check if there is any behaviors
-                Behaviours behaviours = GetBehaviorsFromExcelSheet(sheet);
-
+                // Check if there is any behaviors
                 if (behaviours.Count() == 0)
                 {
                     return;
                 }
 
+                // We need all sleep times because we use it to check the overlaps in behavior intervals
                 List<TimeSpan> sleepTimes = timeData.Where(ts => ts.Item2 == 2).Select(ts => ts.Item1).ToList();
                 string errorLog;
                 result.BehaviorErrorRows = behaviours.GetErrorRowIndexes(sleepTimes, out errorLog);
@@ -449,7 +462,7 @@ namespace DataProcessing.Classes
 
             return markAddedSamples;
         }
-        private Behaviours GetBehaviorsFromExcelSheet(Worksheet sheet)
+        private Behaviours GetBehaviorsFromExcelSheet(Worksheet sheet, ref bool isDataValid, ExcelSheetErrors errors)
         {
             services.UpdateWorkStatus("Importing behaviours...");
             Behaviours behaviours = new Behaviours();
@@ -470,14 +483,23 @@ namespace DataProcessing.Classes
                     {
                         break;
                     }
-                    times = curRowData.Split('-');
-                    timeUnits = times[0].Split(':').Select(Int32.Parse).ToArray();
-                    curInterval = new TimeInterval();
-                    curInterval.From = new TimeSpan(timeUnits[0], timeUnits[1], timeUnits[2]);
-                    timeUnits = times[1].Split(':').Select(Int32.Parse).ToArray();
-                    curInterval.Till = new TimeSpan(timeUnits[0], timeUnits[1], timeUnits[2]);
-                    behaviours.AddTimeIntervalOfBehaviour(curInterval, i + 2);
-                    rowNumber++;
+                    try
+                    {
+                        times = curRowData.Split('-');
+                        timeUnits = times[0].Split(':').Select(Int32.Parse).ToArray();
+                        curInterval = new TimeInterval();
+                        curInterval.From = new TimeSpan(timeUnits[0], timeUnits[1], timeUnits[2]);
+                        timeUnits = times[1].Split(':').Select(Int32.Parse).ToArray();
+                        curInterval.Till = new TimeSpan(timeUnits[0], timeUnits[1], timeUnits[2]);
+                        behaviours.AddTimeIntervalOfBehaviour(curInterval, i + 2);
+                        rowNumber++;
+                    }
+                    catch
+                    {
+                        errors.AddBehaviorErrorRow(i + 2, rowNumber - 1);
+                        rowNumber++;
+                        isDataValid = false;
+                    }
                 }                        
             }
 
