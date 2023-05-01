@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 namespace DataProcessing.Classes
@@ -244,6 +243,92 @@ namespace DataProcessing.Classes
                 wb.Sheets[1].Select(Type.Missing);
                 excel.Visible = true;
                 excel.UserControl = true;
+            });
+            services.SetWorkStatus(false);
+        }
+        public async Task ExportSheetToExcelAndSave(string destination, string fileName)
+        {
+            services.SetWorkStatus(true);
+            await Task.Run(() =>
+            {
+                // 1. Open excel
+                Application excel = new Application();
+                excel.Caption = WorkfileManager.GetInstance().SelectedWorkFile.Name;
+                wb = excel.Workbooks.Add(Missing.Value);
+
+                // Create mandatory sheets
+                CreateRawDataSheet();
+                CreateStatsSheet();
+                CreateGraphSheet();
+                CreateDuplicatesSheet();
+                CreateFrequenciesSheet();
+                // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
+                if (options.FrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
+                if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
+                CreateBehaviorSheet();
+
+                // Release excel to accesible state for user
+                wb.Sheets[1].Select(Type.Missing);
+
+                wb.SaveAs(Path.Combine(destination, fileName), XlFileFormat.xlOpenXMLWorkbook, Missing.Value,
+                    Missing.Value, false, false, XlSaveAsAccessMode.xlNoChange,
+                    XlSaveConflictResolution.xlUserResolution, true,
+                    Missing.Value, Missing.Value, Missing.Value);
+
+                // Supposed to clean excel from memory but fails miserably
+                Process excelProcess = GetExcelProcess(excel);
+                excel.Workbooks.Close();
+                while (Marshal.ReleaseComObject(wb) > 0) ;
+                wb = null;
+                while (Marshal.ReleaseComObject(excel.Workbooks) > 0) ;
+                excel.Quit();
+                while (Marshal.ReleaseComObject(excel) > 0) ;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                excelProcess.Kill();
+            });
+            services.SetWorkStatus(false);
+        }
+        public async Task ExportTotalSheetToExcelAndSave(string destination, string fileName)
+        {
+            services.SetWorkStatus(true);
+            await Task.Run(() =>
+            {
+                // 1. Open excel
+                Application excel = new Application();
+                excel.Caption = WorkfileManager.GetInstance().SelectedWorkFile.Name;
+                wb = excel.Workbooks.Add(Missing.Value);
+
+                // Create mandatory sheets
+                CreateRawDataSheet();
+                CreateStatsSheet();
+                CreateGraphSheet();
+                CreateDuplicatesSheet();
+                CreateFrequenciesSheet();
+                // Frequency ranges and cluster are optional so depedning on whether user selects them or not sheent position might differ
+                if (options.FrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
+                if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
+                CreateBehaviorSheet();
+
+                // Release excel to accesible state for user
+                wb.Sheets[1].Select(Type.Missing);
+
+                wb.SaveAs(Path.Combine(destination, fileName), XlFileFormat.xlOpenXMLWorkbook, Missing.Value,
+                    Missing.Value, false, false, XlSaveAsAccessMode.xlNoChange,
+                    XlSaveConflictResolution.xlUserResolution, true,
+                    Missing.Value, Missing.Value, Missing.Value);
+
+                // Supposed to clean excel from memory but fails miserably
+                Process excelProcess = GetExcelProcess(excel);
+                excel.Workbooks.Close();
+                while (Marshal.ReleaseComObject(wb) > 0) ;
+                wb = null;
+                while (Marshal.ReleaseComObject(excel.Workbooks) > 0) ;
+                excel.Quit();
+                while (Marshal.ReleaseComObject(excel) > 0) ;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                excelProcess.Kill();
             });
             services.SetWorkStatus(false);
         }

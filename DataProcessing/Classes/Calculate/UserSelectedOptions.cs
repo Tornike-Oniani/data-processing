@@ -15,5 +15,6 @@ namespace DataProcessing.Classes.Calculate
         public int ClusterSparationTime { get; set; }
         public Dictionary<string, int[]> FrequencyRanges { get; set; }
         public List<SpecificCriteria> Criterias { get; set; }
+        public bool IsCalculateTotalSelected { get; set; }
     }
 }

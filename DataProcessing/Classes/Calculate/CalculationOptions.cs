@@ -26,6 +26,7 @@ namespace DataProcessing.Classes.Calculate
         public Dictionary<string, int[]> FrequencyRanges { get; set; }
         public int ClusterSeparationTimeInSeconds { get; set; }
         public List<SpecificCriteria> Criterias { get; set; }
+        public bool ShouldCalculateTotal { get; set; }
         #endregion
 
         #region Constructors
@@ -37,6 +38,7 @@ namespace DataProcessing.Classes.Calculate
             ClusterSeparationTimeInSeconds = options.ClusterSparationTime * 60;
             SelectedRecordingType = options.SelectedRecordingType;
             MaxStates = RecordingType.MaxStates[options.SelectedRecordingType];
+            ShouldCalculateTotal = options.IsCalculateTotalSelected;
             MapStateToPhases(SelectedRecordingType);
             NonMarkedTimeStamps = CloneTimeStamps(region);
             NonMarkedNormalizedTimeStamps = CloneAndNormalizeTimeStamps(region);

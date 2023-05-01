@@ -59,6 +59,22 @@ namespace DataProcessing.Classes
         }
         #endregion
 
+        #region Public methods
+        public Dictionary<string, List<TimeStamp>> GetDataForAllSheets()
+        {
+            Dictionary<string, List<TimeStamp>> result = new Dictionary<string, List<TimeStamp>>();
+
+            List<TimeStamp> sheetData = new List<TimeStamp>();
+            foreach (string sheet in Sheets)
+            {
+                sheetData = TimeStamp.Find(int.Parse(sheet.Substring(sheet.Length - 1)));
+                result.Add(sheet, sheetData);
+            }
+
+            return result;
+        }
+        #endregion
+
         #region Command actions
         public async void Populate(object input = null)
         {

@@ -6,6 +6,7 @@ using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,7 @@ namespace DataProcessing.ViewModels
         #region Private attributes
         private List<TimeStamp> records;
         private Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges;
+        private Func<Dictionary<string, List<TimeStamp>>> getDataForAllSheets;
         #endregion
 
         #region Public properties
@@ -142,6 +144,34 @@ namespace DataProcessing.ViewModels
         #region Command actions
         public async void Calculate(object input = null)
         {
+            if (!IsCalculateTotalSelected)
+            {
+                await CalculateSingleSheet();
+                return;
+            }
+
+            // Select folder to export to
+            string destination = Services.GetInstance().BrowserService.OpenFolderDialog();
+            if (destination == null) { return; }
+
+            await CalculateAllSheetsAndTotal(destination);
+        }
+        #endregion
+
+        #region Public methods
+        public void SetSelectedParams(List<TimeStamp> region, TimeSpan from, TimeSpan till, Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges, Func<Dictionary<string, List<TimeStamp>>> getDataForAllSheets)
+        {
+            this.records = region;
+            this.From = from;
+            this.Till = till;
+            this.getDictionaryofFrequencyRanges = getDictionaryofFrequencyRanges;
+            this.getDataForAllSheets = getDataForAllSheets;
+        }
+        #endregion
+
+        #region Private helpers
+        private async Task CalculateSingleSheet()
+        {
             // Set specific criterias based on max states
             List<SpecificCriteria> criterias = new List<SpecificCriteria>();
             if (SelectedRecordingType == RecordingType.ThreeStates)
@@ -182,18 +212,20 @@ namespace DataProcessing.ViewModels
                 region = records;
             }
 
-            // 4. Export to excel
+            // Export to excel
             CalculationOptions calcOptions = new CalculationOptions
                 (
-                region,
-                new UserSelectedOptions()
-                {
-                    SelectedTimeMark = SelectedTimeMark,
-                    SelectedRecordingType = SelectedRecordingType,
-                    ClusterSparationTime = ClusterSeparationTime,
-                    FrequencyRanges = getDictionaryofFrequencyRanges(),
-                    Criterias = criterias
-                });
+                    region,
+                    new UserSelectedOptions()
+                    {
+                        SelectedTimeMark = SelectedTimeMark,
+                        SelectedRecordingType = SelectedRecordingType,
+                        ClusterSparationTime = ClusterSeparationTime,
+                        FrequencyRanges = getDictionaryofFrequencyRanges(),
+                        Criterias = criterias,
+                        IsCalculateTotalSelected = IsCalculateTotalSelected
+                    }
+                );
             IDataProcessor dataProcessor;
             if (SelectedRecordingType == RecordingType.TwoStatesWithBehavior)
             {
@@ -213,19 +245,69 @@ namespace DataProcessing.ViewModels
                 Clipboard.SetText("Calc - " + WorkfileManager.GetInstance().SelectedWorkFile.Name);
             }
         }
-        #endregion
-
-        #region Public methods
-        public void SetSelectedParams(List<TimeStamp> region, TimeSpan from, TimeSpan till, Func<Dictionary<string, int[]>> getDictionaryofFrequencyRanges)
+        private async Task CalculateAllSheetsAndTotal(string destination)
         {
-            this.records = region;
-            this.From = from;
-            this.Till = till;
-            this.getDictionaryofFrequencyRanges = getDictionaryofFrequencyRanges;
-        }
-        #endregion
+            // Set specific criterias based on max states
+            List<SpecificCriteria> criterias = new List<SpecificCriteria>();
+            if (SelectedRecordingType == RecordingType.ThreeStates)
+            {
+                criterias = new List<SpecificCriteria>()
+                {
+                    new SpecificCriteria() { State = 3, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 2, Operand = "Below", Value = SleepBelow },
+                    new SpecificCriteria() { State = 1, Operand = "Below", Value = ParadoxicalSleepBelow },
+                    new SpecificCriteria() { State = 3, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 2, Operand = "Above", Value = SleepAbove },
+                    new SpecificCriteria() { State = 1, Operand = "Above", Value = ParadoxicalSleepAbove },
+                };
+            }
+            else if (SelectedRecordingType == RecordingType.TwoStates)
+            {
+                criterias = new List<SpecificCriteria>()
+                {
+                    new SpecificCriteria() { State = 2, Operand = "Below", Value = WakefulnessBelow },
+                    new SpecificCriteria() { State = 1, Operand = "Below", Value = SleepBelow },
+                    new SpecificCriteria() { State = 2, Operand = "Above", Value = WakefulnessAbove },
+                    new SpecificCriteria() { State = 1, Operand = "Above", Value = SleepAbove },
+                };
+            }
 
-        #region Private helpers
+            ExcelResources.GetInstance().MaxStates = RecordingType.MaxStates[SelectedRecordingType];
+
+            // Export to excel
+            Dictionary<string, List<TimeStamp>> dataForAllSheets = getDataForAllSheets();
+
+            foreach (KeyValuePair<string, List<TimeStamp>> entry in dataForAllSheets)
+            {
+                CalculationOptions calcOptions = new CalculationOptions
+                (
+                    entry.Value,
+                    new UserSelectedOptions()
+                    {
+                        SelectedTimeMark = SelectedTimeMark,
+                        SelectedRecordingType = SelectedRecordingType,
+                        ClusterSparationTime = ClusterSeparationTime,
+                        FrequencyRanges = getDictionaryofFrequencyRanges(),
+                        Criterias = criterias,
+                        IsCalculateTotalSelected = IsCalculateTotalSelected
+                    }
+                );
+                IDataProcessor dataProcessor;
+                if (SelectedRecordingType == RecordingType.TwoStatesWithBehavior)
+                {
+                    dataProcessor = new AnotherDataProcessor(calcOptions);
+                }
+                else
+                {
+                    dataProcessor = new DataProcessor(calcOptions);
+                }
+                string fileName = SheetFiles.FirstOrDefault(sf => sf.SheetName == entry.Key).FileName;
+                await new ExcelManager(
+                    calcOptions,
+                    dataProcessor.Calculate()
+                    ).ExportTotalSheetToExcelAndSave(destination, fileName);
+            }
+        }
         private bool isBetweenTimeInterval(TimeSpan from, TimeSpan till, TimeSpan time)
         {
             if (from < till)
