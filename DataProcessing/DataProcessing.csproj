@@ -105,6 +105,7 @@
     <Compile Include="Classes\ExcelSheetErrors.cs" />
     <Compile Include="Classes\ExcelRange.cs" />
     <Compile Include="Classes\ExcelResources.cs" />
+    <Compile Include="Classes\ExportedFile.cs" />
     <Compile Include="Classes\Export\BehaviorStatTable.cs" />
     <Compile Include="Classes\Export\DuplicatesTable.cs" />
     <Compile Include="Classes\Export\ExcelTable.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Utils\Converters\BoolToColorConverter.cs" />
     <Compile Include="Utils\Converters\BoolToThicknessConverter.cs" />
     <Compile Include="Utils\Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Utils\Converters\BoolToVisibilityInverseConverter.cs" />
     <Compile Include="Utils\Converters\MarkerToColorConverter.cs" />
     <Compile Include="Utils\Converters\SecondsToUnitConverter.cs" />
     <Compile Include="Utils\Converters\StateToVisibilityConverter.cs" />

@@ -17,6 +17,7 @@
         <converters:BoolToColorConverter x:Key="BoolToColor" />
         <converters:BoolToThicknessConverter x:Key="BoolToThickness" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <converters:BoolToVisibilityInverseConverter x:Key="BoolToVisibilityInverse" />
         <converters:StateToVisibilityConverter x:Key="StateToVisibility" />
 
         <Style x:Key="SheetList" TargetType="{x:Type ListView}">
@@ -929,7 +930,11 @@
                             </Border>
                         </Grid>
 
-                        <Grid Width="560" HorizontalAlignment="left">
+                        <Grid 
+                            Width="560" 
+                            HorizontalAlignment="left"
+                            Margin="0 0 0 18"
+                            >
                             <Grid.RowDefinitions>
                                 <!-- Criteria header row -->
                                 <RowDefinition Height="Auto" />
@@ -964,13 +969,14 @@
                                 >
                                 <CheckBox 
                                     Content="Calculate all sheets + total"
+                                    IsChecked="{Binding IsCalculateTotalSelected}"
                                     Style="{StaticResource FlatCheckbox}"
                                      />
                             </Border>
                             <!-- Criteria content -->
                             <Border Grid.Row="1">
-                                <Grid>
-                                    <ListView>
+                                <Grid Visibility="{Binding IsCalculateTotalSelected, Converter={StaticResource BoolToVisibility}}">
+                                    <ListView ItemsSource="{Binding SheetFiles}">
                                         <ListView.Style>
                                             <Style TargetType="{x:Type ListView}">
                                                 <Setter Property="BorderThickness" Value="1 0 1 0" />
@@ -1015,13 +1021,13 @@
                                                                                 <ColumnDefinition Width="*" />
                                                                             </Grid.ColumnDefinitions>
                                                                             <TextBlock 
-                                                                                Text="{Binding}" 
+                                                                                Text="{Binding SheetName}" 
                                                                                 Style="{StaticResource LabelDefault}"
                                                                                 VerticalAlignment="Center"
                                                                                 Grid.Row="0"
                                                                                 />
                                                                             <TextBox
-                                                                                Text="File name..."
+                                                                                Text="{Binding FileName}"
                                                                                 Style="{StaticResource WatermarkTextBox}"
                                                                                 Grid.Column="1"
                                                                                 />
@@ -1034,10 +1040,6 @@
                                                 </Setter>
                                             </Style>
                                         </ListView.Style>
-                                        <ListView.Items>
-                                            <ListViewItem>Sheet 1</ListViewItem>
-                                            <ListViewItem>Sheet 2</ListViewItem>
-                                        </ListView.Items>
                                     </ListView>
                                 </Grid>
                             </Border>
@@ -1048,7 +1050,8 @@
                             IsChecked="{Binding SetNameToClipboard}"
                             Content="Set file name to clipboard"
                             Style="{StaticResource FlatCheckbox}"
-                            Margin="0 18 0 18" 
+                            Visibility="{Binding IsCalculateTotalSelected, Converter={StaticResource BoolToVisibilityInverse}}"
+                            Margin="0 0 0 18" 
                             />
 
                         <!-- Buttons -->

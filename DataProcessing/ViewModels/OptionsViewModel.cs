@@ -5,6 +5,7 @@ using DataProcessing.Models;
 using DataProcessing.Utils;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,8 @@ namespace DataProcessing.ViewModels
         private TimeSpan _from;
         private TimeSpan _till;
         private string _selectedRecordingType;
+        private bool _isCalculateTotalSelected;
+        private bool _setNameToClipboard;
         #endregion
 
         #region Private attributes
@@ -35,6 +38,7 @@ namespace DataProcessing.ViewModels
         public string SelectedTimeMark { get; set; }
         // Max number of states (can be 2 or 3 (in future we might also add 4))
         public List<string> RecordingTypes { get; set; }
+        // We have to set recording type before calculating so the program knows how to calculate, recording types can be PS + Sleep + Wakefulness, Sleep + Wakefulness, Sleep + Wakefulness + Behaviors etc.
         public string SelectedRecordingType
         {
             get { return _selectedRecordingType; }
@@ -78,9 +82,28 @@ namespace DataProcessing.ViewModels
             set { _exportSelectedPeriod = value; OnPropertyChanged("ExportSelectedPeriod"); }
         }
         // Check if user wishes to set filename on clipboard (We need this because file name can't be set on opened excel file by interop)
-        public bool SetNameToClipboard { get; set; }
+        public bool SetNameToClipboard
+        {
+            get { return _setNameToClipboard; }
+            set { _setNameToClipboard = value; OnPropertyChanged("SetNameToClipboard"); }
+        }
         // By what time margin should we define clusters (For example every time wakefulness is more than 10min)
         public int ClusterSeparationTime { get; set; }
+        public bool IsCalculateTotalSelected
+        {
+            get { return _isCalculateTotalSelected; }
+            set 
+            { 
+                _isCalculateTotalSelected = value; 
+                // If this is selected the files get automatically saved based on SheetNumbers so we don't need to set name on clipboard and we wouldn't even know what to set since the filenames will be already decided
+                if (_isCalculateTotalSelected)
+                {
+                    SetNameToClipboard = false;
+                }
+                OnPropertyChanged("IsCalculateTotalSelected"); 
+            }
+        }
+        public ObservableCollection<ExportedFile> SheetFiles { get; set; }
         #endregion
 
         #region Commands
@@ -100,6 +123,16 @@ namespace DataProcessing.ViewModels
                 RecordingType.TwoStatesWithBehavior
             };
             SelectedRecordingType = RecordingTypes[0];
+
+            SheetFiles = new ObservableCollection<ExportedFile>();
+            string workfileName = WorkfileManager.GetInstance().SelectedWorkFile.Name;
+            int sheetNumber = WorkfileManager.GetInstance().SelectedWorkFile.Sheets;
+            for (int i = 0; i < sheetNumber; i++)
+            {
+                SheetFiles.Add(new ExportedFile() { SheetName = "Sheet" + (i + 1), FileName = workfileName + "_Sheet" + (i + 1) });
+            }
+            SheetFiles.Add(new ExportedFile() { SheetName = "Total", FileName = workfileName + "_Total" });
+
 
             // Set up commands
             CalculateCommand = new RelayCommand(Calculate);
