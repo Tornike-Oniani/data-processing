@@ -554,7 +554,7 @@
                                     >
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock 
-                                            Text="Hour mark:" 
+                                            Text="Episode length:" 
                                             Style="{StaticResource LabelDefault}"
                                             VerticalAlignment="Center"
                                             Margin="0 0 6 0" 
@@ -684,7 +684,11 @@
                         </Grid>
 
                         <!-- Specific criteria-->
-                        <Grid Width="560" HorizontalAlignment="left">
+                        <Grid 
+                            Width="560" 
+                            HorizontalAlignment="left"
+                            Margin="0 0 0 18"
+                            >
                             <Grid.RowDefinitions>
                                 <!-- Criteria header row -->
                                 <RowDefinition Height="Auto" />
@@ -921,6 +925,120 @@
                                                 />
                                         </Grid>
                                     </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <Grid Width="560" HorizontalAlignment="left">
+                            <Grid.RowDefinitions>
+                                <!-- Criteria header row -->
+                                <RowDefinition Height="Auto" />
+                                <!-- Criteria content row -->
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <!-- Shadow -->
+                            <Border 
+                                Background="{StaticResource ColorBrushWhite}"
+                                BorderThickness="1 1 1 1"
+                                BorderBrush="{StaticResource ColorBrushWhite}"
+                                Grid.Row="0"
+                                Grid.RowSpan="2"
+                                >
+                                <Border.Effect>
+                                    <DropShadowEffect 
+                                        BlurRadius="5"
+                                        Color="#5a5a5a"
+                                        Opacity=".1"
+                                        Direction="0"
+                                        ShadowDepth="1" 
+                                        />
+                                </Border.Effect>
+                            </Border>
+                            <!-- Calculate total header -->
+                            <Border 
+                                BorderThickness="1 1 1 1" 
+                                BorderBrush="{StaticResource ColorBrushGrayBorder}" 
+                                Background="{StaticResource ColorBrushGrayPanelBackground}"
+                                Padding="7"
+                                Grid.Row="0"
+                                >
+                                <CheckBox 
+                                    Content="Calculate all sheets + total"
+                                    Style="{StaticResource FlatCheckbox}"
+                                     />
+                            </Border>
+                            <!-- Criteria content -->
+                            <Border Grid.Row="1">
+                                <Grid>
+                                    <ListView>
+                                        <ListView.Style>
+                                            <Style TargetType="{x:Type ListView}">
+                                                <Setter Property="BorderThickness" Value="1 0 1 0" />
+                                                <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGrayBorder}" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="{x:Type ListView}">
+                                                            <Border
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                >
+                                                                <ItemsPresenter />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="ItemContainerStyle">
+                                                    <Setter.Value>
+                                                        <Style TargetType="{x:Type ListViewItem}">
+                                                            <Setter Property="Padding" Value="7" />
+                                                            <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGrayBorder}" />
+                                                            <Setter Property="BorderThickness" Value="0 0 0 1" />
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                                                                        <Border 
+                                                                            Padding="{TemplateBinding Padding}"
+                                                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                                                            >
+                                                                            <ContentPresenter />
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value>
+                                                                    <DataTemplate>
+                                                                        <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width=".5*" />
+                                                                                <ColumnDefinition Width="*" />
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <TextBlock 
+                                                                                Text="{Binding}" 
+                                                                                Style="{StaticResource LabelDefault}"
+                                                                                VerticalAlignment="Center"
+                                                                                Grid.Row="0"
+                                                                                />
+                                                                            <TextBox
+                                                                                Text="File name..."
+                                                                                Style="{StaticResource WatermarkTextBox}"
+                                                                                Grid.Column="1"
+                                                                                />
+                                                                        </Grid>
+                                                                    </DataTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListView.Style>
+                                        <ListView.Items>
+                                            <ListViewItem>Sheet 1</ListViewItem>
+                                            <ListViewItem>Sheet 2</ListViewItem>
+                                        </ListView.Items>
+                                    </ListView>
                                 </Grid>
                             </Border>
                         </Grid>
