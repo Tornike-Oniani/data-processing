@@ -36,7 +36,7 @@ namespace DataProcessing.Classes.Export
                 sheet,
                 verticalPosition + 1,
                 horizontalPosition,
-                verticalPosition + excelResources.MaxStates,
+                verticalPosition + _data.GetLength(0) - 1,
                 horizontalPosition + _data.GetLength(1) - 1);
             chart.ChartWizard(
                 range,

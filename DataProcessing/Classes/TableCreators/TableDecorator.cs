@@ -197,6 +197,19 @@ namespace DataProcessing.Classes
 
             return table;
         }
+        public ExcelTable DecorateBehaviorGraphTable(object[,] data, bool hasChart)
+        {
+            ExcelTable table = hasChart ? new GraphTableWithChart(data) : new ExcelTable(data);
+            int columnCount = data.GetLength(1);
+            // Header
+            table.AddColor("Orange", new ExcelRange(0, 0, 0, columnCount - 1));
+            // Phases
+            table.AddColor("Blue", new ExcelRange(1, 0, 5, 0));
+
+            table.SetHeaderRange(0, 1, 0, columnCount - 1);
+
+            return table;
+        }
         #endregion
     }
 }

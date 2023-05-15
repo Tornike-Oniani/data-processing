@@ -239,6 +239,7 @@ namespace DataProcessing.Classes
                 if (options.FrequencyRanges.Count > 0) { CreateCustomFrequenciesSheet(); }
                 if (options.ClusterSeparationTimeInSeconds > 0) { CreateClusterSheet(); }
                 CreateBehaviorSheet();
+                CreateBehaviorGraphSheet();
 
                 // Release excel to accesible state for user
                 wb.Sheets[1].Select(Type.Missing);
@@ -676,6 +677,24 @@ namespace DataProcessing.Classes
             {
                 vPos = table.ExportToSheet(sheet, vPos, 1);
                 vPos += DISTANCE_BETWEEN_TABLES + additionaDistance;
+            }
+
+            // Autofit first column
+            formatRange = sheet.Range["A1:A1"];
+            formatRange.EntireColumn.AutoFit();
+
+            sheetNumber++;
+        }
+        private void CreateBehaviorGraphSheet()
+        {
+            // Graph tables
+            services.UpdateWorkStatus("Exporting graph tables");
+            sheet = CreateNewSheet(wb, "Behavior Graph Stats", sheetNumber);
+            int vPos = 1;
+            foreach (IExportable table in _tableCreator.CreateBehaviorGraphTables())
+            {
+                vPos = table.ExportToSheet(sheet, vPos, 1);
+                vPos += DISTANCE_BETWEEN_TABLES;
             }
 
             // Autofit first column

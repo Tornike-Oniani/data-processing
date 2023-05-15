@@ -248,6 +248,19 @@ namespace DataProcessing.Classes
             // Decorate collection and return it
             return tables;
         }
+        public List<ExcelTable> CreateBehaviorGraphTables()
+        {
+            List<ExcelTable> tables = new List<ExcelTable>();
+
+            // Create graph tables
+            tables.Add(CreateBehaviorGraphTable("Percentages %", GraphTableDataType.Percentages, true));
+            tables.Add(CreateBehaviorGraphTable("Minutes", GraphTableDataType.Minutes));
+            tables.Add(CreateBehaviorGraphTable("Seconds", GraphTableDataType.Seconds));
+            tables.Add(CreateBehaviorGraphTable("Numbers", GraphTableDataType.Numbers));
+
+            // Decorate collection and return it
+            return tables;
+        }
         #endregion
 
         #region Private helpers
@@ -417,6 +430,73 @@ namespace DataProcessing.Classes
             }
 
             return decorator.DecorateGraphTable(data, hasChart);
+        }
+        private ExcelTable CreateBehaviorGraphTable(string name, GraphTableDataType dataType, bool hasChart = false)
+        {
+            Dictionary<int, Stats> division = calculatedData.hourAndBehaviorStats;
+
+            // Header + phases
+            int rowCount = calculatedData.behaviorStateAndPhases.Count + 1;
+            // Phases + each hour mark
+            int colCount = division.Count + 1;
+            object[,] data = new object[rowCount, colCount];
+
+            // Set title
+            data[0, 0] = name;
+
+            // Add columns
+            // We start from 1 because 0 is set to title
+            int colIndex = 1;
+            foreach (KeyValuePair<int, Stats> hourAndStat in division)
+            {
+                data[0, colIndex] = $"{colIndex}" + "ep";
+                colIndex++;
+            }
+
+            // Fill in data
+            // We start from 1 because 0 is set to header
+            int rowIndex = 1;
+            colIndex = 0;
+            foreach (KeyValuePair<int, string> stateAndPhase in calculatedData.behaviorStateAndPhases)
+            {
+                data[rowIndex, colIndex] = stateAndPhase.Value;
+                colIndex++;
+                switch (dataType)
+                {
+                    case GraphTableDataType.Seconds:
+                        foreach (KeyValuePair<int, Stats> hourAndStat in division)
+                        {
+                            data[rowIndex, colIndex] = hourAndStat.Value.StateTimes[stateAndPhase.Key];
+                            colIndex++;
+                        }
+                        break;
+                    case GraphTableDataType.Minutes:
+                        foreach (KeyValuePair<int, Stats> hourAndStat in division)
+                        {
+                            data[rowIndex, colIndex] = Math.Round((double)hourAndStat.Value.StateTimes[stateAndPhase.Key] / 60, 2);
+                            colIndex++;
+                        }
+                        break;
+                    case GraphTableDataType.Percentages:
+                        foreach (KeyValuePair<int, Stats> hourAndStat in division)
+                        {
+                            data[rowIndex, colIndex] = hourAndStat.Value.StatePercentages[stateAndPhase.Key];
+                            colIndex++;
+                        }
+                        break;
+                    case GraphTableDataType.Numbers:
+                        foreach (KeyValuePair<int, Stats> hourAndStat in division)
+                        {
+                            data[rowIndex, colIndex] = hourAndStat.Value.StateNumber[stateAndPhase.Key];
+                            colIndex++;
+                        }
+                        break;
+                }
+                colIndex = 0;
+                rowIndex++;
+            }
+
+            return decorator.DecorateBehaviorGraphTable(data, hasChart);
         }
         private ExcelTable CreateFrequencyTable(string name, Dictionary<int, SortedList<int, int>> stateFrequencies, bool isTotal = false)
         {
